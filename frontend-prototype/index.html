@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mara Flamini — Dermatología</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'brand-light': '#fff3f0',
+            'brand-bg': '#e8d4cd',
+            'brand': '#ba8c84',
+            'brand-dark': '#9e7162',
+            'brand-soft': '#f7e8e4',
+          },
+          maxWidth: { '9xl': '96rem' },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-gradient-to-br from-brand-light to-brand-bg min-h-screen">
+  <div id="toast-container"></div>
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-brand/20">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-brand to-brand-dark rounded-full flex items-center justify-center">
+          <span class="text-white font-bold text-lg">M</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-brand-dark">Mara Flamini</h1>
+          <p class="text-sm text-brand">Dermatóloga</p>
+        </div>
+      </div>
+      <a href="agendar-visita.html">
+        <button class="bg-gradient-to-r from-brand to-brand-dark hover:from-brand-dark hover:to-brand text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-semibold inline-flex items-center">
+          <i data-lucide="calendar" class="w-5 h-5 mr-2"></i>
+          Agendar visita
+        </button>
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="min-h-screen flex items-center pt-32 pb-20 px-6 md:px-5 lg:px-1 max-w-9xl mx-auto">
+    <div class="w-full">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="reveal-left order-2 lg:order-1 relative max-h-[calc(100vh-12rem)]">
+          <div class="relative w-full h-[min(500px,calc(100vh-12rem))] max-h-[calc(100vh-12rem)] overflow-hidden rounded-lg">
+            <img
+              src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80"
+              alt="Dermatología"
+              class="rounded-lg w-full h-full object-cover object-center"
+              onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Mara+Flamini&size=500&background=ba8c84&color=fff';"
+            />
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-brand-soft pointer-events-none"></div>
+          </div>
+        </div>
+
+        <div class="reveal-right order-1 lg:order-2 text-center lg:text-left md:ml-10">
+          <h1 class="text-5xl sm:text-6xl md:text-7xl font-bold text-brand-dark mb-6 leading-tight">
+            Tu Piel, Nuestra
+            <span class="block text-brand">Especialidad</span>
+          </h1>
+          <p class="text-xl text-brand mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            Cuidamos de la salud y belleza de tu piel con la más alta tecnología y experiencia médica especializada.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center lg:items-start">
+            <a href="agendar-visita.html">
+              <button class="bg-gradient-to-r from-brand to-brand-dark hover:from-brand-dark hover:to-brand text-white px-10 py-4 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-lg font-semibold inline-flex items-center">
+                <i data-lucide="calendar" class="w-6 h-6 mr-3"></i>
+                Agendar visita
+                <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
+              </button>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="py-20 px-6 bg-white/50">
+    <div class="container mx-auto">
+      <div class="reveal text-center mb-16">
+        <h2 class="text-4xl font-bold text-brand-dark mb-4">Nuestros Servicios</h2>
+        <p class="text-lg text-brand max-w-2xl mx-auto">
+          Ofrecemos una amplia gama de servicios dermatológicos con la más alta calidad y tecnología.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8" id="services-grid">
+        <!-- service cards injected by landing.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 px-6">
+    <div class="container mx-auto text-center">
+      <div class="reveal">
+        <h2 class="text-4xl font-bold text-brand-dark mb-6">¿Listo para Cuidar tu Piel?</h2>
+        <p class="text-xl text-brand mb-8 max-w-2xl mx-auto">
+          Agenda tu cita hoy mismo y comienza tu camino hacia una piel más saludable y radiante.
+        </p>
+        <a href="agendar-visita.html">
+          <button class="bg-gradient-to-r from-brand to-brand-dark hover:from-brand-dark hover:to-brand text-white px-12 py-4 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-lg font-semibold inline-flex items-center">
+            <i data-lucide="calendar" class="w-6 h-6 mr-3"></i>
+            Agendar visita
+            <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
+          </button>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-12 py-6 border-t border-brand/20">
+    <div class="container mx-auto px-4 text-center text-sm text-brand">
+      <p>MaxTurnos - Sistema de Reserva de Turnos</p>
+      <p class="mt-1 text-xs text-brand/70">
+        Prototipo de demostración &middot;
+        <a href="admin.html" class="underline hover:text-brand-dark">Panel de administración</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/data.js"></script>
+  <script src="js/handoff.js"></script>
+  <script src="js/landing.js"></script>
+</body>
+</html>

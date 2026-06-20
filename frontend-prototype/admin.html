@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel del Proveedor — Mara Flamini</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'brand-light': '#fff3f0',
+            'brand-bg': '#e8d4cd',
+            'brand': '#ba8c84',
+            'brand-dark': '#9e7162',
+            'brand-soft': '#f7e8e4',
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="gradient-background min-h-screen" data-auth="authenticated">
+  <div id="toast-container"></div>
+
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
+      <h1 class="text-3xl font-bold text-gray-900">Panel del Proveedor</h1>
+      <a href="index.html" class="text-sm text-brand-dark hover:underline inline-flex items-center">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Volver al sitio
+      </a>
+    </div>
+
+    <!-- Public link card -->
+    <div class="mb-6 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+      <h2 class="text-base font-semibold text-gray-900">Perfil público / Enlace de reserva</h2>
+      <p class="text-sm text-gray-500">Compartí este enlace con tus pacientes para que agenden citas.</p>
+      <a href="agendar-visita.html">
+        <button class="mt-2 inline-flex items-center px-3 py-1.5 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50">
+          <i data-lucide="external-link" class="mr-2 h-4 w-4"></i>
+          Ver perfil público
+        </button>
+      </a>
+    </div>
+
+    <!-- Tabs -->
+    <div class="w-full">
+      <div role="tablist" class="grid grid-cols-2 sm:grid-cols-5 gap-1 p-1 bg-gray-200/70 rounded-lg mb-6">
+        <button class="tab-trigger px-3 py-2 text-sm font-medium rounded-md text-gray-600" data-tab="appointments" aria-selected="true">Citas</button>
+        <button class="tab-trigger px-3 py-2 text-sm font-medium rounded-md text-gray-600" data-tab="calendar" aria-selected="false">Calendario</button>
+        <button class="tab-trigger px-3 py-2 text-sm font-medium rounded-md text-gray-600" data-tab="profile" aria-selected="false">Perfil</button>
+        <button class="tab-trigger px-3 py-2 text-sm font-medium rounded-md text-gray-600" data-tab="schedule" aria-selected="false">Horarios</button>
+        <button class="tab-trigger px-3 py-2 text-sm font-medium rounded-md text-gray-600" data-tab="health-insurance" aria-selected="false">Obras sociales</button>
+      </div>
+
+      <div id="tab-appointments" class="tab-panel"></div>
+      <div id="tab-calendar" class="tab-panel hidden"></div>
+      <div id="tab-profile" class="tab-panel hidden"></div>
+      <div id="tab-schedule" class="tab-panel hidden"></div>
+      <div id="tab-health-insurance" class="tab-panel hidden"></div>
+    </div>
+  </div>
+
+  <!-- Confirm-cancel dialog -->
+  <div id="cancel-dialog" class="fixed inset-0 z-[60] items-center justify-center bg-black/50 px-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <h3 class="text-lg font-semibold text-gray-900">¿Cancelar esta cita?</h3>
+      <p class="text-sm text-gray-500 mt-2">¿Estás seguro de que deseas cancelar esta cita? Se enviará un mensaje al paciente.</p>
+      <div class="flex justify-end gap-2 mt-6">
+        <button id="cancel-dialog-no" class="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50">No, mantener</button>
+        <button id="cancel-dialog-yes" class="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">Sí, cancelar cita</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/data.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/handoff.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
