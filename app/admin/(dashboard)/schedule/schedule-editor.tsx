@@ -8,8 +8,13 @@ import {
   type WorkdaySchedule,
   type WorkSchedule,
 } from "@/lib/availability/work-schedule";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/toast";
 import { cancelCollisionAction, saveScheduleAction } from "./actions";
-import type { SaveScheduleState } from "./types";
+import type { CollisionSummary } from "./types";
+import styles from "./schedule-editor.module.css";
 
 /** Always present the schedule as one ordered entry per weekday. */
 function normalize(initial: WorkSchedule): WorkSchedule {
@@ -24,21 +29,23 @@ function normalize(initial: WorkSchedule): WorkSchedule {
 }
 
 export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
+  const toast = useToast();
   const [schedule, setSchedule] = useState<WorkSchedule>(() =>
     normalize(initial),
   );
-  const [state, setState] = useState<SaveScheduleState>({});
+  const [collisions, setCollisions] = useState<CollisionSummary[] | null>(null);
+  const [collisionOpen, setCollisionOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function edit(updater: (schedule: WorkSchedule) => WorkSchedule) {
     setSchedule(updater);
-    setState({}); // editing invalidates any prior result
+    // Editing invalidates any pending collision result.
+    setCollisions(null);
+    setCollisionOpen(false);
   }
 
   function patchDay(weekday: Weekday, patch: Partial<WorkdaySchedule>) {
-    edit((s) =>
-      s.map((d) => (d.weekday === weekday ? { ...d, ...patch } : d)),
-    );
+    edit((s) => s.map((d) => (d.weekday === weekday ? { ...d, ...patch } : d)));
   }
 
   function setRange(
@@ -63,7 +70,17 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
 
   function save() {
     startTransition(async () => {
-      setState(await saveScheduleAction(schedule));
+      const result = await saveScheduleAction(schedule);
+      if (result.saved) {
+        setCollisions(null);
+        setCollisionOpen(false);
+        toast.success("Horarios guardados.");
+      } else if (result.error) {
+        toast.error(result.error);
+      } else if (result.collisions) {
+        setCollisions(result.collisions);
+        setCollisionOpen(true);
+      }
     });
   }
 
@@ -71,116 +88,135 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
     startTransition(async () => {
       const result = await cancelCollisionAction(id);
       if (result.ok) {
-        setState((s) => ({
-          ...s,
-          collisions: (s.collisions ?? []).filter((c) => c.id !== id),
-        }));
+        setCollisions((cs) => (cs ?? []).filter((c) => c.id !== id));
+        toast.success("Turno cancelado. Se notificó al paciente.");
+      } else {
+        toast.error("No se pudo cancelar el turno.");
       }
     });
   }
 
   return (
-    <div>
-      {schedule.map((day) => (
-        <fieldset
-          key={day.weekday}
-          style={{ border: "1px solid #ddd", borderRadius: 6, marginBottom: "0.75rem", padding: "0.75rem" }}
-        >
-          <legend>
-            <label>
+    <div className={styles.editor}>
+      <div className={styles.days}>
+        {schedule.map((day) => (
+          <Card key={day.weekday} className={styles.day}>
+            <label className={styles.dayToggle}>
               <input
                 type="checkbox"
                 checked={day.isWorkingDay}
                 onChange={(e) =>
                   patchDay(day.weekday, { isWorkingDay: e.target.checked })
                 }
-              />{" "}
-              {WEEKDAY_LABELS[day.weekday]}
+              />
+              <span className={styles.dayName}>
+                {WEEKDAY_LABELS[day.weekday]}
+              </span>
             </label>
-          </legend>
 
-          {day.isWorkingDay ? (
-            <div>
-              {day.ranges.map((range, index) => (
-                <div key={index} style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.4rem" }}>
-                  <input
-                    type="time"
-                    value={range.start}
-                    onChange={(e) =>
-                      setRange(day.weekday, index, "start", e.target.value)
-                    }
-                  />
-                  <span>a</span>
-                  <input
-                    type="time"
-                    value={range.end}
-                    onChange={(e) =>
-                      setRange(day.weekday, index, "end", e.target.value)
-                    }
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      patchDay(day.weekday, {
-                        ranges: day.ranges.filter((_, i) => i !== index),
-                      })
-                    }
-                  >
-                    Quitar
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() =>
-                  patchDay(day.weekday, {
-                    ranges: [...day.ranges, { start: "09:00", end: "13:00" }],
-                  })
-                }
-              >
-                Agregar rango
-              </button>
-            </div>
-          ) : (
-            <p style={{ color: "#777", margin: 0 }}>No se atiende.</p>
-          )}
-        </fieldset>
-      ))}
+            {day.isWorkingDay ? (
+              <div className={styles.ranges}>
+                {day.ranges.map((range, index) => (
+                  <div key={index} className={styles.range}>
+                    <input
+                      type="time"
+                      className={styles.time}
+                      aria-label="Desde"
+                      value={range.start}
+                      onChange={(e) =>
+                        setRange(day.weekday, index, "start", e.target.value)
+                      }
+                    />
+                    <span className={styles.sep}>a</span>
+                    <input
+                      type="time"
+                      className={styles.time}
+                      aria-label="Hasta"
+                      value={range.end}
+                      onChange={(e) =>
+                        setRange(day.weekday, index, "end", e.target.value)
+                      }
+                    />
+                    <Button
+                      variant="ghost"
+                      onClick={() =>
+                        patchDay(day.weekday, {
+                          ranges: day.ranges.filter((_, i) => i !== index),
+                        })
+                      }
+                    >
+                      Quitar
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    patchDay(day.weekday, {
+                      ranges: [
+                        ...day.ranges,
+                        { start: "09:00", end: "13:00" },
+                      ],
+                    })
+                  }
+                >
+                  Agregar rango
+                </Button>
+              </div>
+            ) : (
+              <p className={styles.closed}>No se atiende.</p>
+            )}
+          </Card>
+        ))}
+      </div>
 
-      <button type="button" onClick={save} disabled={pending}>
+      <Button onClick={save} busy={pending} className={styles.save}>
         {pending ? "Guardando…" : "Guardar horarios"}
-      </button>
+      </Button>
 
-      {state.saved ? <p>Horarios guardados.</p> : null}
-      {state.error ? <p role="alert">{state.error}</p> : null}
-
-      {state.collisions ? (
-        state.collisions.length > 0 ? (
-          <div role="alert" style={{ marginTop: "1rem", border: "1px solid #d97706", borderRadius: 6, padding: "0.75rem" }}>
-            <p style={{ marginTop: 0 }}>
-              No se puede reducir la agenda: hay turnos agendados en conflicto.
-              Cancelalos para aplicar el cambio (cada uno envía un aviso de
-              cancelación).
+      <Dialog
+        open={collisionOpen}
+        onClose={() => {
+          if (!pending) setCollisionOpen(false);
+        }}
+        title="No se puede reducir la agenda"
+        footer={
+          <Button
+            variant="ghost"
+            onClick={() => setCollisionOpen(false)}
+            disabled={pending}
+          >
+            Cerrar
+          </Button>
+        }
+      >
+        {collisions && collisions.length > 0 ? (
+          <>
+            <p>
+              Hay turnos agendados en conflicto. Cancelalos para aplicar el
+              cambio (cada uno envía un aviso de cancelación).
             </p>
-            <ul>
-              {state.collisions.map((c) => (
-                <li key={c.id} style={{ marginBottom: "0.4rem" }}>
-                  {c.date} {c.time} · {c.patientName}{" "}
-                  <button
-                    type="button"
+            <ul className={styles.collisions}>
+              {collisions.map((c) => (
+                <li key={c.id} className={styles.collision}>
+                  <span>
+                    {c.date} {c.time} · {c.patientName}
+                  </span>
+                  <Button
+                    variant="destructive"
                     onClick={() => cancelCollision(c.id)}
                     disabled={pending}
                   >
                     Cancelar turno
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
-          </div>
+          </>
         ) : (
           <p>Conflictos resueltos. Volvé a guardar para aplicar el cambio.</p>
-        )
-      ) : null}
+        )}
+      </Dialog>
     </div>
   );
 }

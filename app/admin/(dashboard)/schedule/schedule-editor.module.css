@@ -1,0 +1,98 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dayToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.dayName {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ranges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-left: var(--space-6);
+}
+
+.range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.time {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-base);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.time:focus {
+  outline: none;
+  border-color: var(--brand-dark);
+  box-shadow: 0 0 0 3px rgba(158, 113, 98, 0.18);
+}
+
+.sep {
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.closed {
+  padding-left: var(--space-6);
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.save {
+  align-self: flex-start;
+}
+
+.collisions {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.collision {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 520px) {
+  .save {
+    align-self: stretch;
+  }
+}
