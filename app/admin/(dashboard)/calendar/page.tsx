@@ -2,8 +2,12 @@ import Link from "next/link";
 import { listAppointments } from "@/lib/appointments/appointment-listing";
 import { buildMonthCalendar, monthBounds } from "@/lib/appointments/calendar";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
-import { STATUS_LABELS } from "@/lib/appointments/status";
 import { VISIT_TYPE_LABELS } from "@/lib/appointments/visit-type";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { MonthCalendarGrid } from "./calendar-grid";
+import styles from "./page.module.css";
 
 // Reads Appointments from the database on every request.
 export const dynamic = "force-dynamic";
@@ -22,7 +26,6 @@ const MONTH_NAMES = [
   "Noviembre",
   "Diciembre",
 ];
-const WEEKDAY_HEADERS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -35,7 +38,10 @@ function pad(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-function parseMonth(value: string | undefined, now: Date): { year: number; month: number } {
+function parseMonth(
+  value: string | undefined,
+  now: Date,
+): { year: number; month: number } {
   const match = value?.match(/^(\d{4})-(\d{2})$/);
   if (match) {
     const year = Number(match[1]);
@@ -79,101 +85,55 @@ export default async function AdminCalendarPage({
     : [];
 
   return (
-    <main style={{ maxWidth: 960, margin: "2rem auto", padding: "0 1rem" }}>
-      <p>
-        <Link href="/admin">← Panel</Link>
-      </p>
-      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-        <Link href={`/admin/calendar?month=${prevParam}`}>← Mes anterior</Link>
-        <h1 style={{ margin: 0 }}>
+    <div className={styles.page}>
+      <header className={styles.nav}>
+        <Button as={Link} href={`/admin/calendar?month=${prevParam}`} variant="ghost">
+          ← Mes anterior
+        </Button>
+        <h1 className={styles.title}>
           {MONTH_NAMES[month - 1]} {year}
         </h1>
-        <Link href={`/admin/calendar?month=${nextParam}`}>Mes siguiente →</Link>
-      </div>
+        <Button as={Link} href={`/admin/calendar?month=${nextParam}`} variant="ghost">
+          Mes siguiente →
+        </Button>
+      </header>
 
-      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "1rem", tableLayout: "fixed" }}>
-        <thead>
-          <tr>
-            {WEEKDAY_HEADERS.map((h) => (
-              <th key={h} style={{ textAlign: "left", padding: "0.25rem", fontSize: "0.85rem" }}>
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {calendar.weeks.map((week, wi) => (
-            <tr key={wi}>
-              {week.map((cell) => {
-                const dayNumber = Number(cell.date.slice(8, 10));
-                const isToday = cell.date === todayISO;
-                const cellStyle: React.CSSProperties = {
-                  border: "1px solid #e5e5e5",
-                  verticalAlign: "top",
-                  height: 72,
-                  padding: "0.25rem",
-                  background: cell.inMonth ? (isToday ? "#eef6ff" : "#fff") : "#fafafa",
-                  color: cell.inMonth ? "inherit" : "#bbb",
-                };
-                return (
-                  <td key={cell.date} style={cellStyle}>
-                    {cell.inMonth ? (
-                      <Link
-                        href={`/admin/calendar?month=${monthParam}&day=${cell.date}`}
-                        style={{ textDecoration: "none", color: "inherit", display: "block" }}
-                      >
-                        <span style={{ fontWeight: isToday ? 700 : 400 }}>{dayNumber}</span>
-                        {cell.count > 0 ? (
-                          <span
-                            style={{
-                              display: "block",
-                              marginTop: 4,
-                              fontSize: "0.75rem",
-                              background: "#0f172a",
-                              color: "#fff",
-                              borderRadius: 4,
-                              padding: "1px 6px",
-                              width: "fit-content",
-                            }}
-                          >
-                            {cell.count} turno{cell.count === 1 ? "" : "s"}
-                          </span>
-                        ) : null}
-                      </Link>
-                    ) : (
-                      <span>{dayNumber}</span>
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Card className={styles.calendarCard}>
+        <MonthCalendarGrid
+          calendar={calendar}
+          monthParam={monthParam}
+          todayISO={todayISO}
+          selectedDay={selectedDay}
+        />
+      </Card>
 
-      {selectedDay ? (
-        <section style={{ marginTop: "1.5rem" }}>
-          <h2>Turnos del {selectedDay}</h2>
-          {selectedViews.length === 0 ? (
-            <p>No hay turnos este día.</p>
-          ) : (
-            <ul>
-              {selectedViews.map(({ appointment, status }) => (
-                <li key={appointment.id}>
-                  {appointment.time} · {appointment.patientFirstName}{" "}
-                  {appointment.patientLastName} ·{" "}
-                  {VISIT_TYPE_LABELS[appointment.visitType]} ·{" "}
-                  {STATUS_LABELS[status]}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ) : (
-        <p style={{ marginTop: "1rem", color: "#666" }}>
-          Seleccioná un día para ver sus turnos.
-        </p>
-      )}
-    </main>
+      <Card>
+        {selectedDay ? (
+          <>
+            <h2 className={styles.dayTitle}>Turnos del {selectedDay}</h2>
+            {selectedViews.length === 0 ? (
+              <p className={styles.empty}>No hay turnos este día.</p>
+            ) : (
+              <ul className={styles.agenda}>
+                {selectedViews.map(({ appointment, status }) => (
+                  <li key={appointment.id} className={styles.agendaItem}>
+                    <span className={styles.agendaTime}>{appointment.time}</span>
+                    <span className={styles.agendaName}>
+                      {appointment.patientFirstName} {appointment.patientLastName}
+                    </span>
+                    <span className={styles.agendaType}>
+                      {VISIT_TYPE_LABELS[appointment.visitType]}
+                    </span>
+                    <StatusBadge status={status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : (
+          <p className={styles.empty}>Seleccioná un día para ver sus turnos.</p>
+        )}
+      </Card>
+    </div>
   );
 }

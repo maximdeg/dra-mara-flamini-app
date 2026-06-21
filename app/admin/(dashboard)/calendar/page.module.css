@@ -1,0 +1,76 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: var(--text-2xl);
+  color: var(--brand-dark);
+  text-align: center;
+}
+
+.calendarCard {
+  padding: var(--space-3);
+}
+
+.dayTitle {
+  font-size: var(--text-lg);
+  color: var(--brand-dark);
+  margin-bottom: var(--space-4);
+}
+
+.empty {
+  color: var(--text-muted);
+}
+
+.agenda {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.agendaItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+}
+
+.agendaTime {
+  font-weight: 600;
+  color: var(--brand-dark);
+  min-width: 3.2rem;
+}
+
+.agendaName {
+  flex: 1;
+  font-weight: 500;
+}
+
+.agendaType {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 480px) {
+  .agendaItem {
+    flex-wrap: wrap;
+  }
+
+  .agendaName {
+    flex-basis: 100%;
+    order: 3;
+  }
+}
