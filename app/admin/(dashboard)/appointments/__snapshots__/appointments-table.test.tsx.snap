@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AppointmentsTable > matches the table structure 1`] = `"<div><table><thead><tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Tipo</th><th>Cobertura</th><th>Estado</th><th></th></tr></thead><tbody><tr><td>2026-06-22</td><td>09:20</td><td>Ana García</td><td>Consulta · Primera vez</td><td>Particular</td><td><span>Agendada</span></td><td><button type="button">Cancelar</button></td></tr><tr><td>2026-06-22</td><td>09:20</td><td>Ana García</td><td>Consulta · Primera vez</td><td>Particular</td><td><span>Cancelada</span></td><td></td></tr></tbody></table></div><div role="region" aria-label="Notificaciones"></div>"`;

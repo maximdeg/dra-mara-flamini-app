@@ -12,14 +12,13 @@ import { getCancellationDeps } from "@/lib/appointments/get-cancellation-deps";
  * session check here is defense-in-depth (a server action is a public endpoint).
  */
 export async function cancelAppointmentAsProfessional(
-  formData: FormData,
+  id: string,
 ): Promise<void> {
   const session = await auth();
   if (!session?.user) {
     throw new Error("No autorizado.");
   }
 
-  const id = String(formData.get("id") ?? "");
   if (!id) {
     return;
   }
