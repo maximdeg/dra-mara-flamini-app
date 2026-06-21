@@ -1,0 +1,25 @@
+.alert {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: var(--error-dark);
+}
+
+.success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.info {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand-darker);
+}

@@ -39,7 +39,7 @@ them.
 - [x] Testing-Library + jsdom Vitest setup is in place as the reference pattern for UI tests.
 - [x] At least one behavior test for a primitive (e.g. Button renders, fires onClick, respects disabled) passes (4 Button tests).
 - [x] The existing Vitest suite still passes unchanged (no behavior leaked).
-- [ ] A human has reviewed and approved the token values, visual direction, CSS-Modules conventions, and primitive API.
+- [x] A human has reviewed and approved the token values, visual direction, CSS-Modules conventions, and primitive API.
 
 ## Blocked by
 
@@ -62,6 +62,5 @@ None — can start immediately.
   `vitest.setup.ts`; 4 Button behavior tests. `npm run typecheck` clean, `npm test`
   127/127 green (123 existing unchanged + 4 new), `npm run build` clean (`/` still
   prerendered static). Presentation-only — no lib/API/route changes.
-- **Pending HITL review** before unblocking 02–11: token values + visual direction,
-  the CSS-Modules conventions, and the Button/Card API. Run `npm run dev` and open `/`
-  to review.
+- 2026-06-21: **HITL review approved** — maintainer signed off on the palette and the
+  design foundation. Slice complete; unblocks 02, 03, 04.

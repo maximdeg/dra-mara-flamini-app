@@ -22,6 +22,11 @@ import {
   formatPesos,
   type SelfPayPricing,
 } from "@/lib/deposit/deposit";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
+import styles from "./page.module.css";
 
 // Spanish messages for the server-side Booking Rejections.
 const REJECTION_MESSAGES: Record<string, string> = {
@@ -171,9 +176,7 @@ export default function AgendarVisitaPage() {
           rejection?: string;
         };
         const rejection = data.rejection;
-        setError(
-          (rejection && REJECTION_MESSAGES[rejection]) || FALLBACK_ERROR,
-        );
+        setError((rejection && REJECTION_MESSAGES[rejection]) || FALLBACK_ERROR);
         // The chosen slot was taken since the form loaded — refresh the list.
         if (rejection === "SlotTaken" && date) {
           fetch(`/api/available-times/${date}`)
@@ -194,165 +197,177 @@ export default function AgendarVisitaPage() {
   }
 
   return (
-    <main style={{ maxWidth: 640, margin: "4rem auto", padding: "0 1rem" }}>
-      <h1>Agendar una visita</h1>
-      <form onSubmit={handleSubmit}>
-        <p>
-          <label>
-            Nombre
-            <input name="patientFirstName" required />
-          </label>
+    <div className={styles.page}>
+      <header className={styles.intro}>
+        <h1 className={styles.title}>Agendar una visita</h1>
+        <p className={styles.subtitle}>
+          Completá tus datos y elegí el día y horario que prefieras.
         </p>
-        <p>
-          <label>
-            Apellido
-            <input name="patientLastName" required />
-          </label>
-        </p>
-        <p>
-          <label>
-            Teléfono
-            <input name="patientPhone" required />
-          </label>
-        </p>
-        <p>
-          <label>
-            Email
-            <input name="patientEmail" type="email" required />
-          </label>
-        </p>
-        <p>
-          <label>
-            Tipo de visita
-            <select
-              required
-              value={visitType}
-              onChange={(e) => setVisitType(e.target.value as VisitType)}
-            >
-              <option value="">Elegí…</option>
-              {VISIT_TYPES.map((vt) => (
-                <option key={vt} value={vt}>
-                  {VISIT_TYPE_LABELS[vt]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </p>
-        {visitType === "Consultation" ? (
-          <p>
-            <label>
-              Tipo de consulta
+      </header>
+
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <Card>
+          <h2 className={styles.sectionTitle}>Tus datos</h2>
+          <div className={styles.grid2}>
+            <Field label="Nombre" required>
+              <input name="patientFirstName" required />
+            </Field>
+            <Field label="Apellido" required>
+              <input name="patientLastName" required />
+            </Field>
+            <Field label="Teléfono" required>
+              <input name="patientPhone" required />
+            </Field>
+            <Field label="Email" required>
+              <input name="patientEmail" type="email" required />
+            </Field>
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className={styles.sectionTitle}>Tu visita</h2>
+          <div className={styles.fields}>
+            <Field label="Tipo de visita" required>
               <select
                 required
-                value={consultType}
-                onChange={(e) => setConsultType(e.target.value as ConsultType)}
+                value={visitType}
+                onChange={(e) => setVisitType(e.target.value as VisitType)}
               >
                 <option value="">Elegí…</option>
-                {CONSULT_TYPES.map((ct) => (
-                  <option key={ct} value={ct}>
-                    {CONSULT_TYPE_LABELS[ct]}
+                {VISIT_TYPES.map((vt) => (
+                  <option key={vt} value={vt}>
+                    {VISIT_TYPE_LABELS[vt]}
                   </option>
                 ))}
               </select>
-            </label>
-          </p>
-        ) : null}
-        {visitType === "Practice" ? (
-          <p>
-            <label>
-              Tipo de práctica
+            </Field>
+
+            {visitType === "Consultation" ? (
+              <Field label="Tipo de consulta" required>
+                <select
+                  required
+                  value={consultType}
+                  onChange={(e) => setConsultType(e.target.value as ConsultType)}
+                >
+                  <option value="">Elegí…</option>
+                  {CONSULT_TYPES.map((ct) => (
+                    <option key={ct} value={ct}>
+                      {CONSULT_TYPE_LABELS[ct]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : null}
+
+            {visitType === "Practice" ? (
+              <Field label="Tipo de práctica" required>
+                <select
+                  required
+                  value={practiceType}
+                  onChange={(e) =>
+                    setPracticeType(e.target.value as PracticeType)
+                  }
+                >
+                  <option value="">Elegí…</option>
+                  {PRACTICE_TYPES.map((pt) => (
+                    <option key={pt} value={pt}>
+                      {PRACTICE_TYPE_LABELS[pt]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : null}
+
+            <Field label="Cobertura" required>
               <select
                 required
-                value={practiceType}
-                onChange={(e) => setPracticeType(e.target.value as PracticeType)}
+                value={coverageValue}
+                disabled={!visitType}
+                onChange={(e) => setCoverageValue(e.target.value)}
               >
-                <option value="">Elegí…</option>
-                {PRACTICE_TYPES.map((pt) => (
-                  <option key={pt} value={pt}>
-                    {PRACTICE_TYPE_LABELS[pt]}
+                <option value="">
+                  {visitType ? "Elegí…" : "Elegí un tipo de visita primero"}
+                </option>
+                {coverageOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
-            </label>
-          </p>
-        ) : null}
-        <p>
-          <label>
-            Cobertura
-            <select
-              required
-              value={coverageValue}
-              disabled={!visitType}
-              onChange={(e) => setCoverageValue(e.target.value)}
-            >
-              <option value="">
-                {visitType ? "Elegí…" : "Elegí un tipo de visita primero"}
-              </option>
-              {coverageOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </p>
-        {depositAmount !== null ? (
-          <p>
-            Seña requerida: <strong>{formatPesos(depositAmount)}</strong>
-            <br />
-            <label>
-              <input
-                type="checkbox"
+            </Field>
+
+            {depositAmount !== null ? (
+              <Alert variant="info" className={styles.deposit}>
+                <p className={styles.depositAmount}>
+                  Seña requerida: <strong>{formatPesos(depositAmount)}</strong>
+                </p>
+                <label className={styles.depositAck}>
+                  <input
+                    type="checkbox"
+                    required
+                    checked={depositAcknowledged}
+                    onChange={(e) => setDepositAcknowledged(e.target.checked)}
+                  />
+                  <span>
+                    Acepto abonar la seña (el pago se coordina fuera de la
+                    plataforma).
+                  </span>
+                </label>
+              </Alert>
+            ) : null}
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className={styles.sectionTitle}>Fecha y hora</h2>
+          <div className={styles.grid2}>
+            <Field label="Fecha" required>
+              <select
                 required
-                checked={depositAcknowledged}
-                onChange={(e) => setDepositAcknowledged(e.target.checked)}
-              />{" "}
-              Acepto abonar la seña (el pago se coordina fuera de la plataforma).
-            </label>
-          </p>
-        ) : null}
-        <p>
-          <label>
-            Fecha
-            <select
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            >
-              <option value="">Elegí una fecha…</option>
-              {days.map((day) => (
-                <option key={day} value={day}>
-                  {day}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              >
+                <option value="">Elegí una fecha…</option>
+                {days.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Hora" required>
+              <select
+                required
+                value={time}
+                disabled={!date || times.length === 0}
+                onChange={(e) => setTime(e.target.value)}
+              >
+                <option value="">
+                  {date ? "Elegí un horario…" : "Elegí una fecha primero"}
                 </option>
-              ))}
-            </select>
-          </label>
-        </p>
-        <p>
-          <label>
-            Hora
-            <select
-              required
-              value={time}
-              disabled={!date || times.length === 0}
-              onChange={(e) => setTime(e.target.value)}
-            >
-              <option value="">
-                {date ? "Elegí un horario…" : "Elegí una fecha primero"}
-              </option>
-              {times.map((slot) => (
-                <option key={slot} value={slot}>
-                  {slot}
-                </option>
-              ))}
-            </select>
-          </label>
-        </p>
-        {error ? <p role="alert">{error}</p> : null}
-        <button type="submit" disabled={submitting || !canSubmit}>
-          {submitting ? "Agendando…" : "Agendar"}
-        </button>
+                {times.map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </Card>
+
+        <div className={styles.actions}>
+          {error ? <Alert variant="error">{error}</Alert> : null}
+          <Button
+            type="submit"
+            busy={submitting}
+            disabled={!canSubmit}
+            className={styles.submit}
+          >
+            {submitting ? "Agendando…" : "Agendar"}
+          </Button>
+        </div>
       </form>
-    </main>
+    </div>
   );
 }

@@ -1,0 +1,62 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.labelText {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.required {
+  color: var(--brand-dark);
+}
+
+/* Style the native control nested in the label. */
+.label :is(input, select, textarea) {
+  width: 100%;
+  padding: var(--space-3);
+  font-size: var(--text-base);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.label :is(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--brand-dark);
+  box-shadow: 0 0 0 3px rgba(158, 113, 98, 0.18);
+}
+
+.label :is(input, select, textarea):disabled {
+  background: var(--brand-soft);
+  color: var(--text-subtle);
+  cursor: not-allowed;
+}
+
+.label input[aria-invalid="true"],
+.label select[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+.hint {
+  font-size: var(--text-sm);
+  color: var(--text-subtle);
+}
+
+.error {
+  font-size: var(--text-sm);
+  color: var(--error);
+}
