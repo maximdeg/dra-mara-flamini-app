@@ -1,0 +1,37 @@
+import { notFound } from "next/navigation";
+import { patientCanCancel } from "@/lib/appointments/cancellation";
+import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
+import { statusOf } from "@/lib/appointments/status";
+import { AppointmentDetails } from "./appointment-details";
+import { CancelAppointment } from "./cancel-appointment";
+import styles from "./page.module.css";
+
+// Rendered on demand: it reads an Appointment from the database by id.
+export const dynamic = "force-dynamic";
+
+export default async function CitaPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const repository = await getAppointmentRepository();
+  const appointment = await repository.findById(id);
+  if (!appointment) {
+    notFound();
+  }
+
+  const now = new Date();
+  const status = statusOf(appointment, now);
+
+  return (
+    <div className={styles.page}>
+      <AppointmentDetails appointment={appointment} status={status} />
+      <CancelAppointment
+        appointmentId={appointment.id}
+        isScheduled={status === "scheduled"}
+        withinWindow={patientCanCancel(appointment, now)}
+      />
+    </div>
+  );
+}

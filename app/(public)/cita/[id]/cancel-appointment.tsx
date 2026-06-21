@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/toast";
+import styles from "./cancel-appointment.module.css";
 
 const REJECTION_MESSAGES: Record<string, string> = {
   OutsideCancellationWindow:
@@ -25,19 +29,23 @@ export function CancelAppointment({
   withinWindow: boolean;
 }) {
   const router = useRouter();
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   if (!isScheduled) {
     return null;
   }
   if (!withinWindow) {
-    return <p>Solo podés cancelar hasta 24 horas antes del turno.</p>;
+    return (
+      <p className={styles.note}>
+        Solo podés cancelar hasta 24 horas antes del turno.
+      </p>
+    );
   }
 
   async function handleCancel() {
     setPending(true);
-    setError(null);
     try {
       const res = await fetch(`/api/appointments/${appointmentId}/cancel`, {
         method: "POST",
@@ -46,26 +54,53 @@ export function CancelAppointment({
         const data = (await res.json().catch(() => ({}))) as {
           rejection?: string;
         };
-        setError(
+        toast.error(
           (data.rejection && REJECTION_MESSAGES[data.rejection]) ||
             FALLBACK_ERROR,
         );
         setPending(false);
+        setOpen(false);
         return;
       }
+      toast.success("Tu cita fue cancelada.");
+      setPending(false);
+      setOpen(false);
       router.refresh();
     } catch {
-      setError(FALLBACK_ERROR);
+      toast.error(FALLBACK_ERROR);
       setPending(false);
+      setOpen(false);
     }
   }
 
   return (
-    <div>
-      <button type="button" onClick={handleCancel} disabled={pending}>
-        {pending ? "Cancelando…" : "Cancelar cita"}
-      </button>
-      {error ? <p role="alert">{error}</p> : null}
+    <div className={styles.actions}>
+      <Button variant="destructive" onClick={() => setOpen(true)}>
+        Cancelar cita
+      </Button>
+      <Dialog
+        open={open}
+        onClose={() => {
+          if (!pending) setOpen(false);
+        }}
+        title="¿Cancelar la cita?"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
+              Volver
+            </Button>
+            <Button variant="destructive" busy={pending} onClick={handleCancel}>
+              {pending ? "Cancelando…" : "Sí, cancelar"}
+            </Button>
+          </>
+        }
+      >
+        <p>Vas a cancelar tu cita. Esta acción no se puede deshacer.</p>
+      </Dialog>
     </div>
   );
 }

@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AppointmentDetails > matches the confirmation details structure 1`] = `"<div><header><h1>Cita confirmada</h1><span>Agendada</span></header><dl><div><dt>Paciente</dt><dd>Ana García</dd></div><div><dt>Teléfono</dt><dd>+5493415551234</dd></div><div><dt>Email</dt><dd>ana@example.com</dd></div><div><dt>Tipo de visita</dt><dd>Consulta</dd></div><div><dt>Tipo de consulta</dt><dd>Primera vez</dd></div><div><dt>Cobertura</dt><dd>Particular</dd></div><div><dt>Seña</dt><dd>$20.000 (confirmada)</dd></div><div><dt>Fecha</dt><dd>2026-06-22</dd></div><div><dt>Hora</dt><dd>09:20</dd></div><div><dt>Confirmación por WhatsApp</dt><dd>Enviada</dd></div></dl></div>"`;
