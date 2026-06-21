@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { auth } from "@/auth";
 import { getProfessionalRepository } from "@/lib/professional/get-professional-repository";
-import { ChangePasswordForm } from "./change-password-form";
-import { ProfileForm } from "./profile-form";
+import { Card } from "@/components/ui/card";
+import { ProfileTabs } from "./profile-tabs";
+import styles from "./profile.module.css";
 
 // Reads the Professional from the database on every request.
 export const dynamic = "force-dynamic";
@@ -14,20 +14,16 @@ export default async function ProfilePage() {
   const professional = email ? await repository.findByEmail(email) : null;
 
   return (
-    <main style={{ maxWidth: 640, margin: "2rem auto", padding: "0 1rem" }}>
-      <p>
-        <Link href="/admin">← Panel</Link>
-      </p>
-      <h1>Perfil</h1>
-      <ProfileForm
-        email={email}
-        name={professional?.name ?? ""}
-        phone={professional?.phone ?? ""}
-        whatsappNumber={professional?.whatsappNumber ?? ""}
-      />
-
-      <h2 style={{ marginTop: "2rem" }}>Cambiar contraseña</h2>
-      <ChangePasswordForm />
-    </main>
+    <div className={styles.page}>
+      <h1 className={styles.title}>Perfil</h1>
+      <Card>
+        <ProfileTabs
+          email={email}
+          name={professional?.name ?? ""}
+          phone={professional?.phone ?? ""}
+          whatsappNumber={professional?.whatsappNumber ?? ""}
+        />
+      </Card>
+    </div>
   );
 }

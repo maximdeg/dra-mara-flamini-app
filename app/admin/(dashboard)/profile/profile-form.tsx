@@ -1,8 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { useToast } from "@/components/ui/toast";
 import { updateProfileAction } from "./actions";
 import type { ProfileFormState } from "./types";
+import styles from "./profile.module.css";
 
 export function ProfileForm({
   email,
@@ -15,34 +19,37 @@ export function ProfileForm({
   phone: string;
   whatsappNumber: string;
 }) {
+  const toast = useToast();
   const [state, action, pending] = useActionState<ProfileFormState, FormData>(
     updateProfileAction,
     {},
   );
 
+  useEffect(() => {
+    if (state.ok) {
+      toast.success("Perfil guardado.");
+    } else if (state.error) {
+      toast.error(state.error);
+    }
+  }, [state, toast]);
+
   return (
-    <form action={action} style={{ display: "grid", gap: "0.75rem", maxWidth: 380 }}>
-      <p style={{ margin: 0 }}>Email: {email}</p>
-      <label>
-        Nombre
-        <br />
+    <form action={action} className={styles.form}>
+      <Field label="Email">
+        <input defaultValue={email} disabled />
+      </Field>
+      <Field label="Nombre">
         <input name="name" defaultValue={name} />
-      </label>
-      <label>
-        Teléfono
-        <br />
+      </Field>
+      <Field label="Teléfono">
         <input name="phone" defaultValue={phone} />
-      </label>
-      <label>
-        WhatsApp
-        <br />
+      </Field>
+      <Field label="WhatsApp">
         <input name="whatsappNumber" defaultValue={whatsappNumber} />
-      </label>
-      <button type="submit" disabled={pending}>
+      </Field>
+      <Button type="submit" busy={pending} className={styles.submit}>
         {pending ? "Guardando…" : "Guardar"}
-      </button>
-      {state.ok ? <p>Guardado.</p> : null}
-      {state.error ? <p role="alert">{state.error}</p> : null}
+      </Button>
     </form>
   );
 }

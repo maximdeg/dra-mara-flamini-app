@@ -1,42 +1,51 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { useToast } from "@/components/ui/toast";
 import { changePasswordAction } from "./actions";
 import type { PasswordFormState } from "./types";
+import styles from "./profile.module.css";
 
 export function ChangePasswordForm() {
+  const toast = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState<PasswordFormState, FormData>(
     changePasswordAction,
     {},
   );
 
+  useEffect(() => {
+    if (state.ok) {
+      toast.success("Contraseña actualizada.");
+      formRef.current?.reset();
+    } else if (state.error) {
+      toast.error(state.error);
+    }
+  }, [state, toast]);
+
   return (
-    <form action={action} style={{ display: "grid", gap: "0.75rem", maxWidth: 380 }}>
-      <label>
-        Contraseña actual
-        <br />
+    <form ref={formRef} action={action} className={styles.form}>
+      <Field label="Contraseña actual" required>
         <input
           type="password"
           name="currentPassword"
           autoComplete="current-password"
           required
         />
-      </label>
-      <label>
-        Nueva contraseña
-        <br />
+      </Field>
+      <Field label="Nueva contraseña" required>
         <input
           type="password"
           name="newPassword"
           autoComplete="new-password"
           required
         />
-      </label>
-      <button type="submit" disabled={pending}>
+      </Field>
+      <Button type="submit" busy={pending} className={styles.submit}>
         {pending ? "Cambiando…" : "Cambiar contraseña"}
-      </button>
-      {state.ok ? <p>Contraseña actualizada.</p> : null}
-      {state.error ? <p role="alert">{state.error}</p> : null}
+      </Button>
     </form>
   );
 }
