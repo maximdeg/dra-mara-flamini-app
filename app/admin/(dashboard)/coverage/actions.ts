@@ -11,7 +11,13 @@ import { getHealthInsuranceRepository } from "@/lib/coverage/get-health-insuranc
 import { sanitizeSelfPayPricing } from "@/lib/deposit/deposit";
 import { getSelfPayPricingRepository } from "@/lib/deposit/get-self-pay-pricing-repository";
 
-function toPrice(value: FormDataEntryValue | null): number {
+export interface InsuranceInput {
+  name: string;
+  price: number;
+  notes: string;
+}
+
+function toPrice(value: number): number {
   return Math.max(0, Math.floor(Number(value) || 0));
 }
 
@@ -21,48 +27,48 @@ async function reflectCoverage(): Promise<void> {
   revalidatePath("/agendar-visita");
 }
 
-export async function addInsuranceAction(formData: FormData): Promise<void> {
+export async function addInsuranceAction(input: InsuranceInput): Promise<void> {
   const session = await auth();
   if (!session?.user) return;
 
-  const name = String(formData.get("name") ?? "").trim();
+  const name = input.name.trim();
   if (!name) return;
 
   const repository = await getHealthInsuranceRepository();
   await repository.save(
     addInsurance(await repository.list(), {
       name,
-      price: toPrice(formData.get("price")),
-      notes: String(formData.get("notes") ?? "").trim(),
+      price: toPrice(input.price),
+      notes: input.notes.trim(),
     }),
   );
   await reflectCoverage();
 }
 
-export async function editInsuranceAction(formData: FormData): Promise<void> {
+export async function editInsuranceAction(
+  originalName: string,
+  input: InsuranceInput,
+): Promise<void> {
   const session = await auth();
   if (!session?.user) return;
 
-  const originalName = String(formData.get("originalName") ?? "");
-  const name = String(formData.get("name") ?? "").trim();
+  const name = input.name.trim();
   if (!originalName || !name) return;
 
   const repository = await getHealthInsuranceRepository();
   await repository.save(
     editInsurance(await repository.list(), originalName, {
       name,
-      price: toPrice(formData.get("price")),
-      notes: String(formData.get("notes") ?? "").trim(),
+      price: toPrice(input.price),
+      notes: input.notes.trim(),
     }),
   );
   await reflectCoverage();
 }
 
-export async function removeInsuranceAction(formData: FormData): Promise<void> {
+export async function removeInsuranceAction(name: string): Promise<void> {
   const session = await auth();
   if (!session?.user) return;
-
-  const name = String(formData.get("name") ?? "");
   if (!name) return;
 
   const repository = await getHealthInsuranceRepository();
@@ -70,17 +76,14 @@ export async function removeInsuranceAction(formData: FormData): Promise<void> {
   await reflectCoverage();
 }
 
-export async function saveSelfPayPricingAction(
-  formData: FormData,
-): Promise<void> {
+export async function saveSelfPayPricingAction(input: {
+  consultationFullPrice: number;
+  practiceFullPrice: number;
+  firstVisitConsultationDeposit: number;
+}): Promise<void> {
   const session = await auth();
   if (!session?.user) return;
 
-  const pricing = sanitizeSelfPayPricing({
-    consultationFullPrice: formData.get("consultationFullPrice"),
-    practiceFullPrice: formData.get("practiceFullPrice"),
-    firstVisitConsultationDeposit: formData.get("firstVisitConsultationDeposit"),
-  });
-  await (await getSelfPayPricingRepository()).save(pricing);
+  await (await getSelfPayPricingRepository()).save(sanitizeSelfPayPricing(input));
   await reflectCoverage();
 }

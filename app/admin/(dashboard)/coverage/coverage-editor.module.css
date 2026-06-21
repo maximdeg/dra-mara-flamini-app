@@ -1,0 +1,81 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  color: var(--brand-dark);
+  margin-bottom: var(--space-2);
+}
+
+.note {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-4);
+}
+
+.pricingForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 460px;
+}
+
+.pricingSave {
+  align-self: flex-start;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.item {
+  padding: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+}
+
+.row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.grow {
+  flex: 1 1 160px;
+}
+
+.rowActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.rowSubmit {
+  flex: 0 0 auto;
+}
+
+.addBlock {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-soft);
+}
+
+.addTitle {
+  font-size: var(--text-base);
+  color: var(--text);
+  margin-bottom: var(--space-3);
+}
+
+@media (max-width: 520px) {
+  .pricingSave,
+  .rowSubmit {
+    align-self: stretch;
+    width: 100%;
+  }
+}
