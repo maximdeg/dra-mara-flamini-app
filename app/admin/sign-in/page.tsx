@@ -3,11 +3,16 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
+import styles from "./page.module.css";
 
 // The Professional's sign-in page. Unprotected (see lib/auth/guard) so it stays
-// reachable while signed out. On success it lands on the dashboard; bad
-// credentials show a single generic message (we never reveal which field was
-// wrong).
+// reachable while signed out, and outside the dashboard shell so it shows no
+// nav. On success it lands on the dashboard; bad credentials show a single
+// generic message (we never reveal which field was wrong).
 export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -36,13 +41,16 @@ export default function SignInPage() {
   }
 
   return (
-    <main style={{ maxWidth: 420, margin: "4rem auto", padding: "0 1rem" }}>
-      <h1>Ingresar</h1>
-      <form onSubmit={handleSubmit}>
-        <p>
-          <label>
-            Email
-            <br />
+    <div className={styles.page}>
+      <Card className={styles.card}>
+        <header className={styles.header}>
+          <span className={styles.brand}>Maraflamini</span>
+          <h1 className={styles.title}>Ingresar</h1>
+          <p className={styles.subtitle}>Panel del profesional</p>
+        </header>
+
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <Field label="Email" required>
             <input
               type="email"
               value={email}
@@ -50,12 +58,8 @@ export default function SignInPage() {
               required
               autoComplete="email"
             />
-          </label>
-        </p>
-        <p>
-          <label>
-            Contraseña
-            <br />
+          </Field>
+          <Field label="Contraseña" required>
             <input
               type="password"
               value={password}
@@ -63,13 +67,15 @@ export default function SignInPage() {
               required
               autoComplete="current-password"
             />
-          </label>
-        </p>
-        <button type="submit" disabled={pending}>
-          {pending ? "Ingresando…" : "Ingresar"}
-        </button>
-        {error ? <p role="alert">{error}</p> : null}
-      </form>
-    </main>
+          </Field>
+
+          {error ? <Alert variant="error">{error}</Alert> : null}
+
+          <Button type="submit" busy={pending} className={styles.submit}>
+            {pending ? "Ingresando…" : "Ingresar"}
+          </Button>
+        </form>
+      </Card>
+    </div>
   );
 }

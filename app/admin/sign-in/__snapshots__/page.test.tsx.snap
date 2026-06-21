@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SignInPage > matches the sign-in form structure 1`] = `"<form><div><label><span>Email<span aria-hidden="true"> *</span></span><input required="" autocomplete="email" type="email" value=""></label></div><div><label><span>Contraseña<span aria-hidden="true"> *</span></span><input required="" autocomplete="current-password" type="password" value=""></label></div><button type="submit">Ingresar</button></form>"`;

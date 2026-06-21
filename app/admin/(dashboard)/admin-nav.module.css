@@ -1,0 +1,36 @@
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.link:hover {
+  background: var(--brand-soft);
+  color: var(--brand-darker);
+}
+
+.active {
+  background: var(--brand-soft);
+  color: var(--brand-darker);
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
