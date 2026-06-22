@@ -3,6 +3,7 @@
 
 # next.js
 /.next
+/.next-e2e
 /out
 
 # production
@@ -16,3 +17,10 @@ next-env.d.ts
 .env
 .env.local
 .env*.local
+
+# playwright (visual regression) — keep committed baselines, ignore the rest
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+e2e/.auth
