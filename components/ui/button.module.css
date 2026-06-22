@@ -67,3 +67,25 @@
 .ghost:hover:not(:disabled) {
   background: var(--brand-soft);
 }
+
+/* The patient-facing call-to-action: a pill with a left-to-right brand gradient,
+   a lift on hover. The scale is gated on prefers-reduced-motion; the gradient and
+   shadow change still read without it. */
+.gradient {
+  background-image: linear-gradient(to right, var(--brand), var(--brand-dark));
+  color: #fff;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+.gradient:hover:not(:disabled) {
+  background-image: linear-gradient(to right, var(--brand-dark), var(--brand));
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .gradient:hover:not(:disabled) {
+    transform: scale(1.03);
+  }
+}

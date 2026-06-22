@@ -6,7 +6,12 @@ import type {
 import { cn } from "./cn";
 import styles from "./button.module.css";
 
-export type ButtonVariant = "primary" | "secondary" | "destructive" | "ghost";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "destructive"
+  | "ghost"
+  | "gradient";
 
 type ButtonOwnProps<E extends ElementType> = {
   /** Render as a different element/component (e.g. next/link) while keeping the button look. */

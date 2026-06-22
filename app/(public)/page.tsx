@@ -55,7 +55,12 @@ export default function HomePage() {
               dermatológica especializada y cercana. Reservá tu visita en línea,
               sin crear una cuenta.
             </p>
-            <Button as={Link} href="/agendar-visita" className={styles.cta}>
+            <Button
+              as={Link}
+              href="/agendar-visita"
+              variant="gradient"
+              className={styles.cta}
+            >
               <CalendarIcon size={20} />
               Agendar visita
               <ArrowRightIcon size={18} />
@@ -104,7 +109,12 @@ export default function HomePage() {
           <p className={styles.ctaLead}>
             Agendá tu visita hoy y empezá a cuidar la salud de tu piel.
           </p>
-          <Button as={Link} href="/agendar-visita" className={styles.cta}>
+          <Button
+            as={Link}
+            href="/agendar-visita"
+            variant="gradient"
+            className={styles.cta}
+          >
             <CalendarIcon size={20} />
             Agendar visita
             <ArrowRightIcon size={18} />

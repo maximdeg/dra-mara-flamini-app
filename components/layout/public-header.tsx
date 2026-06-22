@@ -21,7 +21,12 @@ export function PublicHeader() {
             <span className={styles.tagline}>Dermatóloga</span>
           </span>
         </Link>
-        <Button as={Link} href="/agendar-visita" className={styles.cta}>
+        <Button
+          as={Link}
+          href="/agendar-visita"
+          variant="gradient"
+          className={styles.cta}
+        >
           <CalendarIcon size={18} />
           Agendar visita
         </Button>
