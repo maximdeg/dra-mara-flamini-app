@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
+import { requireProfessional } from "@/lib/auth/require-professional";
 import {
   addInsurance,
   editInsurance,
@@ -28,8 +28,7 @@ async function reflectCoverage(): Promise<void> {
 }
 
 export async function addInsuranceAction(input: InsuranceInput): Promise<void> {
-  const session = await auth();
-  if (!session?.user) return;
+  if (!(await requireProfessional()).ok) return;
 
   const name = input.name.trim();
   if (!name) return;
@@ -49,8 +48,7 @@ export async function editInsuranceAction(
   originalName: string,
   input: InsuranceInput,
 ): Promise<void> {
-  const session = await auth();
-  if (!session?.user) return;
+  if (!(await requireProfessional()).ok) return;
 
   const name = input.name.trim();
   if (!originalName || !name) return;
@@ -67,8 +65,7 @@ export async function editInsuranceAction(
 }
 
 export async function removeInsuranceAction(name: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user) return;
+  if (!(await requireProfessional()).ok) return;
   if (!name) return;
 
   const repository = await getHealthInsuranceRepository();
@@ -81,8 +78,7 @@ export async function saveSelfPayPricingAction(input: {
   practiceFullPrice: number;
   firstVisitConsultationDeposit: number;
 }): Promise<void> {
-  const session = await auth();
-  if (!session?.user) return;
+  if (!(await requireProfessional()).ok) return;
 
   await (await getSelfPayPricingRepository()).save(sanitizeSelfPayPricing(input));
   await reflectCoverage();
