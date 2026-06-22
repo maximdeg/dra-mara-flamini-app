@@ -1,37 +1,79 @@
 .hero {
   display: grid;
-  place-items: center;
-  min-height: 60vh;
+  gap: var(--space-10);
+  align-items: center;
+  padding-block: var(--space-8);
 }
 
-.card {
-  max-width: 540px;
+/* Desktop: photo on the left, copy on the right. Source order keeps the
+   headline first (copy precedes media in the DOM) for reading order / SEO. */
+@media (min-width: 768px) {
+  .hero {
+    grid-template-columns: 0.85fr 1fr;
+    gap: var(--space-12);
+  }
+  .media {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .copy {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+.copy {
   text-align: center;
-}
-
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--brand);
-  margin-bottom: var(--space-2);
 }
 
 .title {
   font-size: var(--text-4xl);
+  line-height: 1.1;
   color: var(--brand-dark);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.accent {
+  display: block;
+  color: var(--brand);
 }
 
 .lead {
   font-size: var(--text-lg);
   line-height: 1.6;
   color: var(--text-muted);
-  margin-bottom: var(--space-6);
+  max-width: 34rem;
+  margin: 0 auto var(--space-8);
 }
 
 .cta {
   font-size: var(--text-base);
-  padding: var(--space-3) var(--space-6);
+  padding: var(--space-4) var(--space-6);
+}
+
+/* A fixed-aspect frame with a brand-gradient backdrop: it reserves space so the
+   layout never shifts while the photo loads, and shows brand color rather than a
+   broken frame if the image ever fails. */
+.media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--brand-soft), var(--brand));
+  box-shadow: var(--shadow-lg);
+}
+
+.image {
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (min-width: 768px) {
+  .copy {
+    text-align: left;
+  }
+  .lead {
+    margin-inline: 0;
+  }
 }
