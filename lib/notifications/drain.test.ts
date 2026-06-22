@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { Appointment } from "../appointments/appointment";
 import { InMemoryAppointmentRepository } from "../appointments/in-memory-appointment-repository";
+import { ChannelRouter } from "./channel-router";
 import { composeNotifications } from "./compose";
 import { drainOutbox } from "./drain";
 import { InMemoryNotificationOutbox } from "./in-memory-notification-outbox";
 import type { NotificationKind } from "./notification";
 import { FakeNotificationSender, type NotificationSender } from "./sender";
+import { WhatsAppNotificationSender } from "./whatsapp-sender";
+import { FakeWhatsAppSocket } from "./whatsapp-socket";
 
 const BASE_URL = "https://maraflamini.com";
 
@@ -157,5 +160,31 @@ describe("drainOutbox", () => {
 
     expect(result).toEqual({ sent: 0, failed: 0 });
     expect(outbox.all()[0].status).toBe("sending");
+  });
+
+  it("a number not on WhatsApp fails only the whatsapp entry; email still sends", async () => {
+    const outbox = new InMemoryNotificationOutbox();
+    await enqueue(outbox, "confirmation");
+    // The real WhatsApp adapter over a socket that reports the number unregistered,
+    // routed alongside a working email sender.
+    const sender = new ChannelRouter({
+      whatsapp: new WhatsAppNotificationSender(
+        new FakeWhatsAppSocket({ registered: false }),
+      ),
+      email: new FakeNotificationSender(),
+    });
+
+    const result = await drainOutbox(
+      deps({ outbox, sender, maxAttempts: 1 }),
+    );
+
+    expect(result).toEqual({ sent: 1, failed: 1 });
+    const whatsapp = outbox
+      .all()
+      .find((e) => e.notification.channel === "whatsapp");
+    const email = outbox.all().find((e) => e.notification.channel === "email");
+    expect(whatsapp?.status).toBe("failed");
+    expect(whatsapp?.lastError).toMatch(/not on WhatsApp/);
+    expect(email?.status).toBe("sent");
   });
 });
