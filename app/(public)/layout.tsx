@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PublicFooter } from "@/components/layout/public-footer";
 import { PublicHeader } from "@/components/layout/public-header";
 import { ToastProvider } from "@/components/ui/toast";
 import styles from "./layout.module.css";
@@ -15,6 +16,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       <div className={styles.shell}>
         <PublicHeader />
         <main className={styles.main}>{children}</main>
+        <PublicFooter />
       </div>
     </ToastProvider>
   );

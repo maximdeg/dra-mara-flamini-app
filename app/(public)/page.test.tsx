@@ -25,20 +25,13 @@ vi.mock("next/image", () => ({
   ),
 }));
 
-describe("HomePage hero", () => {
+describe("HomePage", () => {
   it("renders the hero headline and reassurance copy", () => {
     render(<HomePage />);
     expect(
       screen.getByRole("heading", { name: /Tu Piel, Nuestra\s+Especialidad/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/atención dermatológica/i)).toBeInTheDocument();
-  });
-
-  it("routes the primary CTA to the booking flow", () => {
-    render(<HomePage />);
-    expect(
-      screen.getByRole("link", { name: "Agendar visita" }),
-    ).toHaveAttribute("href", "/agendar-visita");
+    expect(screen.getByText(/sin crear una cuenta/i)).toBeInTheDocument();
   });
 
   it("shows the Professional's photo with a meaningful alt", () => {
@@ -46,5 +39,27 @@ describe("HomePage hero", () => {
     expect(
       screen.getByRole("img", { name: /Mara Flamini/ }),
     ).toBeInTheDocument();
+  });
+
+  it("lists the three services", () => {
+    render(<HomePage />);
+    for (const title of [
+      "Dermatología General",
+      "Dermatología Estética",
+      "Cirugía Dermatológica",
+    ]) {
+      expect(
+        screen.getByRole("heading", { name: title }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it("routes every Agendar visita CTA to the booking flow", () => {
+    render(<HomePage />);
+    const ctas = screen.getAllByRole("link", { name: /Agendar visita/ });
+    expect(ctas.length).toBeGreaterThanOrEqual(2); // hero + closing band
+    for (const cta of ctas) {
+      expect(cta).toHaveAttribute("href", "/agendar-visita");
+    }
   });
 });
