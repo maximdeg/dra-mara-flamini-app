@@ -27,15 +27,34 @@ using fake senders so this slice needs no external credentials.
 
 ## Acceptance criteria
 
-- [ ] Outbox seam exposes `pending()` and `markFailed(...)`, with `attempts` and a `failed` state.
-- [ ] An entry is claimed before sending; a restart/duplicate tick does not send it twice.
-- [ ] `drainOutbox` sends pending entries and marks them `sent`; a failing sender marks the entry
+- [x] Outbox seam exposes `pending()` and `markFailed(...)`, with `attempts` and a `failed` state.
+- [x] An entry is claimed before sending; a restart/duplicate tick does not send it twice.
+- [x] `drainOutbox` sends pending entries and marks them `sent`; a failing sender marks the entry
       `failed`, increments `attempts`, and stops after the cap — without touching the other Channel's entry.
-- [ ] The whatsapp Confirmation entry updates the Appointment bookkeeping on success.
-- [ ] Booking/Cancellation only enqueue; a delivery outage never fails or rolls back the booking.
-- [ ] The worker entrypoint runs locally and drains the outbox via the fakes (demoable end-to-end).
-- [ ] Drain-loop behavior is covered by tests using the in-memory outbox + fake senders.
+- [x] The whatsapp Confirmation entry updates the Appointment bookkeeping on success.
+- [x] Booking/Cancellation only enqueue; a delivery outage never fails or rolls back the booking.
+- [x] The worker entrypoint runs locally and drains the outbox via the fakes (demoable end-to-end).
+- [x] Drain-loop behavior is covered by tests using the in-memory outbox + fake senders.
 
 ## Blocked by
 
 - [01 — Two-channel Notification model + message composition](./01-two-channel-notification-composition.md)
+
+## Comments
+
+- 2026-06-22: Implemented on branch `notification-delivery`. The outbox seam grew `pending()` and
+  `claim()` (atomic `pending → sending` — the double-send guard) and `markFailed()`; `OutboxEntry`
+  gained `attempts`/`lastError` and the `sending`/`failed` states, mirrored in the in-memory and
+  Mongo adapters (Mongo `claim` uses `findOneAndUpdate({id, status:"pending"})`). New `drain.ts` —
+  `drainOutbox(deps)` claims each pending entry, sends via the Channel sender, then `markSent` or
+  `markFailed` (back to `pending` under the attempt cap, else `failed`); a successful WhatsApp
+  Confirmation records the Appointment bookkeeping; entries are handled independently so one Channel
+  failing leaves the other untouched. Request path is now **enqueue-only** via a shared
+  `enqueue-notifications.ts`; `notify-confirmation`/`notify-cancellation` no longer take a sender or
+  touch bookkeeping, and `dispatch.ts` was removed. Worker entrypoint `scripts/notification-worker.ts`
+  loops `drainOutbox` over the Mongo adapters with a `FakeNotificationSender`, run via **tsx**
+  (`npm run worker`); slices 03–05 swap the real senders in there. Tests: new `drain.test.ts` (6) and
+  `in-memory-notification-outbox.test.ts` (4); `notify-*`/`cancellation` tests updated to enqueue-only.
+  typecheck + build clean; full suite 185/185; **smoke-run** against local Mongo drained a seeded
+  pending entry to `sent`. Deferred (noted for later hardening): backoff *timing* (only the attempt
+  cap is implemented) and reclaiming entries stuck in `sending` after a worker crash.
