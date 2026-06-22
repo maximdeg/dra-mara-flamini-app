@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { InMemoryNotificationOutbox } from "../notifications/in-memory-notification-outbox";
 import { notifyCancellation } from "../notifications/notify-cancellation";
-import { FakeNotificationSender } from "../notifications/sender";
 import type { Appointment } from "./appointment";
 import {
   cancel,
@@ -146,7 +145,7 @@ describe("cancel", () => {
     expect(await repository.findScheduledByPhone("3421112233")).toEqual([]);
   });
 
-  it("enqueues a Cancellation Notice on both Channels", async () => {
+  it("enqueues a pending Cancellation Notice on both Channels", async () => {
     const repository = await repoWith(appointment());
     const outbox = new InMemoryNotificationOutbox();
 
@@ -157,7 +156,6 @@ describe("cancel", () => {
         notifyCancellation: (a) =>
           notifyCancellation(a, {
             outbox,
-            sender: new FakeNotificationSender(),
             baseUrl: "https://maraflamini.com",
           }),
       }),
@@ -168,7 +166,8 @@ describe("cancel", () => {
     expect(
       entries.every((e) => e.notification.kind === "cancellation-notice"),
     ).toBe(true);
-    expect(entries.every((e) => e.status === "sent")).toBe(true);
+    // Enqueue-only; the worker delivers them.
+    expect(entries.every((e) => e.status === "pending")).toBe(true);
   });
 
   it("still cancels when the Cancellation Notice fails (decoupled — ADR-0001)", async () => {

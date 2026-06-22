@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { Db } from "mongodb";
-import type { Notification, OutboxEntry } from "./notification";
+import type {
+  FailureOutcome,
+  Notification,
+  OutboxEntry,
+} from "./notification";
 import type { NotificationOutbox } from "./notification-outbox";
 
 const COLLECTION = "notificationOutbox";
@@ -18,6 +22,8 @@ export class MongoNotificationOutbox implements NotificationOutbox {
       id: randomUUID(),
       notification,
       status: "pending",
+      attempts: 0,
+      lastError: null,
       createdAt: new Date().toISOString(),
       sentAt: null,
       messageId: null,
@@ -26,9 +32,41 @@ export class MongoNotificationOutbox implements NotificationOutbox {
     return entry;
   }
 
+  async pending(): Promise<OutboxEntry[]> {
+    return this.db
+      .collection<OutboxEntry>(COLLECTION)
+      .find({ status: "pending" }, { projection: { _id: 0 } })
+      .toArray();
+  }
+
+  async claim(id: string): Promise<OutboxEntry | null> {
+    // Atomic pending → sending: only one tick can win the claim, so a
+    // Notification is never delivered twice.
+    return this.db
+      .collection<OutboxEntry>(COLLECTION)
+      .findOneAndUpdate(
+        { id, status: "pending" },
+        { $set: { status: "sending" } },
+        { returnDocument: "after", projection: { _id: 0 } },
+      );
+  }
+
   async markSent(id: string, messageId: string, sentAt: string): Promise<void> {
     await this.db
       .collection(COLLECTION)
       .updateOne({ id }, { $set: { status: "sent", messageId, sentAt } });
+  }
+
+  async markFailed(id: string, outcome: FailureOutcome): Promise<void> {
+    await this.db.collection(COLLECTION).updateOne(
+      { id },
+      {
+        $set: {
+          status: outcome.status,
+          attempts: outcome.attempts,
+          lastError: outcome.error,
+        },
+      },
+    );
   }
 }

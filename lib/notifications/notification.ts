@@ -48,7 +48,24 @@ export interface EmailNotification extends BaseNotification {
 
 export type Notification = WhatsAppNotification | EmailNotification;
 
-export type OutboxStatus = "pending" | "sent";
+/**
+ * An outbox entry's lifecycle: `pending` (awaiting a worker), `sending` (claimed
+ * by a worker tick so no other tick double-sends it), `sent` (delivered), or
+ * `failed` (gave up after the retry cap). A failed send that is still under the
+ * cap returns to `pending` for the next tick.
+ */
+export type OutboxStatus = "pending" | "sending" | "sent" | "failed";
+
+/**
+ * The outcome the drain loop records for a failed send: the new attempt count,
+ * the error, and whether the entry is retryable (`pending`) or terminal
+ * (`failed`). The loop owns the retry policy; the outbox just records it.
+ */
+export interface FailureOutcome {
+  attempts: number;
+  error: string;
+  status: "pending" | "failed";
+}
 
 /**
  * A queued Notification. Per ADR-0001 messages are enqueued best-effort and
@@ -59,6 +76,10 @@ export interface OutboxEntry {
   id: string;
   notification: Notification;
   status: OutboxStatus;
+  /** How many delivery attempts have been made (incremented on each failure). */
+  attempts: number;
+  /** The most recent send error, when one occurred. */
+  lastError: string | null;
   createdAt: string;
   sentAt: string | null;
   messageId: string | null;

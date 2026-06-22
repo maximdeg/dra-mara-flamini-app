@@ -5,7 +5,6 @@ import { getSelfPayPricingRepository } from "../deposit/get-self-pay-pricing-rep
 import { getPublicBaseUrl } from "../notifications/base-url";
 import { getNotificationOutbox } from "../notifications/get-notification-outbox";
 import { notifyConfirmation } from "../notifications/notify-confirmation";
-import { FakeNotificationSender } from "../notifications/sender";
 import { phoneHasOpenAppointment, type BookingDependencies } from "./booking";
 import { getAppointmentRepository } from "./get-appointment-repository";
 
@@ -20,7 +19,6 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
   const repository = await getAppointmentRepository();
   const availabilityDeps = await getAvailabilityDeps();
   const outbox = await getNotificationOutbox();
-  const sender = new FakeNotificationSender();
   const now = new Date();
 
   return {
@@ -37,11 +35,6 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
         now,
       ),
     notifyConfirmation: (appointment) =>
-      notifyConfirmation(appointment, {
-        outbox,
-        sender,
-        appointments: repository,
-        baseUrl: getPublicBaseUrl(),
-      }),
+      notifyConfirmation(appointment, { outbox, baseUrl: getPublicBaseUrl() }),
   };
 }

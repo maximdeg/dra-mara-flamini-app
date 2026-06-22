@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { Appointment } from "../appointments/appointment";
 import { InMemoryNotificationOutbox } from "./in-memory-notification-outbox";
 import { notifyCancellation } from "./notify-cancellation";
-import { FakeNotificationSender } from "./sender";
 
 function appointment(): Appointment {
   return {
@@ -27,14 +26,12 @@ function appointment(): Appointment {
 }
 
 describe("notifyCancellation", () => {
-  it("enqueues and sends a Cancellation Notice on both Channels", async () => {
+  it("enqueues a pending Cancellation Notice on both Channels", async () => {
     const outbox = new InMemoryNotificationOutbox();
 
     await notifyCancellation(appointment(), {
       outbox,
-      sender: new FakeNotificationSender(),
       baseUrl: "https://maraflamini.com",
-      now: () => new Date("2026-06-20T08:00:00.000Z"),
     });
 
     const entries = outbox.all();
@@ -42,7 +39,7 @@ describe("notifyCancellation", () => {
     expect(
       entries.every((e) => e.notification.kind === "cancellation-notice"),
     ).toBe(true);
-    expect(entries.every((e) => e.status === "sent")).toBe(true);
+    expect(entries.every((e) => e.status === "pending")).toBe(true);
 
     const channels = entries.map((e) => e.notification.channel).sort();
     expect(channels).toEqual(["email", "whatsapp"]);

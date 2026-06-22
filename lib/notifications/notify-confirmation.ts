@@ -1,38 +1,21 @@
 import type { Appointment } from "../appointments/appointment";
-import type { AppointmentRepository } from "../appointments/appointment-repository";
-import { composeNotifications } from "./compose";
-import { dispatchNotification, type DispatchDependencies } from "./dispatch";
+import {
+  enqueueNotifications,
+  type EnqueueDependencies,
+} from "./enqueue-notifications";
 
-export interface ConfirmationNotificationDeps extends DispatchDependencies {
-  appointments: AppointmentRepository;
-  /** Public base URL, used to build the cancel link in the Confirmation. */
-  baseUrl: string;
-}
+export type ConfirmationNotificationDeps = EnqueueDependencies;
 
 /**
- * Send a Confirmation for an Appointment: compose the WhatsApp and Email bodies,
- * dispatch one entry per Channel through the outbox/sender, and record the
- * WhatsApp bookkeeping on the Appointment. Callers (Booking) invoke this
- * best-effort — it may throw, and that must never cost the Patient their
- * Appointment (ADR-0001).
+ * Enqueue a Confirmation for a booked Appointment — one entry per Channel
+ * (WhatsApp + Email). The worker delivers them and records the WhatsApp
+ * bookkeeping when it sends (slice 02); the request side only enqueues, so a
+ * delivery outage never costs the Patient their Appointment (ADR-0001). Callers
+ * (Booking) still invoke this best-effort.
  */
 export async function notifyConfirmation(
   appointment: Appointment,
   deps: ConfirmationNotificationDeps,
 ): Promise<void> {
-  const notifications = composeNotifications(
-    appointment,
-    "confirmation",
-    deps.baseUrl,
-  );
-  for (const notification of notifications) {
-    const { messageId, sentAt } = await dispatchNotification(notification, deps);
-    if (notification.channel === "whatsapp") {
-      await deps.appointments.markConfirmationSent(
-        appointment.id,
-        sentAt,
-        messageId,
-      );
-    }
-  }
+  await enqueueNotifications(appointment, "confirmation", deps);
 }
