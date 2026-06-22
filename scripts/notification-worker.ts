@@ -6,14 +6,15 @@
 //
 //   npm run worker
 //
-// For now both Channels use the FakeNotificationSender — the real Baileys and
-// nodemailer adapters arrive in later slices (03–05), swapped in right here.
+// The email Channel sends for real via nodemailer/Gmail when configured
+// (slice 03); the whatsapp Channel is still the fake until the Baileys slice.
+// Both are wired in getNotificationSender().
 
 import { getDb } from "../lib/db/mongo";
 import { MongoAppointmentRepository } from "../lib/appointments/mongo-appointment-repository";
 import { drainOutbox, type DrainDependencies } from "../lib/notifications/drain";
+import { getNotificationSender } from "../lib/notifications/get-notification-sender";
 import { MongoNotificationOutbox } from "../lib/notifications/mongo-notification-outbox";
-import { FakeNotificationSender } from "../lib/notifications/sender";
 
 const INTERVAL_MS = Number(process.env.NOTIFICATION_WORKER_INTERVAL_MS ?? 5000);
 
@@ -23,7 +24,7 @@ async function main(): Promise<void> {
   const db = await getDb();
   const deps: DrainDependencies = {
     outbox: new MongoNotificationOutbox(db),
-    sender: new FakeNotificationSender(),
+    sender: getNotificationSender(),
     appointments: new MongoAppointmentRepository(db),
   };
 
