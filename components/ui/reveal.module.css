@@ -1,0 +1,26 @@
+.reveal {
+  /* Visible by default — content is never hidden behind the animation. */
+}
+
+/*
+ * The hidden-until-revealed state is applied only when BOTH:
+ *   - JS is running (the `html.js` marker is set synchronously before paint), so
+ *     a no-JS visitor always sees the content, and
+ *   - the visitor has not asked to reduce motion.
+ * The Reveal component flips `data-revealed` once the section scrolls into view.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  :global(html.js) .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
+    will-change: opacity, transform;
+  }
+
+  :global(html.js) .reveal[data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+  }
+}

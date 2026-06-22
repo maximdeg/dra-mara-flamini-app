@@ -7,6 +7,10 @@ import { test, expect, type Page } from "@playwright/test";
 // Capture with a plain page.screenshot + toMatchSnapshot. (toHaveScreenshot's
 // stability loop surfaces Next's late dev-tools badge; this does not.)
 async function shot(page: Page, name: string) {
+  // Reduced motion turns off the scroll-reveal entrance animations
+  // (components/ui/reveal), so below-the-fold sections are fully visible in the
+  // full-page screenshot — keeping the baselines deterministic.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.waitForLoadState("networkidle");
   expect(await page.screenshot({ fullPage: true })).toMatchSnapshot(name);
 }

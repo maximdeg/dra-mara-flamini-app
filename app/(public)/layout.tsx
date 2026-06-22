@@ -13,6 +13,14 @@ import styles from "./layout.module.css";
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
+      {/* Marks JS as available before paint, so the scroll-reveal animations
+          (components/ui/reveal) only ever hide content when JS can reveal it —
+          a no-JS visitor sees everything. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: "document.documentElement.classList.add('js')",
+        }}
+      />
       <div className={styles.shell}>
         <PublicHeader />
         <main className={styles.main}>{children}</main>
