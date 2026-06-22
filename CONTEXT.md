@@ -82,13 +82,17 @@ _Avoid_: Cancellation policy, Grace period
 ### Notifications
 
 **Notification**:
-A WhatsApp message the system sends to the Patient about their Appointment. Two kinds: a Confirmation and a Cancellation Notice.
-_Avoid_: Message, Alert, SMS
+A message the system sends to the Patient about their Appointment, over both Channels (WhatsApp and Email). Two kinds: a Confirmation and a Cancellation Notice. Each kind is sent on both Channels, tracked independently so one can succeed while the other retries.
+_Avoid_: Alert, SMS
+
+**Channel**:
+How a Notification reaches the Patient — **WhatsApp** (from the clinic's number via Baileys, ADR-0001) or **Email** (via Gmail/nodemailer). Every Notification goes out on both.
+_Avoid_: Medium, Transport
 
 **Confirmation** (UI: _Confirmación_):
-The WhatsApp message sent to the Patient immediately after an Appointment is booked, confirming its date, time, and details.
-_Avoid_: Confirmation email, Receipt, Reminder
+The Notification sent to the Patient immediately after an Appointment is booked, confirming its date, time, and details, and carrying a link to cancel the Appointment. Sent on both Channels.
+_Avoid_: Receipt, Reminder
 
 **Cancellation Notice**:
-The WhatsApp message sent to the Patient when an Appointment becomes Cancelled — regardless of whether the Patient or the Professional cancelled it.
-_Avoid_: Cancellation email
+The Notification sent to the Patient when an Appointment becomes Cancelled — regardless of whether the Patient or the Professional cancelled it. Sent on both Channels; unlike the Confirmation it carries no cancel link.
+_Avoid_: (—)

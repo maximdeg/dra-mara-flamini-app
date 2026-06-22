@@ -28,7 +28,7 @@ function appointment(): Appointment {
 }
 
 describe("notifyConfirmation", () => {
-  it("enqueues, sends, marks the outbox entry sent, and records bookkeeping", async () => {
+  it("enqueues and sends one entry per Channel, recording WhatsApp bookkeeping", async () => {
     const repository = new InMemoryAppointmentRepository();
     await repository.create(appointment());
     const outbox = new InMemoryNotificationOutbox();
@@ -37,19 +37,27 @@ describe("notifyConfirmation", () => {
       outbox,
       sender: new FakeNotificationSender(),
       appointments: repository,
+      baseUrl: "https://maraflamini.com",
       now: () => new Date("2026-06-19T12:00:00.000Z"),
     });
 
     const entries = outbox.all();
-    expect(entries).toHaveLength(1);
-    expect(entries[0].notification.kind).toBe("confirmation");
-    expect(entries[0].status).toBe("sent");
-    expect(entries[0].messageId).toBe("fake-confirmation-apt-1");
+    expect(entries).toHaveLength(2);
+    expect(entries.every((e) => e.notification.kind === "confirmation")).toBe(
+      true,
+    );
+    expect(entries.every((e) => e.status === "sent")).toBe(true);
 
+    const whatsapp = entries.find((e) => e.notification.channel === "whatsapp");
+    const email = entries.find((e) => e.notification.channel === "email");
+    expect(whatsapp?.messageId).toBe("fake-whatsapp-confirmation-apt-1");
+    expect(email?.messageId).toBe("fake-email-confirmation-apt-1");
+
+    // Bookkeeping is recorded from the WhatsApp send, not the email one.
     const stored = await repository.findById("apt-1");
     expect(stored?.whatsappSent).toBe(true);
     expect(stored?.whatsappSentAt).toBe("2026-06-19T12:00:00.000Z");
-    expect(stored?.whatsappMessageId).toBe("fake-confirmation-apt-1");
+    expect(stored?.whatsappMessageId).toBe("fake-whatsapp-confirmation-apt-1");
   });
 
   it("propagates a sender failure (Booking invokes it best-effort)", async () => {
@@ -66,6 +74,7 @@ describe("notifyConfirmation", () => {
         outbox: new InMemoryNotificationOutbox(),
         sender: failingSender,
         appointments: repository,
+        baseUrl: "https://maraflamini.com",
       }),
     ).rejects.toThrow("whatsapp down");
 

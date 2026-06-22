@@ -1,3 +1,4 @@
+import { getPublicBaseUrl } from "../notifications/base-url";
 import { getNotificationOutbox } from "../notifications/get-notification-outbox";
 import { notifyCancellation } from "../notifications/notify-cancellation";
 import { FakeNotificationSender } from "../notifications/sender";
@@ -16,6 +17,10 @@ export async function getCancellationDeps(): Promise<CancellationDependencies> {
   return {
     repository,
     notifyCancellation: (appointment) =>
-      notifyCancellation(appointment, { outbox, sender }),
+      notifyCancellation(appointment, {
+        outbox,
+        sender,
+        baseUrl: getPublicBaseUrl(),
+      }),
   };
 }

@@ -11,12 +11,13 @@ export interface NotificationSender {
 
 /**
  * Fake sender — pretends to deliver and returns a synthetic message id. Stands
- * in for Baileys until the real worker slice is built.
+ * in for the real Channel adapters (Baileys, nodemailer) until their slices are
+ * built. The id encodes the Channel so the two enqueued entries are distinct.
  */
 export class FakeNotificationSender implements NotificationSender {
   async send(notification: Notification): Promise<{ messageId: string }> {
     return {
-      messageId: `fake-${notification.kind}-${notification.appointmentId}`,
+      messageId: `fake-${notification.channel}-${notification.kind}-${notification.appointmentId}`,
     };
   }
 }

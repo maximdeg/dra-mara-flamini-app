@@ -146,7 +146,7 @@ describe("cancel", () => {
     expect(await repository.findScheduledByPhone("3421112233")).toEqual([]);
   });
 
-  it("enqueues a Cancellation Notice", async () => {
+  it("enqueues a Cancellation Notice on both Channels", async () => {
     const repository = await repoWith(appointment());
     const outbox = new InMemoryNotificationOutbox();
 
@@ -158,14 +158,17 @@ describe("cancel", () => {
           notifyCancellation(a, {
             outbox,
             sender: new FakeNotificationSender(),
+            baseUrl: "https://maraflamini.com",
           }),
       }),
     );
 
     const entries = outbox.all();
-    expect(entries).toHaveLength(1);
-    expect(entries[0].notification.kind).toBe("cancellation-notice");
-    expect(entries[0].status).toBe("sent");
+    expect(entries).toHaveLength(2);
+    expect(
+      entries.every((e) => e.notification.kind === "cancellation-notice"),
+    ).toBe(true);
+    expect(entries.every((e) => e.status === "sent")).toBe(true);
   });
 
   it("still cancels when the Cancellation Notice fails (decoupled — ADR-0001)", async () => {

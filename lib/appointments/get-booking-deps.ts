@@ -2,6 +2,7 @@ import { classifyBookingDateTime } from "../availability/availability";
 import { getAvailabilityDeps } from "../availability/get-availability-deps";
 import { getHealthInsuranceRepository } from "../coverage/get-health-insurance-repository";
 import { getSelfPayPricingRepository } from "../deposit/get-self-pay-pricing-repository";
+import { getPublicBaseUrl } from "../notifications/base-url";
 import { getNotificationOutbox } from "../notifications/get-notification-outbox";
 import { notifyConfirmation } from "../notifications/notify-confirmation";
 import { FakeNotificationSender } from "../notifications/sender";
@@ -36,6 +37,11 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
         now,
       ),
     notifyConfirmation: (appointment) =>
-      notifyConfirmation(appointment, { outbox, sender, appointments: repository }),
+      notifyConfirmation(appointment, {
+        outbox,
+        sender,
+        appointments: repository,
+        baseUrl: getPublicBaseUrl(),
+      }),
   };
 }
