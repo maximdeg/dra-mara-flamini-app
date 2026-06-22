@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { changePassword } from "@/lib/auth/change-password";
+import { requireProfessional } from "@/lib/auth/require-professional";
 import { getProfessionalRepository } from "@/lib/professional/get-professional-repository";
 import type { PasswordFormState, ProfileFormState } from "./types";
 
@@ -15,14 +15,13 @@ export async function updateProfileAction(
   _prev: ProfileFormState,
   formData: FormData,
 ): Promise<ProfileFormState> {
-  const session = await auth();
-  const email = session?.user?.email;
-  if (!email) {
+  const session = await requireProfessional();
+  if (!session.ok) {
     return { error: "No autorizado." };
   }
 
   const repository = await getProfessionalRepository();
-  await repository.updateProfile(email, {
+  await repository.updateProfile(session.email, {
     name: String(formData.get("name") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
     whatsappNumber: String(formData.get("whatsappNumber") ?? "").trim(),
@@ -35,9 +34,8 @@ export async function changePasswordAction(
   _prev: PasswordFormState,
   formData: FormData,
 ): Promise<PasswordFormState> {
-  const session = await auth();
-  const email = session?.user?.email;
-  if (!email) {
+  const session = await requireProfessional();
+  if (!session.ok) {
     return { error: "No autorizado." };
   }
 
@@ -47,9 +45,14 @@ export async function changePasswordAction(
     return { error: "Ingresá una nueva contraseña." };
   }
 
-  const result = await changePassword(email, currentPassword, newPassword, {
-    repository: await getProfessionalRepository(),
-  });
+  const result = await changePassword(
+    session.email,
+    currentPassword,
+    newPassword,
+    {
+      repository: await getProfessionalRepository(),
+    },
+  );
   if (!result.ok) {
     return {
       error: PASSWORD_ERRORS[result.reason] ?? "No se pudo cambiar la contraseña.",
