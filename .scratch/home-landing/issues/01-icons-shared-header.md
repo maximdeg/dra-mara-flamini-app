@@ -25,13 +25,31 @@ their visual snapshots change along with the home one.
 
 ## Acceptance criteria
 
-- [ ] Five inline-SVG icon components exist, sized via a prop and inheriting `currentColor`; no new dependency.
-- [ ] The shared header shows the logo mark, "Mara Flamini" + "Dermatóloga", and an "Agendar visita" CTA linking to `/agendar-visita`; the brand links to `/`.
-- [ ] The CTA and brand are keyboard-focusable with a visible focus state.
-- [ ] Affected Playwright snapshots (home, booking, sign-in/cita) are regenerated and the diffs eyeballed.
-- [ ] A behavior test covers the header (brand → `/`, CTA → `/agendar-visita`).
-- [ ] `npm test`, `npm run typecheck`, and `npm run build` are green.
+- [x] Five inline-SVG icon components exist, sized via a prop and inheriting `currentColor`; no new dependency.
+- [x] The shared header shows the logo mark, "Mara Flamini" + "Dermatóloga", and an "Agendar visita" CTA linking to `/agendar-visita`; the brand links to `/`.
+- [x] The CTA and brand are keyboard-focusable with a visible focus state.
+- [x] Affected Playwright snapshots are regenerated and the diffs eyeballed. _(home, booking-initial, booking-deposit changed; sign-in is standalone with no PublicHeader and was unchanged; there is no cita snapshot in the suite.)_
+- [x] A behavior test covers the header (brand → `/`, CTA → `/agendar-visita`).
+- [x] `npm test`, `npm run typecheck`, and `npm run build` are green.
 
 ## Blocked by
 
 - None - can start immediately.
+
+## Comments
+
+- 2026-06-22: Implemented on branch `home-landing` (off `main`). Added `components/ui/icons.tsx` —
+  hand-authored inline-SVG icon components (calendar, arrow-right, shield, users, award) sharing a
+  small `Icon` wrapper: `currentColor`, sized via a `size` prop, `aria-hidden`, no dependency, no
+  client JS. Restyled `PublicHeader`: a brand-gradient monogram mark, "Mara Flamini" + "Dermatóloga",
+  and an "Agendar visita" CTA (the shared `Button`, `as={Link}`) → `/agendar-visita`; the brand links
+  `/` (with an `aria-label`). Built on the existing tokens + `Button` (CSS Modules). Added
+  `public-header.test.tsx` (brand → `/`, CTA → `/agendar-visita`, mocking `next/link` like
+  `admin-nav.test.tsx`). typecheck + build clean; vitest 168/168.
+- **Deliberate deviation from the prototype:** the CTA reuses the app's `Button` primary (solid
+  `--brand-dark`, app radius) rather than the prototype's gradient pill — to stay consistent with the
+  Button primitive approved in frontend-design slice 01 and avoid a global button restyle. The warm
+  prototype feel comes from the gradient monogram mark.
+- Snapshots regenerated on **win32** via `npx playwright test --project=public --update-snapshots`
+  (home, booking-initial, booking-deposit). The admin specs were not run (they need a seeded
+  Professional); their pages don't use `PublicHeader`, so they're unaffected.
