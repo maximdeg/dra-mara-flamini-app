@@ -29,15 +29,33 @@ inbox with the right content and a working cancel link.
 
 ## Acceptance criteria
 
-- [ ] An email adapter sends via Gmail using an App Password from environment config.
-- [ ] A booked Appointment produces a Confirmation email with correct details and a working
+- [x] An email adapter sends via Gmail using an App Password from environment config.
+- [x] A booked Appointment produces a Confirmation email with correct details and a working
       `/cita/{id}` cancel link; a cancellation produces a Cancellation-Notice email.
-- [ ] The provider message id is recorded on the outbox entry; an SMTP failure marks the entry
+- [x] The provider message id is recorded on the outbox entry; an SMTP failure marks the entry
       `failed` and is retried (per slice 02), never blocking booking.
-- [ ] `.env.example` documents `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_FROM`, `PUBLIC_BASE_URL`.
-- [ ] ADR-0003 added.
-- [ ] Verified manually against a real test inbox.
+- [x] `.env.example` documents `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_FROM`, `PUBLIC_BASE_URL`.
+- [x] ADR-0003 added.
+- [ ] Verified manually against a real test inbox. **(HITL — pending: needs a Gmail App Password.)**
 
 ## Blocked by
 
 - [02 — Decoupled worker + outbox draining](./02-decoupled-worker-outbox-draining.md)
+
+## Comments
+
+- 2026-06-22: Implemented on branch `notification-delivery`. `ChannelRouter` (new) routes a
+  Notification to the sender for its Channel, keeping `drainOutbox` Channel-agnostic.
+  `EmailNotificationSender` maps the composed email onto a `MailTransport` seam and returns the
+  provider message id; `gmail-transport.ts` is the nodemailer Gmail transport (App Password) — the
+  only piece not unit-tested (verified manually). `getNotificationSender()` composes the router for
+  the worker: real Gmail email when `GMAIL_USER`/`GMAIL_APP_PASSWORD` are set, else a fake fallback so
+  dev runs without credentials; whatsapp stays fake until slice 05. Added nodemailer + @types/nodemailer.
+  `.env.example` documents `PUBLIC_BASE_URL`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_FROM`,
+  `NOTIFICATION_WORKER_INTERVAL_MS`; ADR-0003 added. Tests: `channel-router.test.ts`,
+  `email-sender.test.ts` (field mapping, wrong-Channel guard, error propagation — via a fake
+  transport). typecheck + build clean; full suite 189/189; worker **smoke-run** drained a seeded
+  email entry to `sent` via the fake-email fallback.
+- **Remaining (HITL) to close this issue:** set `GMAIL_USER` + `GMAIL_APP_PASSWORD` (and `MAIL_FROM`,
+  `PUBLIC_BASE_URL`) in `.env`, run `npm run worker`, book/cancel an Appointment, and confirm the
+  email lands with the right details and a working cancel link. Then check the last box.
