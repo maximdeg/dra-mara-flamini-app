@@ -80,6 +80,24 @@ export function button(href: string, label: string): string {
   </table>`;
 }
 
+/** A list of clinic WhatsApp contacts. */
+export function contactBlock(contacts: { name: string; phone: string }[]): string {
+  const rows = contacts
+    .map(
+      (contact) =>
+        `<div style="font-size:14px;line-height:1.6;color:${COLOR.text};">${escapeHtml(
+          contact.name,
+        )} — ${escapeHtml(contact.phone)}</div>`,
+    )
+    .join("");
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+    <tr><td>
+      <div style="font-size:12px;font-weight:700;color:${COLOR.text};text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">Contacto</div>
+      ${rows}
+    </td></tr>
+  </table>`;
+}
+
 /** A soft-background block for the clinic address. */
 export function addressBlock(address: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 0;">
