@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
+import { AlertTriangleIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
 import styles from "./cancel-appointment.module.css";
 
@@ -16,9 +18,10 @@ const REJECTION_MESSAGES: Record<string, string> = {
 };
 const FALLBACK_ERROR = "No se pudo cancelar la cita.";
 
-// Patient cancel control on the confirmation page. Shown only for a Scheduled
-// Appointment; if the Cancellation Window has closed (within 24h) it explains
-// why instead of offering the button. The server enforces the rule regardless.
+// Patient cancel control on the confirmation page, wrapped in an explained
+// section. Shown only for a Scheduled Appointment; if the Cancellation Window
+// has closed (within 24h) it explains why instead of offering the button. The
+// server enforces the rule regardless.
 export function CancelAppointment({
   appointmentId,
   isScheduled,
@@ -36,11 +39,20 @@ export function CancelAppointment({
   if (!isScheduled) {
     return null;
   }
+
   if (!withinWindow) {
     return (
-      <p className={styles.note}>
-        Solo podés cancelar hasta 24 horas antes del turno.
-      </p>
+      <Card className={styles.section}>
+        <h2 className={styles.title}>
+          <span className={styles.icon} aria-hidden>
+            <AlertTriangleIcon />
+          </span>
+          Cancelación
+        </h2>
+        <p className={styles.note}>
+          Solo podés cancelar hasta 24 horas antes del turno.
+        </p>
+      </Card>
     );
   }
 
@@ -74,10 +86,22 @@ export function CancelAppointment({
   }
 
   return (
-    <div className={styles.actions}>
-      <Button variant="destructive" onClick={() => setOpen(true)}>
-        Cancelar cita
-      </Button>
+    <Card className={styles.section}>
+      <h2 className={styles.title}>
+        <span className={styles.icon} aria-hidden>
+          <AlertTriangleIcon />
+        </span>
+        ¿Necesitás cancelar tu cita?
+      </h2>
+      <p className={styles.copy}>
+        Podés cancelar hasta 24 horas antes del horario programado. Tené en
+        cuenta que otro paciente puede necesitar ese turno.
+      </p>
+      <div className={styles.actions}>
+        <Button variant="destructive" onClick={() => setOpen(true)}>
+          Cancelar cita
+        </Button>
+      </div>
       <Dialog
         open={open}
         onClose={() => {
@@ -101,6 +125,6 @@ export function CancelAppointment({
       >
         <p>Vas a cancelar tu cita. Esta acción no se puede deshacer.</p>
       </Dialog>
-    </div>
+    </Card>
   );
 }

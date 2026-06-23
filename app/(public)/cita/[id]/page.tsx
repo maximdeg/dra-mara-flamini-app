@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { patientCanCancel } from "@/lib/appointments/cancellation";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
 import { statusOf } from "@/lib/appointments/status";
+import { AppointmentActions } from "./appointment-actions";
 import { AppointmentDetails } from "./appointment-details";
 import { AppointmentInfo } from "./appointment-info";
 import { CancelAppointment } from "./cancel-appointment";
@@ -34,6 +35,7 @@ export default async function CitaPage({
         isScheduled={status === "scheduled"}
         withinWindow={patientCanCancel(appointment, now)}
       />
+      <AppointmentActions />
     </div>
   );
 }
