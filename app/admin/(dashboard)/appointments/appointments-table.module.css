@@ -1,0 +1,6 @@
+/* The Appointments table has seven columns; below this width they crush into
+   unreadable wraps. Holding a floor lets the shared Table wrapper scroll it
+   horizontally inside its card instead, keeping rows legible on phones. */
+.table {
+  min-width: 600px;
+}

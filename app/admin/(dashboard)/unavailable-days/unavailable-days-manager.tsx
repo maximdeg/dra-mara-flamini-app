@@ -84,7 +84,12 @@ export function UnavailableDaysManager({ days }: { days: string[] }) {
             }}
           />
         </Field>
-        <Button onClick={add} busy={pending} disabled={!date}>
+        <Button
+          className={styles.addSubmit}
+          onClick={add}
+          busy={pending}
+          disabled={!date}
+        >
           {pending ? "Agregando…" : "Agregar día no laborable"}
         </Button>
       </Card>

@@ -81,3 +81,28 @@
   font-size: var(--text-xs);
   font-weight: 600;
 }
+
+@media (max-width: 480px) {
+  /* Drop the 560px floor so the seven columns fit the phone width instead of
+     forcing a sideways scroll; shrink cells and padding while keeping each day
+     a comfortable tap target. */
+  .grid {
+    min-width: 0;
+  }
+
+  .cell {
+    height: 60px;
+  }
+
+  .weekday,
+  .dayLink,
+  .outside .dayNumber {
+    padding: var(--space-1);
+  }
+
+  .count {
+    margin-top: var(--space-1);
+    padding: 0 var(--space-1);
+    font-size: 0.6875rem;
+  }
+}

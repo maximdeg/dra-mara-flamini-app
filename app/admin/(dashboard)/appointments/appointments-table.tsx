@@ -8,6 +8,7 @@ import { coverageLabel } from "@/lib/coverage/coverage";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { CancelAppointmentButton } from "./cancel-appointment-button";
+import styles from "./appointments-table.module.css";
 
 function subTypeLabel(appointment: {
   consultType: string | null;
@@ -29,7 +30,7 @@ function subTypeLabel(appointment: {
 /** Presentational Appointments table with per-row Status and a cancel action. */
 export function AppointmentsTable({ views }: { views: AppointmentView[] }) {
   return (
-    <Table>
+    <Table className={styles.table}>
       <THead>
         <TR>
           <TH>Fecha</TH>
