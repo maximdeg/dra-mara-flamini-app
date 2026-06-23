@@ -29,10 +29,10 @@ export function Hero() {
             alt="Primer plano de piel sana iluminada por luz natural"
             fill
             sizes="(max-width: 900px) 100vw, 50vw"
+            quality={85}
             priority
             className={styles.image}
           />
-          <span className={styles.overlay} aria-hidden />
         </div>
       </div>
     </section>

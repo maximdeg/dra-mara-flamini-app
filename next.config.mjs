@@ -11,6 +11,11 @@ const nextConfig = {
   // (NEXT_DIST_DIR=.next-e2e), so its production server never collides with a
   // co-running `next dev` that shares the default `.next`.
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  // Serve next/image in modern formats (AVIF first, WebP fallback) so the hero
+  // photo ships at a fraction of the JPEG size.
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
 };
 
 export default nextConfig;
