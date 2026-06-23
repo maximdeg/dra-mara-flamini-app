@@ -25,8 +25,8 @@ export function Hero() {
         </div>
         <div className={styles.media}>
           <Image
-            src="/images/maraflaminipic.png"
-            alt="Consultorio de dermatología de Mara Flamini"
+            src="/images/mara-hero.jpg"
+            alt="Primer plano de piel sana iluminada por luz natural"
             fill
             sizes="(max-width: 900px) 100vw, 50vw"
             priority

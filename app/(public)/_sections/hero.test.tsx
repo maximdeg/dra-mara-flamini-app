@@ -14,7 +14,7 @@ describe("Hero", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("img", {
-        name: "Consultorio de dermatología de Mara Flamini",
+        name: "Primer plano de piel sana iluminada por luz natural",
       }),
     ).toBeInTheDocument();
     expect(
