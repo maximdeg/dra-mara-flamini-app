@@ -53,6 +53,11 @@
   padding: var(--space-10) var(--space-8);
   max-width: 960px;
   width: 100%;
+  /* Grid items default to min-width: auto, which lets wide content (the
+     Appointments table, the Calendar grid) push this column past the viewport
+     and force the whole page to scroll sideways / zoom out on phones. Allowing
+     it to shrink lets that content's own overflow-x handling take over. */
+  min-width: 0;
 }
 
 @media (max-width: 720px) {
