@@ -28,6 +28,7 @@
   --error: #dc2626;
   --error-dark: #b91c1c;
   --success: #16a34a;
+  --warning: #d97706; /* amber — caution callouts (e.g. documentation, seña) */
   --info: #4b5563;
 
   /* Typography */
