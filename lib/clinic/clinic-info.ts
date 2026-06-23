@@ -26,6 +26,8 @@ export interface ClinicInfo {
   arrivalLeadMinutes: number;
   /** Documentation a Patient should bring to the visit. */
   documentation: string[];
+  /** Street address of the consulting room, shown in Patient emails. */
+  address: string;
 }
 
 export const CLINIC_INFO: ClinicInfo = {
@@ -40,4 +42,5 @@ export const CLINIC_INFO: ClinicInfo = {
     "Credencial de la obra social y la autorización correspondiente, si aplica.",
     "Estudios o resultados previos relacionados.",
   ],
+  address: "[DIRECCIÓN DEL CONSULTORIO]",
 };
