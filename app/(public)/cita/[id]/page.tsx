@@ -3,6 +3,7 @@ import { patientCanCancel } from "@/lib/appointments/cancellation";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
 import { statusOf } from "@/lib/appointments/status";
 import { AppointmentDetails } from "./appointment-details";
+import { AppointmentInfo } from "./appointment-info";
 import { CancelAppointment } from "./cancel-appointment";
 import styles from "./page.module.css";
 
@@ -27,6 +28,7 @@ export default async function CitaPage({
   return (
     <div className={styles.page}>
       <AppointmentDetails appointment={appointment} status={status} />
+      <AppointmentInfo appointment={appointment} status={status} />
       <CancelAppointment
         appointmentId={appointment.id}
         isScheduled={status === "scheduled"}

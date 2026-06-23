@@ -1,0 +1,64 @@
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.important {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.importantTitle {
+  font-size: var(--text-lg);
+  color: var(--brand-dark);
+}
+
+.list {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.transfer {
+  margin: var(--space-2) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.transferRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.transferRow dt {
+  font-weight: 600;
+}
+
+.transferRow dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
+}
+
+.contacts {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.contactRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-weight: 500;
+}
