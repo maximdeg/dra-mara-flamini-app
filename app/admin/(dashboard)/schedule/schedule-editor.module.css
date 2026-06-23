@@ -89,10 +89,19 @@
   border: 1px solid var(--border-soft);
   border-radius: var(--radius);
   font-size: var(--text-sm);
+  /* Inside the narrow collision dialog, let the detail text and the cancel
+     button stack rather than overflow when both can't fit on one line. */
+  flex-wrap: wrap;
 }
 
 @media (max-width: 520px) {
   .save {
     align-self: stretch;
+  }
+
+  /* Reclaim the deep indent so time ranges have room on a phone. */
+  .ranges,
+  .closed {
+    padding-left: var(--space-3);
   }
 }
