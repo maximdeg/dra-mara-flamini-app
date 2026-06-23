@@ -1,0 +1,27 @@
+.footer {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  border-top: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.inner {
+  max-width: 1120px;
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.brand {
+  font-weight: 600;
+  color: var(--brand-dark);
+}
+
+.fine {
+  font-size: var(--text-sm);
+  color: var(--text-subtle);
+}

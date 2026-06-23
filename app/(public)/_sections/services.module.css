@@ -1,0 +1,73 @@
+/* Full-bleed soft band. */
+.services {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  background: rgba(255, 255, 255, 0.5);
+  border-block: 1px solid var(--border-soft);
+}
+
+.inner {
+  max-width: 1120px;
+  margin-inline: auto;
+  padding: var(--space-16) var(--space-6);
+}
+
+.head {
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto var(--space-12);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  color: var(--brand-dark);
+  margin-bottom: var(--space-3);
+}
+
+.subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 760px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-6);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--brand-soft), var(--brand));
+  color: var(--brand-dark);
+  margin-bottom: var(--space-2);
+}
+
+.cardTitle {
+  font-size: var(--text-xl);
+  color: var(--brand-dark);
+}
+
+.cardDesc {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
