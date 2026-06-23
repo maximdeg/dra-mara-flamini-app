@@ -18,6 +18,9 @@ next-env.d.ts
 .env.local
 .env*.local
 
+# claude code — per-user local overrides, not shared
+.claude/settings.local.json
+
 # playwright (visual regression) — keep committed baselines, ignore the rest
 /test-results
 /playwright-report
