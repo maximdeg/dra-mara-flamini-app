@@ -25,7 +25,7 @@ Read the body carefully. The PRD is the spec. Don't add scope; don't redesign. I
 ### 2. Confirm there are no existing sub-issues
 
 ```
-gh api repos/$GH_REPO/issues/<PRD_NUMBER>/sub_issues --jq 'length'
+gh api repos/{owner}/{repo}/issues/<PRD_NUMBER>/sub_issues --jq 'length'
 ```
 
 If non-zero, stop and ask the user whether to (a) abort, (b) add more on top of what's there, or (c) close/delete the existing ones first. Don't silently double up.
@@ -87,14 +87,14 @@ Publish in order. For each slice:
 2. **Get its node ID** (needed by the sub-issues API):
 
    ```
-   gh api repos/$GH_REPO/issues/<sub_issue_number> --jq '.id'
+   gh api repos/{owner}/{repo}/issues/<sub_issue_number> --jq '.id'
    ```
 
    The `.id` field is the REST integer ID. Save it.
 
 3. **Attach as sub-issue of the PRD:**
    ```
-   gh api -X POST "repos/$GH_REPO/issues/<PRD_NUMBER>/sub_issues" \
+   gh api -X POST "repos/{owner}/{repo}/issues/<PRD_NUMBER>/sub_issues" \
      -f sub_issue_id=<sub_issue_id>
    ```
    This is the native sub-issues link — it shows up in the PRD's progress bar and is what the `agent-implement-prd.yml` workflow reads.
