@@ -33,6 +33,7 @@ function deps(
     classifyDateTime: () => "ok" as const,
     hasOpenAppointmentForPhone: () => false,
     notifyConfirmation: async () => {},
+    sendConfirmationEmail: async () => {},
     generateId: () => "apt-1",
     now: () => new Date("2026-06-19T12:00:00.000Z"),
     ...overrides,
@@ -64,6 +65,9 @@ describe("book", () => {
         whatsappSent: false,
         whatsappSentAt: null,
         whatsappMessageId: null,
+        emailSent: false,
+        emailSentAt: null,
+        emailMessageId: null,
         createdAt: "2026-06-19T12:00:00.000Z",
       },
     });
@@ -94,6 +98,38 @@ describe("book", () => {
         repository,
         notifyConfirmation: async () => {
           throw new Error("whatsapp down");
+        },
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(await repository.findById("apt-1")).not.toBeNull();
+  });
+
+  it("sends a Confirmation email for the booked Appointment", async () => {
+    let emailedId: string | null = null;
+    const result = await book(
+      consultationForm,
+      deps({
+        sendConfirmationEmail: async (appointment) => {
+          emailedId = appointment.id;
+        },
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(emailedId).toBe("apt-1");
+  });
+
+  it("still books when the Confirmation email fails (decoupled — ADR-0001)", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    const result = await book(
+      consultationForm,
+      deps({
+        repository,
+        sendConfirmationEmail: async () => {
+          throw new Error("smtp down");
         },
       }),
     );
@@ -272,6 +308,9 @@ describe("phoneHasOpenAppointment", () => {
       whatsappSent: false,
       whatsappSentAt: null,
       whatsappMessageId: null,
+      emailSent: false,
+      emailSentAt: null,
+      emailMessageId: null,
       createdAt: "2026-01-01T00:00:00.000Z",
     };
   }

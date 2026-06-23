@@ -32,6 +32,9 @@ function appointment(overrides: Partial<Appointment> = {}): Appointment {
     whatsappSent: true,
     whatsappSentAt: "2026-06-20T12:00:00.000Z",
     whatsappMessageId: "msg-1",
+    emailSent: false,
+    emailSentAt: null,
+    emailMessageId: null,
     createdAt: "2026-06-20T11:59:00.000Z",
     ...overrides,
   };

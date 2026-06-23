@@ -43,6 +43,14 @@ export interface Appointment {
   whatsappSent: boolean;
   whatsappSentAt: string | null;
   whatsappMessageId: string | null;
+  /**
+   * Confirmation email bookkeeping, denormalized onto the Appointment exactly
+   * like the WhatsApp fields above. Set false/null at booking; updated when the
+   * Confirmation email is sent (slice 35).
+   */
+  emailSent: boolean;
+  emailSentAt: string | null;
+  emailMessageId: string | null;
   /** ISO timestamp of when the booking was created. */
   createdAt: string;
 }

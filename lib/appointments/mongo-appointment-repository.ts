@@ -66,6 +66,23 @@ export class MongoAppointmentRepository implements AppointmentRepository {
     );
   }
 
+  async markEmailSent(
+    id: string,
+    sentAt: string,
+    messageId: string,
+  ): Promise<void> {
+    await this.db.collection(COLLECTION).updateOne(
+      { id },
+      {
+        $set: {
+          emailSent: true,
+          emailSentAt: sentAt,
+          emailMessageId: messageId,
+        },
+      },
+    );
+  }
+
   async markCancelled(id: string): Promise<void> {
     await this.db
       .collection(COLLECTION)

@@ -23,6 +23,9 @@ function appointment(): Appointment {
     whatsappSent: false,
     whatsappSentAt: null,
     whatsappMessageId: null,
+    emailSent: false,
+    emailSentAt: null,
+    emailMessageId: null,
     createdAt: "2026-06-19T11:55:00.000Z",
   };
 }

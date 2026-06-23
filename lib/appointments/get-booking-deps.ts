@@ -2,6 +2,8 @@ import { classifyBookingDateTime } from "../availability/availability";
 import { getAvailabilityDeps } from "../availability/get-availability-deps";
 import { getHealthInsuranceRepository } from "../coverage/get-health-insurance-repository";
 import { getSelfPayPricingRepository } from "../deposit/get-self-pay-pricing-repository";
+import { getEmailSender } from "../notifications/email/get-email-sender";
+import { sendConfirmationEmail } from "../notifications/email/send-confirmation-email";
 import { getNotificationOutbox } from "../notifications/get-notification-outbox";
 import { notifyConfirmation } from "../notifications/notify-confirmation";
 import { FakeNotificationSender } from "../notifications/sender";
@@ -47,5 +49,12 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
       ),
     notifyConfirmation: (appointment) =>
       notifyConfirmation(appointment, { outbox, sender, appointments: repository }),
+    // The email sender is built lazily here so missing Gmail config throws
+    // inside book()'s best-effort catch rather than failing deps composition.
+    sendConfirmationEmail: (appointment) =>
+      sendConfirmationEmail(appointment, {
+        sender: getEmailSender(),
+        appointments: repository,
+      }),
   };
 }

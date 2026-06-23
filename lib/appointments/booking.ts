@@ -61,6 +61,8 @@ export interface BookingDependencies {
   hasOpenAppointmentForPhone: (phone: string) => Promise<boolean> | boolean;
   /** Send the Confirmation for a booked Appointment (called best-effort). */
   notifyConfirmation: (appointment: Appointment) => Promise<void> | void;
+  /** Send the Confirmation email for a booked Appointment (called best-effort). */
+  sendConfirmationEmail: (appointment: Appointment) => Promise<void> | void;
   generateId?: () => string;
   now?: () => Date;
 }
@@ -158,6 +160,9 @@ export async function book(
     whatsappSent: false,
     whatsappSentAt: null,
     whatsappMessageId: null,
+    emailSent: false,
+    emailSentAt: null,
+    emailMessageId: null,
     createdAt: now().toISOString(),
   };
 
@@ -167,6 +172,14 @@ export async function book(
   // Patient their Appointment.
   try {
     await deps.notifyConfirmation(created);
+  } catch {
+    // swallowed on purpose
+  }
+
+  // The Confirmation email is an independent best-effort channel — its failure
+  // (or missing mail config) must likewise never cost the Appointment.
+  try {
+    await deps.sendConfirmationEmail(created);
   } catch {
     // swallowed on purpose
   }
