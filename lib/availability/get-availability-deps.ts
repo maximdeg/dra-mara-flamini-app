@@ -11,12 +11,21 @@ import { getWorkScheduleRepository } from "./get-work-schedule-repository";
  * Unavailable Day edits flow straight into the Booking Window and Time Slots.
  */
 export async function getAvailabilityDeps(): Promise<AvailabilityDependencies> {
-  const repository = await getAppointmentRepository();
-  const scheduleRepository = await getWorkScheduleRepository();
-  const unavailableDaysRepository = await getUnavailableDaysRepository();
+  // The three repository seams and the two reads below are independent, so each
+  // group runs in parallel — one round trip's worth of latency, not five.
+  const [repository, scheduleRepository, unavailableDaysRepository] =
+    await Promise.all([
+      getAppointmentRepository(),
+      getWorkScheduleRepository(),
+      getUnavailableDaysRepository(),
+    ]);
+  const [workSchedule, unavailableDays] = await Promise.all([
+    scheduleRepository.get(),
+    unavailableDaysRepository.list(),
+  ]);
   return {
-    workSchedule: await scheduleRepository.get(),
-    unavailableDays: await unavailableDaysRepository.list(),
+    workSchedule,
+    unavailableDays,
     scheduledTimesOn: (date) => repository.scheduledTimesOn(date),
   };
 }
