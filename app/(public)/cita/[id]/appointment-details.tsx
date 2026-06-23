@@ -86,6 +86,10 @@ export function AppointmentDetails({
       label: "Confirmación por WhatsApp",
       value: appointment.whatsappSent ? "Enviada" : "Pendiente",
     },
+    {
+      label: "Confirmación por email",
+      value: appointment.emailSent ? "Enviada" : "Pendiente",
+    },
   ];
 
   return (
