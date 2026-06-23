@@ -7,14 +7,48 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-4);
   flex-wrap: wrap;
+}
+
+.medallion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.medScheduled {
+  background: var(--success);
+}
+
+.medCancelled {
+  background: var(--error);
+}
+
+.medCompleted {
+  background: var(--info);
+}
+
+.heading {
+  flex: 1;
+  min-width: 0;
 }
 
 .title {
   font-size: var(--text-2xl);
   color: var(--brand-dark);
+}
+
+.subtitle {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 .details {
