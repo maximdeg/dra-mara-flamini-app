@@ -7,8 +7,11 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 
 export default async function CoveragePage() {
-  const insurances = await (await getHealthInsuranceRepository()).list();
-  const pricing = await (await getSelfPayPricingRepository()).get();
+  // Coverage list and pricing are independent reads — fetch them in parallel.
+  const [insurances, pricing] = await Promise.all([
+    getHealthInsuranceRepository().then((r) => r.list()),
+    getSelfPayPricingRepository().then((r) => r.get()),
+  ]);
 
   return (
     <div className={styles.page}>

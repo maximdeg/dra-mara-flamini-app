@@ -16,18 +16,28 @@ import { getAppointmentRepository } from "./get-appointment-repository";
  * Booking itself never creates its own dependencies.
  */
 export async function getBookingDeps(): Promise<BookingDependencies> {
-  const repository = await getAppointmentRepository();
-  const availabilityDeps = await getAvailabilityDeps();
-  const outbox = await getNotificationOutbox();
+  // These five composition steps are independent, so they run in parallel
+  // instead of serially — the booking POST waits on the slowest, not the sum.
+  const [
+    repository,
+    availabilityDeps,
+    outbox,
+    acceptedHealthInsurances,
+    selfPayPricing,
+  ] = await Promise.all([
+    getAppointmentRepository(),
+    getAvailabilityDeps(),
+    getNotificationOutbox(),
+    getHealthInsuranceRepository().then((r) => r.list()),
+    getSelfPayPricingRepository().then((r) => r.get()),
+  ]);
   const sender = new FakeNotificationSender();
   const now = new Date();
 
   return {
     repository,
-    acceptedHealthInsurances: await (
-      await getHealthInsuranceRepository()
-    ).list(),
-    selfPayPricing: await (await getSelfPayPricingRepository()).get(),
+    acceptedHealthInsurances,
+    selfPayPricing,
     classifyDateTime: (date, time) =>
       classifyBookingDateTime(date, time, availabilityDeps),
     hasOpenAppointmentForPhone: async (phone) =>
