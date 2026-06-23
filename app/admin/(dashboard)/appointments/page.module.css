@@ -29,3 +29,11 @@
 .tableCard {
   padding: var(--space-2);
 }
+
+@media (max-width: 520px) {
+  /* A full-width submit is a comfortable tap target once the filters stack. */
+  .filterSubmit {
+    justify-self: stretch;
+    width: 100%;
+  }
+}
