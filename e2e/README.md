@@ -42,7 +42,9 @@ npm run test:visual:update   # regenerate baselines (after an intended change)
   Playwright Docker image).
 - **Stability is by design.** We only screenshot views that don't drift:
   collapsed native selects hide the day-to-day booking window; the calendar uses a
-  fixed month; the `appointments` collection is empty after the seed.
+  fixed month; the appointments list is pinned to a fixed empty date window
+  (`?from=2000-01-01&to=2000-01-01`) so it renders the same empty state on any
+  database — it no longer assumes the `appointments` collection is empty.
 - **Confirmation page (`/cita/[id]`) is intentionally not covered here.** Its
   content is date-driven (the Appointment date sits inside the booking window and
   moves daily) and needs a seeded Appointment per Status. A stable baseline would
