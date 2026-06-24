@@ -14,29 +14,29 @@ const insurances: HealthInsurance[] = [
 ];
 
 describe("coverageOptionsFor", () => {
-  it("offers the insurers plus the Particular Self-Pay variant for a Consultation", () => {
+  it("offers the Particular Self-Pay variant first, then the insurers, for a Consultation", () => {
     const options = coverageOptionsFor("Consultation", insurances);
 
     expect(options.map((o) => o.label)).toEqual([
+      "Particular",
       "OSDE",
       "Galeno",
-      "Particular",
     ]);
-    expect(options.at(-1)?.coverage).toEqual({
+    expect(options[0]?.coverage).toEqual({
       kind: "self-pay",
       variant: "Particular",
     });
   });
 
-  it("offers the insurers plus the Practica Particular variant for a Practice", () => {
+  it("offers the Practica Particular variant first, then the insurers, for a Practice", () => {
     const options = coverageOptionsFor("Practice", insurances);
 
     expect(options.map((o) => o.label)).toEqual([
+      "Practica Particular",
       "OSDE",
       "Galeno",
-      "Practica Particular",
     ]);
-    expect(options.at(-1)?.coverage).toEqual({
+    expect(options[0]?.coverage).toEqual({
       kind: "self-pay",
       variant: "PracticaParticular",
     });
@@ -57,6 +57,19 @@ describe("coverageOptionsFor", () => {
       kind: "self-pay",
       variant: "Particular",
     });
+  });
+
+  it("carries each insurer's price and the Self-Pay full price for display", () => {
+    const priced: HealthInsurance[] = [
+      { name: "OSDE", price: 5000, notes: "" },
+      { name: "Galeno", price: 0, notes: "" },
+    ];
+    const options = coverageOptionsFor("Consultation", priced, 30000);
+
+    const priceByLabel = Object.fromEntries(
+      options.map((o) => [o.label, o.price]),
+    );
+    expect(priceByLabel).toEqual({ Particular: 30000, OSDE: 5000, Galeno: 0 });
   });
 });
 

@@ -101,10 +101,18 @@ export default function AgendarVisitaPage() {
     setCoverageValue("");
   }, [visitType]);
 
-  const coverageOptions = useMemo(
-    () => (visitType ? coverageOptionsFor(visitType, insurances) : []),
-    [visitType, insurances],
-  );
+  const coverageOptions = useMemo(() => {
+    if (!visitType) {
+      return [];
+    }
+    // The Self-Pay option's price is the full price for its Visit Type variant.
+    const selfPayPrice = pricing
+      ? visitType === "Consultation"
+        ? pricing.consultationFullPrice
+        : pricing.practiceFullPrice
+      : 0;
+    return coverageOptionsFor(visitType, insurances, selfPayPrice);
+  }, [visitType, insurances, pricing]);
 
   const selectedCoverage = useMemo(
     () => coverageOptions.find((o) => o.value === coverageValue)?.coverage,
@@ -290,7 +298,9 @@ export default function AgendarVisitaPage() {
                 </option>
                 {coverageOptions.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {option.price > 0
+                      ? `${option.label} (${formatPesos(option.price)})`
+                      : option.label}
                   </option>
                 ))}
               </select>

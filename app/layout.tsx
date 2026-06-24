@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata = {
-  title: "Maraflamini",
+  title: "Dra. Mara Flamini",
   description: "Reserva de turnos del consultorio de dermatología.",
 };
 

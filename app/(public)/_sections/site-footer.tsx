@@ -6,7 +6,7 @@ export function SiteFooter() {
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
-        <p className={styles.brand}>Mara Flamini · Dermatología</p>
+        <p className={styles.brand}>Dra. Mara Flamini · Dermatología</p>
         <p className={styles.fine}>© {year} · Todos los derechos reservados</p>
       </div>
     </footer>

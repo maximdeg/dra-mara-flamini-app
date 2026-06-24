@@ -1,0 +1,68 @@
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.title {
+  height: 2rem;
+  width: 40%;
+  border-radius: var(--radius);
+  background: var(--border-soft);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+}
+
+.row {
+  height: 1rem;
+  border-radius: var(--radius);
+  background: var(--border-soft);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.row:nth-child(2) {
+  width: 85%;
+}
+
+.row:nth-child(3) {
+  width: 70%;
+}
+
+/* Visually hidden, but announced by screen readers. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .row {
+    animation: none;
+  }
+}
