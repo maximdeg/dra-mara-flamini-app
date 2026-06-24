@@ -50,32 +50,39 @@ export interface CoverageOption {
   value: string;
   /** Spanish UI label. */
   label: string;
+  /** Price in whole Argentine pesos for this option; 0 when none/unknown. */
+  price: number;
   coverage: Coverage;
 }
 
 /**
- * The coverage options offered for a Visit Type: every accepted Health
- * Insurance, plus the single Self-Pay variant matching the Visit Type.
+ * The coverage options offered for a Visit Type: the single Self-Pay variant
+ * matching the Visit Type first, then every accepted Health Insurance. Each
+ * option carries its price (whole pesos) for display — the insurer's own price,
+ * and `selfPayPrice` for the Self-Pay variant (0 when unknown).
  */
 export function coverageOptionsFor(
   visitType: VisitType,
   insurances: HealthInsurance[],
+  selfPayPrice = 0,
 ): CoverageOption[] {
+  const variant = selfPayVariantFor(visitType);
+  const selfPayOption: CoverageOption = {
+    value: `self-pay:${variant}`,
+    label: SELF_PAY_LABELS[variant],
+    price: selfPayPrice,
+    coverage: { kind: "self-pay", variant },
+  };
+
   const insurerOptions: CoverageOption[] = insurances.map((insurance) => ({
     value: `health-insurance:${insurance.name}`,
     label: insurance.name,
+    price: insurance.price,
     coverage: { kind: "health-insurance", name: insurance.name },
   }));
 
-  const variant = selfPayVariantFor(visitType);
-  return [
-    ...insurerOptions,
-    {
-      value: `self-pay:${variant}`,
-      label: SELF_PAY_LABELS[variant],
-      coverage: { kind: "self-pay", variant },
-    },
-  ];
+  // Self-Pay always sits first, above the accepted Health Insurances.
+  return [selfPayOption, ...insurerOptions];
 }
 
 /**
