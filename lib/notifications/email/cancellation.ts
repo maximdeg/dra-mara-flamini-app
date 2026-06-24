@@ -6,7 +6,6 @@ import { coverageLabel } from "../../coverage/coverage";
 import type { EmailMessage } from "./email-sender";
 import {
   BRAND_NAME,
-  addressBlock,
   button,
   contactBlock,
   detailTable,
@@ -66,8 +65,6 @@ function textBody(
       (contact) => `- ${contact.name} — ${contact.phone}`,
     ),
     "",
-    `Dirección: ${CLINIC_INFO.address}`,
-    "",
     BRAND_NAME,
   ].join("\n");
 }
@@ -91,7 +88,6 @@ export function cancellationEmail(
     paragraph(REBOOK_PROMPT),
     button(links.rebookUrl, "Reservar otro turno"),
     contactBlock(CLINIC_INFO.contacts),
-    addressBlock(CLINIC_INFO.address),
   ].join("\n");
 
   return {

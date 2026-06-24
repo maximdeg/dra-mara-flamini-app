@@ -98,18 +98,6 @@ export function contactBlock(contacts: { name: string; phone: string }[]): strin
   </table>`;
 }
 
-/** A soft-background block for the clinic address. */
-export function addressBlock(address: string): string {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 0;">
-    <tr><td style="padding:14px 16px;background:${COLOR.brandSoft};border-radius:8px;">
-      <div style="font-size:12px;font-weight:700;color:${COLOR.text};text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Dirección</div>
-      <div style="font-size:14px;line-height:1.5;color:${COLOR.text};">${escapeHtml(
-        address,
-      )}</div>
-    </td></tr>
-  </table>`;
-}
-
 /** Wrap inner content in the branded shell (header bar + card + footer). */
 export function renderEmailLayout(contentHtml: string): string {
   return `<!doctype html>

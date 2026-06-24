@@ -4,13 +4,11 @@ import {
   PRACTICE_TYPE_LABELS,
   VISIT_TYPE_LABELS,
 } from "../../appointments/visit-type";
-import { CLINIC_INFO } from "../../clinic/clinic-info";
 import { coverageLabel } from "../../coverage/coverage";
 import { formatPesos } from "../../deposit/deposit";
 import type { EmailMessage } from "./email-sender";
 import {
   BRAND_NAME,
-  addressBlock,
   button,
   detailTable,
   heading,
@@ -75,8 +73,6 @@ function textBody(
     `Ver o cancelar tu cita: ${links.manageUrl}`,
     CANCEL_NOTE,
     "",
-    `Dirección: ${CLINIC_INFO.address}`,
-    "",
     BRAND_NAME,
   ].join("\n");
 }
@@ -97,7 +93,6 @@ export function confirmationEmail(
     detailTable(rows),
     button(links.manageUrl, "Ver o cancelar tu cita"),
     paragraph(CANCEL_NOTE),
-    addressBlock(CLINIC_INFO.address),
   ].join("\n");
 
   return {
