@@ -23,34 +23,33 @@ export default async function AdminLayout({
       <div className={styles.shell}>
         <aside className={styles.sidebar}>
           <div className={styles.brandBlock}>
-            <span className={styles.brand}>Maraflamini</span>
+            <span className={styles.brand}>Dra. Mara Flamini</span>
             <span className={styles.brandSub}>Panel</span>
           </div>
 
           <AdminNav />
-
-          <div className={styles.account}>
-            {session?.user?.email ? (
-              <span className={styles.email}>{session.user.email}</span>
-            ) : null}
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/admin/sign-in" });
-              }}
-            >
-              <Button
-                type="submit"
-                variant="ghost"
-                className={styles.signOut}
-              >
-                Cerrar sesión
-              </Button>
-            </form>
-          </div>
         </aside>
 
         <main className={styles.main}>{children}</main>
+
+        {/* The signed-in identity + sign-out. Its own grid cell so it sits at the
+            bottom of the sidebar column on desktop, and at the bottom of the page
+            on mobile (where the sidebar collapses to a top bar). */}
+        <div className={styles.account}>
+          {session?.user?.email ? (
+            <span className={styles.email}>{session.user.email}</span>
+          ) : null}
+          <form
+            action={async () => {
+              "use server";
+              await signOut({ redirectTo: "/admin/sign-in" });
+            }}
+          >
+            <Button type="submit" variant="ghost" className={styles.signOut}>
+              Cerrar sesión
+            </Button>
+          </form>
+        </div>
       </div>
     </ToastProvider>
   );

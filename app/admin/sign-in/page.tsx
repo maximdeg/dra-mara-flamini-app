@@ -44,7 +44,7 @@ export default function SignInPage() {
     <div className={styles.page}>
       <Card className={styles.card}>
         <header className={styles.header}>
-          <span className={styles.brand}>Maraflamini</span>
+          <span className={styles.brand}>Dra. Mara Flamini</span>
           <h1 className={styles.title}>Ingresar</h1>
           <p className={styles.subtitle}>Panel del profesional</p>
         </header>

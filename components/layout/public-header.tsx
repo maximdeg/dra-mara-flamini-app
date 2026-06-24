@@ -17,7 +17,7 @@ export function PublicHeader() {
             M
           </span>
           <span className={styles.identity}>
-            <span className={styles.name}>Mara Flamini</span>
+            <span className={styles.name}>Dra. Mara Flamini</span>
             <span className={styles.role}>Dermatóloga</span>
           </span>
         </Link>

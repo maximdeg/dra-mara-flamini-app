@@ -6,7 +6,7 @@ describe("PublicHeader", () => {
   it("shows the practice identity and an Agendar visita CTA", () => {
     render(<PublicHeader />);
 
-    expect(screen.getByText("Mara Flamini")).toBeInTheDocument();
+    expect(screen.getByText("Dra. Mara Flamini")).toBeInTheDocument();
     expect(screen.getByText("Dermatóloga")).toBeInTheDocument();
 
     const cta = screen.getByRole("link", { name: /Agendar visita/ });
