@@ -30,6 +30,9 @@ function appointment(overrides: Partial<Appointment> = {}): Appointment {
     whatsappSent: false,
     whatsappSentAt: null,
     whatsappMessageId: null,
+    emailSent: false,
+    emailSentAt: null,
+    emailMessageId: null,
     createdAt: "2026-06-19T11:55:00.000Z",
     ...overrides,
   };
@@ -50,6 +53,7 @@ function deps(
   return {
     repository,
     notifyCancellation: async () => {},
+    sendCancellationEmail: async () => {},
     now: () => now,
     ...overrides,
   };
@@ -177,6 +181,40 @@ describe("cancel", () => {
       deps(repository, {
         notifyCancellation: async () => {
           throw new Error("whatsapp down");
+        },
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    expect((await repository.findById("apt-1"))?.status).toBe("cancelled");
+  });
+
+  it("sends a Cancellation email with the cancelling actor", async () => {
+    const repository = await repoWith(appointment());
+    let emailedActor: string | null = null;
+
+    await cancel(
+      "apt-1",
+      "professional",
+      deps(repository, {
+        sendCancellationEmail: async (_appointment, actor) => {
+          emailedActor = actor;
+        },
+      }),
+    );
+
+    expect(emailedActor).toBe("professional");
+  });
+
+  it("still cancels when the Cancellation email fails (decoupled — ADR-0001)", async () => {
+    const repository = await repoWith(appointment());
+
+    const result = await cancel(
+      "apt-1",
+      "patient",
+      deps(repository, {
+        sendCancellationEmail: async () => {
+          throw new Error("smtp down");
         },
       }),
     );

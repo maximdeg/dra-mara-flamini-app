@@ -49,6 +49,22 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     }
   }
 
+  async markEmailSent(
+    id: string,
+    sentAt: string,
+    messageId: string,
+  ): Promise<void> {
+    const appointment = this.appointments.get(id);
+    if (appointment) {
+      this.appointments.set(id, {
+        ...appointment,
+        emailSent: true,
+        emailSentAt: sentAt,
+        emailMessageId: messageId,
+      });
+    }
+  }
+
   async markCancelled(id: string): Promise<void> {
     const appointment = this.appointments.get(id);
     if (appointment) {

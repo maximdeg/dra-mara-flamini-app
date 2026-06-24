@@ -20,6 +20,9 @@ const APPOINTMENT: Appointment = {
   whatsappSent: true,
   whatsappSentAt: "2026-06-20T12:00:00.000Z",
   whatsappMessageId: "msg-1",
+  emailSent: false,
+  emailSentAt: null,
+  emailMessageId: null,
   createdAt: "2026-06-20T11:59:00.000Z",
 };
 
@@ -41,6 +44,24 @@ describe("AppointmentDetails", () => {
     expect(
       screen.getByRole("heading", { name: "Cita cancelada" }),
     ).toBeInTheDocument();
+  });
+
+  it("shows the email confirmation status (Pendiente when not sent, Enviada when sent)", () => {
+    const { rerender } = render(
+      <AppointmentDetails appointment={APPOINTMENT} status="scheduled" />,
+    );
+    const emailRow = screen.getByText("Confirmación por email").closest("div");
+    expect(emailRow).toHaveTextContent("Pendiente");
+
+    rerender(
+      <AppointmentDetails
+        appointment={{ ...APPOINTMENT, emailSent: true }}
+        status="scheduled"
+      />,
+    );
+    expect(
+      screen.getByText("Confirmación por email").closest("div"),
+    ).toHaveTextContent("Enviada");
   });
 
   it("matches the confirmation details structure", () => {

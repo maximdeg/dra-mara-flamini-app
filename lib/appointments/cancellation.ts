@@ -18,6 +18,14 @@ export type CancellationResult =
 export interface CancellationDependencies {
   repository: AppointmentRepository;
   notifyCancellation: (appointment: Appointment) => Promise<void> | void;
+  /**
+   * Send the Cancellation email (called best-effort). Receives the actor so the
+   * copy can acknowledge a Patient self-cancel or apologise for a clinic one.
+   */
+  sendCancellationEmail: (
+    appointment: Appointment,
+    actor: CancellationActor,
+  ) => Promise<void> | void;
   now?: () => Date;
 }
 
@@ -77,6 +85,14 @@ export async function cancel(
   // Best-effort, decoupled (ADR-0001).
   try {
     await deps.notifyCancellation(cancelled);
+  } catch {
+    // swallowed on purpose
+  }
+
+  // The Cancellation email is an independent best-effort channel — its failure
+  // (or missing mail config) must likewise never cost the cancellation.
+  try {
+    await deps.sendCancellationEmail(cancelled, actor);
   } catch {
     // swallowed on purpose
   }
