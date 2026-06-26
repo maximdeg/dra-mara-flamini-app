@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,10 @@ export default function SignInPage() {
             {pending ? "Ingresando…" : "Ingresar"}
           </Button>
         </form>
+
+        <p className={styles.forgot}>
+          <Link href="/admin/forgot-password">¿Olvidaste tu contraseña?</Link>
+        </p>
       </Card>
     </div>
   );

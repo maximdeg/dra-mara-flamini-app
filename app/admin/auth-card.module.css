@@ -1,3 +1,6 @@
+/* Shared centered-card layout for the signed-out Professional auth pages
+   (password recovery). Mirrors the sign-in page so the flow feels of a piece. */
+
 .page {
   min-height: 100vh;
   display: grid;
@@ -51,7 +54,13 @@
   margin-top: var(--space-2);
 }
 
-.forgot {
+.message {
+  font-size: var(--text-sm);
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+.back {
   text-align: center;
   font-size: var(--text-sm);
 }
