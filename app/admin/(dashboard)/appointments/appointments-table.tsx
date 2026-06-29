@@ -5,6 +5,7 @@ import {
   VISIT_TYPE_LABELS,
 } from "@/lib/appointments/visit-type";
 import { coverageLabel } from "@/lib/coverage/coverage";
+import { formatDateAR } from "@/lib/datetime/format";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { CancelAppointmentButton } from "./cancel-appointment-button";
@@ -48,7 +49,7 @@ export function AppointmentsTable({ views }: { views: AppointmentView[] }) {
           const patientName = `${appointment.patientFirstName} ${appointment.patientLastName}`;
           return (
             <TR key={appointment.id}>
-              <TD>{appointment.date}</TD>
+              <TD>{formatDateAR(appointment.date)}</TD>
               <TD>{appointment.time}</TD>
               <TD>{patientName}</TD>
               <TD>

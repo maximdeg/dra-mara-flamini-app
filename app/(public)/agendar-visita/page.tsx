@@ -22,6 +22,7 @@ import {
   formatPesos,
   type SelfPayPricing,
 } from "@/lib/deposit/deposit";
+import { formatDateAR } from "@/lib/datetime/format";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -340,7 +341,7 @@ export default function AgendarVisitaPage() {
                 <option value="">Elegí una fecha…</option>
                 {days.map((day) => (
                   <option key={day} value={day}>
-                    {day}
+                    {formatDateAR(day)}
                   </option>
                 ))}
               </select>

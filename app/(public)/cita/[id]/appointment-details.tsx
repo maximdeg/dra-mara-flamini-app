@@ -7,6 +7,7 @@ import {
   VISIT_TYPE_LABELS,
 } from "@/lib/appointments/visit-type";
 import { coverageLabel } from "@/lib/coverage/coverage";
+import { formatDateAR } from "@/lib/datetime/format";
 import { formatPesos } from "@/lib/deposit/deposit";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/components/ui/cn";
@@ -80,7 +81,7 @@ export function AppointmentDetails({
           },
         ]
       : []),
-    { label: "Fecha", value: appointment.date },
+    { label: "Fecha", value: formatDateAR(appointment.date) },
     { label: "Hora", value: appointment.time },
     {
       label: "Confirmación por WhatsApp",

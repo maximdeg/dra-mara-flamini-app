@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { formatDateAR } from "@/lib/datetime/format";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
@@ -76,6 +77,9 @@ export function UnavailableDaysManager({ days }: { days: string[] }) {
         <Field label="Fecha a bloquear" className={styles.addField}>
           <input
             type="date"
+            // Argentine convention: render the native control as DD/MM/YYYY for a
+            // visitor on a non-es locale.
+            lang="es-AR"
             value={date}
             onChange={(e) => {
               setDate(e.target.value);
@@ -102,7 +106,7 @@ export function UnavailableDaysManager({ days }: { days: string[] }) {
           <ul className={styles.list}>
             {days.map((day) => (
               <li key={day} className={styles.item}>
-                <span>{day}</span>
+                <span>{formatDateAR(day)}</span>
                 <Button
                   variant="ghost"
                   onClick={() => setDayToRemove(day)}
@@ -142,7 +146,7 @@ export function UnavailableDaysManager({ days }: { days: string[] }) {
               {collisions.map((c) => (
                 <li key={c.id} className={styles.collision}>
                   <span>
-                    {c.date} {c.time} · {c.patientName}
+                    {formatDateAR(c.date)} {c.time} · {c.patientName}
                   </span>
                   <Button
                     variant="destructive"
@@ -181,7 +185,10 @@ export function UnavailableDaysManager({ days }: { days: string[] }) {
           </>
         }
       >
-        <p>El día {dayToRemove} volverá a estar disponible para reservar.</p>
+        <p>
+          El día {dayToRemove ? formatDateAR(dayToRemove) : ""} volverá a estar
+          disponible para reservar.
+        </p>
       </Dialog>
     </div>
   );

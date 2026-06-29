@@ -5,6 +5,7 @@ import {
   VISIT_TYPE_LABELS,
 } from "../../appointments/visit-type";
 import { coverageLabel } from "../../coverage/coverage";
+import { formatDateAR } from "../../datetime/format";
 import { formatPesos } from "../../deposit/deposit";
 import type { EmailMessage } from "./email-sender";
 import {
@@ -54,7 +55,7 @@ function detailRows(appointment: Appointment): DetailRow[] {
   if (appointment.deposit) {
     rows.push({ label: "Seña", value: formatPesos(appointment.deposit.amount) });
   }
-  rows.push({ label: "Fecha", value: appointment.date });
+  rows.push({ label: "Fecha", value: formatDateAR(appointment.date) });
   rows.push({ label: "Hora", value: appointment.time });
   return rows;
 }

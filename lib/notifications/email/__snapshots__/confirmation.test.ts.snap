@@ -39,7 +39,7 @@ exports[`confirmationEmail > renders a health-insurance confirmation without a s
       <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;vertical-align:top;">OSDE</td>
     </tr><tr>
       <td style="padding:8px 12px 8px 0;font-size:13px;color:#4b5563;width:42%;vertical-align:top;">Fecha</td>
-      <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;vertical-align:top;">2026-06-22</td>
+      <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;vertical-align:top;">22/06/2026</td>
     </tr><tr>
       <td style="padding:8px 12px 8px 0;font-size:13px;color:#4b5563;width:42%;vertical-align:top;">Hora</td>
       <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;vertical-align:top;">09:30</td>
@@ -68,7 +68,7 @@ Detalles de tu cita:
 - Tipo de visita: Consulta
 - Tipo de consulta: Primera vez
 - Cobertura: OSDE
-- Fecha: 2026-06-22
+- Fecha: 22/06/2026
 - Hora: 09:30
 
 Ver o cancelar tu cita: https://clinica.example/cita/apt-1
@@ -121,7 +121,7 @@ exports[`confirmationEmail > renders a self-pay practice confirmation with the s
       <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;vertical-align:top;">$35.000</td>
     </tr><tr>
       <td style="padding:8px 12px 8px 0;font-size:13px;color:#4b5563;width:42%;vertical-align:top;">Fecha</td>
-      <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;vertical-align:top;">2026-06-22</td>
+      <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;vertical-align:top;">22/06/2026</td>
     </tr><tr>
       <td style="padding:8px 12px 8px 0;font-size:13px;color:#4b5563;width:42%;vertical-align:top;">Hora</td>
       <td style="padding:8px 0;font-size:14px;color:#111827;font-weight:600;vertical-align:top;">09:30</td>
@@ -151,7 +151,7 @@ Detalles de tu cita:
 - Tipo de práctica: Biopsia
 - Cobertura: Practica Particular
 - Seña: $35.000
-- Fecha: 2026-06-22
+- Fecha: 22/06/2026
 - Hora: 09:30
 
 Ver o cancelar tu cita: https://clinica.example/cita/apt-2
