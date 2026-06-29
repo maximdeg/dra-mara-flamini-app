@@ -3,17 +3,26 @@
  * (`authorized` callback) applies to every request. Kept out of the framework
  * glue so the guard rule is unit-testable on its own.
  *
- * The dashboard surface lives under `/admin`. The sign-in page is itself under
- * `/admin/sign-in` and must stay reachable while signed out, so it is the one
- * `/admin` path that is not protected (otherwise a redirect loop).
+ * The dashboard surface lives under `/admin`. A few `/admin` paths must stay
+ * reachable while signed out — the sign-in page (otherwise a redirect loop) and
+ * the password-recovery flow (otherwise a locked-out Professional could never
+ * reach the pages that let them back in) — so those are not protected.
  */
-const SIGN_IN_PATH = "/admin/sign-in";
+const PUBLIC_ADMIN_PATHS = [
+  "/admin/sign-in",
+  "/admin/forgot-password",
+  "/admin/reset-password",
+];
 
 export function isProtectedAdminPath(pathname: string): boolean {
   if (pathname !== "/admin" && !pathname.startsWith("/admin/")) {
     return false;
   }
-  if (pathname === SIGN_IN_PATH || pathname.startsWith(`${SIGN_IN_PATH}/`)) {
+  if (
+    PUBLIC_ADMIN_PATHS.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`),
+    )
+  ) {
     return false;
   }
   return true;

@@ -12,6 +12,11 @@ describe("isProtectedAdminPath", () => {
     expect(isProtectedAdminPath("/admin/sign-in")).toBe(false);
   });
 
+  it("leaves the password-recovery pages unprotected (reachable while locked out)", () => {
+    expect(isProtectedAdminPath("/admin/forgot-password")).toBe(false);
+    expect(isProtectedAdminPath("/admin/reset-password")).toBe(false);
+  });
+
   it("leaves public paths unprotected", () => {
     expect(isProtectedAdminPath("/")).toBe(false);
     expect(isProtectedAdminPath("/agendar-visita")).toBe(false);
@@ -31,9 +36,11 @@ describe("canAccess", () => {
     expect(canAccess("/admin/appointments", true)).toBe(true);
   });
 
-  it("allows everyone onto public paths and the sign-in page", () => {
+  it("allows everyone onto public paths, sign-in, and password recovery", () => {
     expect(canAccess("/", false)).toBe(true);
     expect(canAccess("/agendar-visita", false)).toBe(true);
     expect(canAccess("/admin/sign-in", false)).toBe(true);
+    expect(canAccess("/admin/forgot-password", false)).toBe(true);
+    expect(canAccess("/admin/reset-password", false)).toBe(true);
   });
 });
