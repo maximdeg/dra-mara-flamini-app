@@ -1,0 +1,17 @@
+# Normalize line endings. Store text as LF in the repository and check it out
+# as LF on every platform, so editors/tools (vitest snapshots, Prettier) on
+# Windows stop churning CRLF<->LF regardless of each contributor's core.autocrlf.
+* text=auto eol=lf
+
+# Binary assets git must never touch (line-ending or diff filters).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
