@@ -38,6 +38,20 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     {
+      // Same public pages at a phone viewport. iPhone-13 geometry pinned to
+      // Chromium — the only browser the suite installs, and the engine that
+      // supports `isMobile` emulation. Guards the #20/#21 mobile pass.
+      name: "public-mobile",
+      testMatch: /public-mobile\.spec\.ts/,
+      use: {
+        browserName: "chromium",
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 3,
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+    {
       name: "admin",
       testMatch: /admin\.spec\.ts/,
       dependencies: ["setup"],
