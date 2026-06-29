@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import { cancel } from "@/lib/appointments/cancellation";
 import { getCancellationDeps } from "@/lib/appointments/get-cancellation-deps";
+import { requireProfessional } from "@/lib/auth/require-professional";
 
 /**
  * Professional cancellation from the dashboard — reuses the Cancellation module
@@ -14,8 +14,7 @@ import { getCancellationDeps } from "@/lib/appointments/get-cancellation-deps";
 export async function cancelAppointmentAsProfessional(
   id: string,
 ): Promise<void> {
-  const session = await auth();
-  if (!session?.user) {
+  if (!(await requireProfessional()).ok) {
     throw new Error("No autorizado.");
   }
 
