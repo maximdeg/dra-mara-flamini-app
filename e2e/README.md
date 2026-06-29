@@ -31,6 +31,9 @@ npm run test:visual:update   # regenerate baselines (after an intended change)
 
 - **public** (`public.spec.ts`): home, sign-in, booking form (initial), booking
   form (Self-Pay Practice → Deposit shown).
+- **public-mobile** (`public-mobile.spec.ts`): the same stable public views
+  (home, sign-in, booking initial) at a phone viewport (iPhone-13, 390×844),
+  each also asserting no horizontal overflow. Guards the mobile pass (#20/#21).
 - **admin** (`admin.spec.ts`, authenticated): appointments list, calendar (pinned
   to a fixed past month so "today" never drifts the baseline).
 

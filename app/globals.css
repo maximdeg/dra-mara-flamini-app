@@ -84,6 +84,14 @@ html {
 
 body {
   min-height: 100vh;
+  /*
+   * Absorb the landing's full-bleed sections, which span the viewport with
+   * `width: 100vw`. On a scrollbar-bearing viewport 100vw is a touch wider than
+   * the content box, which would otherwise spill into a sideways scroll and make
+   * phones shrink the whole page to fit. `clip` contains it without becoming a
+   * scroll container, so the sticky header keeps sticking.
+   */
+  overflow-x: clip;
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: 1.5;
