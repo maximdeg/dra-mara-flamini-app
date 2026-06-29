@@ -1,6 +1,6 @@
 import type { Appointment } from "@/lib/appointments/appointment";
 import type { DerivedStatus } from "@/lib/appointments/status";
-import { CLINIC_INFO } from "@/lib/clinic/clinic-info";
+import type { ClinicInfo } from "@/lib/clinic/clinic-info";
 import { formatPesos } from "@/lib/deposit/deposit";
 import { Callout } from "@/components/ui/callout";
 import {
@@ -16,18 +16,21 @@ import styles from "./appointment-info.module.css";
  * The "what to do next" information on the confirmation page. The preparation
  * callouts (arrival, documentation, cancellation policy) and the seña transfer
  * box are shown only while the Appointment is Scheduled; the clinic contact
- * shows for every Status. All copy comes from the single clinic-info constant.
+ * shows for every Status. All copy comes from the persisted, Professional-
+ * editable `clinicInfo`.
  */
 export function AppointmentInfo({
   appointment,
   status,
+  clinicInfo,
 }: {
   appointment: Appointment;
   status: DerivedStatus;
+  clinicInfo: ClinicInfo;
 }) {
   const isScheduled = status === "scheduled";
-  const { contacts, senaTransfer, arrivalLeadMinutes, documentation } =
-    CLINIC_INFO;
+  const { arrival, documentation, cancellation, contact, senaTransfer } =
+    clinicInfo;
 
   return (
     <div className={styles.sections}>
@@ -35,12 +38,9 @@ export function AppointmentInfo({
         <Callout
           tone="warning"
           icon={<InfoIcon />}
-          title={`Seña: ${formatPesos(appointment.deposit.amount)}`}
+          title={`${senaTransfer.title}: ${formatPesos(appointment.deposit.amount)}`}
         >
-          <p>
-            Para dejar la seña reservada, transferí el monto a los siguientes
-            datos. La transferencia se realiza por fuera de la plataforma.
-          </p>
+          <p>{senaTransfer.intro}</p>
           <dl className={styles.transfer}>
             <div className={styles.transferRow}>
               <dt>Alias</dt>
@@ -58,21 +58,17 @@ export function AppointmentInfo({
         <section className={styles.important}>
           <h2 className={styles.importantTitle}>Información importante</h2>
 
-          <Callout
-            tone="info"
-            icon={<ClockIcon />}
-            title={`Llegá ${arrivalLeadMinutes} minutos antes`}
-          >
-            <p>Para completar la documentación necesaria.</p>
+          <Callout tone="info" icon={<ClockIcon />} title={arrival.title}>
+            <p>{arrival.body}</p>
           </Callout>
 
           <Callout
             tone="warning"
             icon={<FileTextIcon />}
-            title="Documentación requerida"
+            title={documentation.title}
           >
             <ul className={styles.list}>
-              {documentation.map((item) => (
+              {documentation.items.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
@@ -81,27 +77,20 @@ export function AppointmentInfo({
           <Callout
             tone="danger"
             icon={<AlertTriangleIcon />}
-            title="Cancelación"
+            title={cancellation.title}
           >
-            <p>
-              Si necesitás cancelar, hacelo con al menos 24 horas de
-              anticipación. Tené en cuenta que otro paciente puede necesitar ese
-              turno y el tiempo del profesional.
-            </p>
+            <p>{cancellation.body}</p>
           </Callout>
         </section>
       )}
 
-      <Callout tone="success" icon={<PhoneIcon />} title="Contacto">
-        <p>
-          Ante cualquier inconveniente o duda con tu turno, escribinos por
-          WhatsApp:
-        </p>
+      <Callout tone="success" icon={<PhoneIcon />} title={contact.title}>
+        <p>{contact.intro}</p>
         <ul className={styles.contacts}>
-          {contacts.map((contact) => (
-            <li key={contact.name} className={styles.contactRow}>
-              <span>{contact.name}</span>
-              <span>{contact.phone}</span>
+          {contact.contacts.map((entry) => (
+            <li key={entry.name} className={styles.contactRow}>
+              <span>{entry.name}</span>
+              <span>{entry.phone}</span>
             </li>
           ))}
         </ul>

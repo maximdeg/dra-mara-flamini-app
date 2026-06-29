@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { Appointment } from "@/lib/appointments/appointment";
-import { CLINIC_INFO } from "@/lib/clinic/clinic-info";
+import { SEEDED_CLINIC_INFO } from "@/lib/clinic/clinic-info";
 import { AppointmentInfo } from "./appointment-info";
 
 const APPOINTMENT: Appointment = {
@@ -29,27 +29,39 @@ const APPOINTMENT: Appointment = {
 
 describe("AppointmentInfo", () => {
   it("shows prep info, contact, and the seña box for a scheduled deposit appointment", () => {
-    render(<AppointmentInfo appointment={APPOINTMENT} status="scheduled" />);
+    render(
+      <AppointmentInfo
+        appointment={APPOINTMENT}
+        status="scheduled"
+        clinicInfo={SEEDED_CLINIC_INFO}
+      />,
+    );
 
     expect(screen.getByText(/Llegá 15 minutos antes/)).toBeInTheDocument();
-    for (const item of CLINIC_INFO.documentation) {
+    for (const item of SEEDED_CLINIC_INFO.documentation.items) {
       expect(screen.getByText(item)).toBeInTheDocument();
     }
     expect(screen.getByText("Cancelación")).toBeInTheDocument();
 
     expect(screen.getByText("Contacto")).toBeInTheDocument();
     expect(
-      screen.getByText(CLINIC_INFO.contacts[0].name),
+      screen.getByText(SEEDED_CLINIC_INFO.contact.contacts[0].name),
     ).toBeInTheDocument();
 
     expect(screen.getByText(/Seña: \$20\.000/)).toBeInTheDocument();
     expect(
-      screen.getByText(CLINIC_INFO.senaTransfer.alias),
+      screen.getByText(SEEDED_CLINIC_INFO.senaTransfer.alias),
     ).toBeInTheDocument();
   });
 
   it("omits prep info and the seña box when cancelled, but keeps contact", () => {
-    render(<AppointmentInfo appointment={APPOINTMENT} status="cancelled" />);
+    render(
+      <AppointmentInfo
+        appointment={APPOINTMENT}
+        status="cancelled"
+        clinicInfo={SEEDED_CLINIC_INFO}
+      />,
+    );
 
     expect(screen.queryByText(/Llegá 15 minutos antes/)).not.toBeInTheDocument();
     expect(screen.queryByText("Cancelación")).not.toBeInTheDocument();
@@ -62,6 +74,7 @@ describe("AppointmentInfo", () => {
       <AppointmentInfo
         appointment={{ ...APPOINTMENT, deposit: null }}
         status="scheduled"
+        clinicInfo={SEEDED_CLINIC_INFO}
       />,
     );
 

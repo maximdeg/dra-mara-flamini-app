@@ -1,11 +1,14 @@
 import type { Appointment } from "../../appointments/appointment";
 import type { CancellationActor } from "../../appointments/cancellation";
+import type { ClinicContact } from "../../clinic/clinic-info";
 import { siteUrl } from "../../site-url";
 import { cancellationEmail } from "./cancellation";
 import type { EmailSender } from "./email-sender";
 
 export interface CancellationEmailDeps {
   sender: EmailSender;
+  /** The (editable) clinic contacts shown in the email's Contacto block. */
+  contacts: ClinicContact[];
 }
 
 /**
@@ -20,8 +23,11 @@ export async function sendCancellationEmail(
   actor: CancellationActor,
   deps: CancellationEmailDeps,
 ): Promise<void> {
-  const message = cancellationEmail(appointment, actor, {
-    rebookUrl: siteUrl("/agendar-visita"),
-  });
+  const message = cancellationEmail(
+    appointment,
+    actor,
+    { rebookUrl: siteUrl("/agendar-visita") },
+    deps.contacts,
+  );
   await deps.sender.send(message);
 }

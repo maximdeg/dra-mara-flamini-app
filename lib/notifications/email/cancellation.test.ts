@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { Appointment } from "../../appointments/appointment";
+import { SEEDED_CLINIC_INFO } from "../../clinic/clinic-info";
 import { cancellationEmail } from "./cancellation";
+
+const contacts = SEEDED_CLINIC_INFO.contact.contacts;
 
 function appointment(overrides: Partial<Appointment> = {}): Appointment {
   return {
@@ -32,7 +35,7 @@ const links = { rebookUrl: "https://clinica.example/agendar-visita" };
 
 describe("cancellationEmail", () => {
   it("carries the recipient, subject, and rebook link", () => {
-    const email = cancellationEmail(appointment(), "patient", links);
+    const email = cancellationEmail(appointment(), "patient", links, contacts);
 
     expect(email.to).toBe("lucia@example.com");
     expect(email.subject).toBe("Tu cita fue cancelada — Dra. Mara Flamini");
@@ -43,7 +46,7 @@ describe("cancellationEmail", () => {
   });
 
   it("reads as an acknowledgement when the Patient cancelled", () => {
-    const email = cancellationEmail(appointment(), "patient", links);
+    const email = cancellationEmail(appointment(), "patient", links, contacts);
 
     expect(email.html).toContain("confirmamos la cancelación de tu cita");
     expect(email.html).not.toContain("lamentamos");
@@ -51,7 +54,7 @@ describe("cancellationEmail", () => {
   });
 
   it("reads as an apology when the clinic cancelled", () => {
-    const email = cancellationEmail(appointment(), "professional", links);
+    const email = cancellationEmail(appointment(), "professional", links, contacts);
 
     expect(email.html).toContain(
       "el consultorio debió cancelar tu cita",

@@ -1,3 +1,4 @@
+import { getClinicInfoRepository } from "../clinic/get-clinic-info-repository";
 import { getEmailSender } from "../notifications/email/get-email-sender";
 import { sendCancellationEmail } from "../notifications/email/send-cancellation-email";
 import { getNotificationOutbox } from "../notifications/get-notification-outbox";
@@ -19,9 +20,14 @@ export async function getCancellationDeps(): Promise<CancellationDependencies> {
     repository,
     notifyCancellation: (appointment) =>
       notifyCancellation(appointment, { outbox, sender }),
-    // Built lazily so missing Gmail config throws inside cancel()'s best-effort
-    // catch rather than failing deps composition.
-    sendCancellationEmail: (appointment, actor) =>
-      sendCancellationEmail(appointment, actor, { sender: getEmailSender() }),
+    // Built lazily so missing Gmail config (or a clinic-info read) throws inside
+    // cancel()'s best-effort catch rather than failing deps composition.
+    sendCancellationEmail: async (appointment, actor) => {
+      const { contact } = await getClinicInfoRepository().then((r) => r.get());
+      await sendCancellationEmail(appointment, actor, {
+        sender: getEmailSender(),
+        contacts: contact.contacts,
+      });
+    },
   };
 }

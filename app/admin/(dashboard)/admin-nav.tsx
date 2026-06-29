@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/admin/schedule", label: "Horarios" },
   { href: "/admin/unavailable-days", label: "Días no laborables" },
   { href: "/admin/coverage", label: "Coberturas y precios" },
+  { href: "/admin/clinic-info", label: "Información de la cita" },
   { href: "/admin/profile", label: "Perfil" },
 ];
 
