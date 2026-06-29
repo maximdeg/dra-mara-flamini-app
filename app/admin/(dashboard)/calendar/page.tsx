@@ -3,6 +3,7 @@ import { listAppointments } from "@/lib/appointments/appointment-listing";
 import { buildMonthCalendar, monthBounds } from "@/lib/appointments/calendar";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
 import { VISIT_TYPE_LABELS } from "@/lib/appointments/visit-type";
+import { formatDateAR } from "@/lib/datetime/format";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -110,7 +111,9 @@ export default async function AdminCalendarPage({
       <Card>
         {selectedDay ? (
           <>
-            <h2 className={styles.dayTitle}>Turnos del {selectedDay}</h2>
+            <h2 className={styles.dayTitle}>
+              Turnos del {formatDateAR(selectedDay)}
+            </h2>
             {selectedViews.length === 0 ? (
               <p className={styles.empty}>No hay turnos este día.</p>
             ) : (

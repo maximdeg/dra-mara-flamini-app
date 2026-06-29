@@ -8,6 +8,7 @@ import {
   type WorkdaySchedule,
   type WorkSchedule,
 } from "@/lib/availability/work-schedule";
+import { formatDateAR } from "@/lib/datetime/format";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
@@ -120,6 +121,9 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
                   <div key={index} className={styles.range}>
                     <input
                       type="time"
+                      // Argentine convention: render the native control in 24-hour
+                      // form (no am/pm) for a visitor on a non-es locale.
+                      lang="es-AR"
                       className={styles.time}
                       aria-label="Desde"
                       value={range.start}
@@ -130,6 +134,7 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
                     <span className={styles.sep}>a</span>
                     <input
                       type="time"
+                      lang="es-AR"
                       className={styles.time}
                       aria-label="Hasta"
                       value={range.end}
@@ -200,7 +205,7 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
               {collisions.map((c) => (
                 <li key={c.id} className={styles.collision}>
                   <span>
-                    {c.date} {c.time} · {c.patientName}
+                    {formatDateAR(c.date)} {c.time} · {c.patientName}
                   </span>
                   <Button
                     variant="destructive"

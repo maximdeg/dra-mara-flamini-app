@@ -3,6 +3,7 @@ import type { CancellationActor } from "../../appointments/cancellation";
 import { VISIT_TYPE_LABELS } from "../../appointments/visit-type";
 import { CLINIC_INFO } from "../../clinic/clinic-info";
 import { coverageLabel } from "../../coverage/coverage";
+import { formatDateAR } from "../../datetime/format";
 import type { EmailMessage } from "./email-sender";
 import {
   BRAND_NAME,
@@ -27,7 +28,7 @@ export interface CancellationLinks {
 
 /** Actor-aware opening line: acknowledgement for the Patient, apology for the clinic. */
 function intro(appointment: Appointment, actor: CancellationActor): string {
-  const when = `del ${appointment.date} a las ${appointment.time}`;
+  const when = `del ${formatDateAR(appointment.date)} a las ${appointment.time}`;
   return actor === "professional"
     ? `Hola ${appointment.patientFirstName}, lamentamos informarte que el consultorio debió cancelar tu cita ${when}. Disculpá las molestias.`
     : `Hola ${appointment.patientFirstName}, confirmamos la cancelación de tu cita ${when}.`;
@@ -39,7 +40,7 @@ function summaryRows(appointment: Appointment): DetailRow[] {
       label: "Paciente",
       value: `${appointment.patientFirstName} ${appointment.patientLastName}`,
     },
-    { label: "Fecha", value: appointment.date },
+    { label: "Fecha", value: formatDateAR(appointment.date) },
     { label: "Hora", value: appointment.time },
     { label: "Tipo de visita", value: VISIT_TYPE_LABELS[appointment.visitType] },
     { label: "Cobertura", value: coverageLabel(appointment.coverage) },

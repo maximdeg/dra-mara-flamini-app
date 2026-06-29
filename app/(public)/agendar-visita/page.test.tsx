@@ -47,8 +47,9 @@ function withoutClasses(html: string): string {
 describe("AgendarVisitaPage", () => {
   it("matches the booking form structure", async () => {
     const { container } = render(<AgendarVisitaPage />);
-    // Wait until availability has loaded so the date options are present.
-    await screen.findByText("2026-06-22");
+    // Wait until availability has loaded so the date options are present
+    // (rendered in Argentine DD/MM/YYYY form).
+    await screen.findByText("22/06/2026");
 
     const form = container.querySelector("form");
     expect(form).not.toBeNull();
