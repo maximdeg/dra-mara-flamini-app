@@ -1,7 +1,7 @@
 import type { Appointment } from "../../appointments/appointment";
 import type { CancellationActor } from "../../appointments/cancellation";
 import { VISIT_TYPE_LABELS } from "../../appointments/visit-type";
-import { CLINIC_INFO } from "../../clinic/clinic-info";
+import type { ClinicContact } from "../../clinic/clinic-info";
 import { coverageLabel } from "../../coverage/coverage";
 import { formatDateAR } from "../../datetime/format";
 import type { EmailMessage } from "./email-sender";
@@ -52,6 +52,7 @@ function textBody(
   actor: CancellationActor,
   links: CancellationLinks,
   rows: DetailRow[],
+  contacts: ClinicContact[],
 ): string {
   return [
     intro(appointment, actor),
@@ -62,9 +63,7 @@ function textBody(
     `${REBOOK_PROMPT} ${links.rebookUrl}`,
     "",
     "Contacto:",
-    ...CLINIC_INFO.contacts.map(
-      (contact) => `- ${contact.name} — ${contact.phone}`,
-    ),
+    ...contacts.map((contact) => `- ${contact.name} — ${contact.phone}`),
     "",
     BRAND_NAME,
   ].join("\n");
@@ -74,12 +73,14 @@ function textBody(
  * The Cancellation email for a cancelled Appointment — a Patient-ready
  * `{ to, subject, html, text }`. Actor-aware copy (a Patient self-cancel reads
  * as an acknowledgement; a Professional/clinic cancellation as an apology).
- * Pure: the absolute rebook link is passed in (built from `siteUrl`).
+ * Pure: the absolute rebook link and the clinic contacts are passed in (the
+ * contacts come from the persisted, Professional-editable clinic info).
  */
 export function cancellationEmail(
   appointment: Appointment,
   actor: CancellationActor,
   links: CancellationLinks,
+  contacts: ClinicContact[],
 ): EmailMessage {
   const rows = summaryRows(appointment);
   const content = [
@@ -88,13 +89,13 @@ export function cancellationEmail(
     detailTable(rows),
     paragraph(REBOOK_PROMPT),
     button(links.rebookUrl, "Reservar otro turno"),
-    contactBlock(CLINIC_INFO.contacts),
+    contactBlock(contacts),
   ].join("\n");
 
   return {
     to: appointment.patientEmail,
     subject: SUBJECT,
     html: renderEmailLayout(content),
-    text: textBody(appointment, actor, links, rows),
+    text: textBody(appointment, actor, links, rows, contacts),
   };
 }

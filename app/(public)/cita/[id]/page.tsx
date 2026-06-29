@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { patientCanCancel } from "@/lib/appointments/cancellation";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
 import { statusOf } from "@/lib/appointments/status";
+import { getClinicInfoRepository } from "@/lib/clinic/get-clinic-info-repository";
 import { AppointmentActions } from "./appointment-actions";
 import { AppointmentDetails } from "./appointment-details";
 import { AppointmentInfo } from "./appointment-info";
@@ -18,7 +19,11 @@ export default async function CitaPage({
 }) {
   const { id } = await params;
   const repository = await getAppointmentRepository();
-  const appointment = await repository.findById(id);
+  // The Appointment and the (editable) clinic copy are independent reads.
+  const [appointment, clinicInfo] = await Promise.all([
+    repository.findById(id),
+    getClinicInfoRepository().then((r) => r.get()),
+  ]);
   if (!appointment) {
     notFound();
   }
@@ -29,7 +34,11 @@ export default async function CitaPage({
   return (
     <div className={styles.page}>
       <AppointmentDetails appointment={appointment} status={status} />
-      <AppointmentInfo appointment={appointment} status={status} />
+      <AppointmentInfo
+        appointment={appointment}
+        status={status}
+        clinicInfo={clinicInfo}
+      />
       <CancelAppointment
         appointmentId={appointment.id}
         isScheduled={status === "scheduled"}

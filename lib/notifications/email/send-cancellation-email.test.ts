@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Appointment } from "../../appointments/appointment";
+import { SEEDED_CLINIC_INFO } from "../../clinic/clinic-info";
 import { FakeEmailSender, type EmailSender } from "./email-sender";
 import { sendCancellationEmail } from "./send-cancellation-email";
+
+const contacts = SEEDED_CLINIC_INFO.contact.contacts;
 
 function appointment(): Appointment {
   return {
@@ -32,7 +35,10 @@ describe("sendCancellationEmail", () => {
   it("sends the actor-aware Cancellation email to the Patient", async () => {
     const sender = new FakeEmailSender();
 
-    await sendCancellationEmail(appointment(), "professional", { sender });
+    await sendCancellationEmail(appointment(), "professional", {
+      sender,
+      contacts,
+    });
 
     expect(sender.last?.to).toBe("lucia@example.com");
     expect(sender.last?.subject).toBe("Tu cita fue cancelada — Dra. Mara Flamini");
@@ -47,7 +53,10 @@ describe("sendCancellationEmail", () => {
     };
 
     await expect(
-      sendCancellationEmail(appointment(), "patient", { sender: failingSender }),
+      sendCancellationEmail(appointment(), "patient", {
+        sender: failingSender,
+        contacts,
+      }),
     ).rejects.toThrow("smtp down");
   });
 });
