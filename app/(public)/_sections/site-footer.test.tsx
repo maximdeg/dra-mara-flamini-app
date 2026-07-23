@@ -10,4 +10,15 @@ describe("SiteFooter", () => {
     expect(screen.queryByText(/MaxTurnos/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Prototipo/)).not.toBeInTheDocument();
   });
+
+  it("links to the privacy policy and terms pages", () => {
+    render(<SiteFooter />);
+
+    expect(
+      screen.getByRole("link", { name: "Política de Privacidad" }),
+    ).toHaveAttribute("href", "/politica-de-privacidad");
+    expect(
+      screen.getByRole("link", { name: "Términos y Condiciones" }),
+    ).toHaveAttribute("href", "/terminos-y-condiciones");
+  });
 });
