@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "./site-footer.module.css";
 
 /** A tasteful minimal brand footer for the public site. */
@@ -7,6 +8,10 @@ export function SiteFooter() {
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <p className={styles.brand}>Dra. Mara Flamini · Dermatología</p>
+        <nav className={styles.links} aria-label="Enlaces legales">
+          <Link href="/politica-de-privacidad">Política de Privacidad</Link>
+          <Link href="/terminos-y-condiciones">Términos y Condiciones</Link>
+        </nav>
         <p className={styles.fine}>© {year} · Todos los derechos reservados</p>
       </div>
     </footer>
