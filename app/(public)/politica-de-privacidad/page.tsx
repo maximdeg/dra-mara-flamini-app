@@ -22,14 +22,12 @@ export default function PoliticaDePrivacidadPage() {
       meta={[
         { label: "Última actualización", value: "Julio 2026" },
         { label: "Marco legal", value: "Ley 25.326 Argentina" },
-        { label: "Responsable", value: "[Completar con tus datos]" },
+        { label: "Responsable", value: "Dra. Mara Flamini Prida" },
       ]}
     >
       <LegalSection number={1} title="Quiénes somos">
         <p>
-          <strong>[Nombre del consultorio / profesional]</strong>, con domicilio
-          en <strong>[dirección]</strong>, CUIT/CUIL <strong>[número]</strong>,
-          es el responsable del tratamiento de los datos personales recolectados
+          <strong> Dra. Mara Flamini Prida</strong> es la responsable del tratamiento de los datos personales recolectados
           a través de nuestro servicio de confirmación de turnos dermatológicos
           mediante WhatsApp.
         </p>
@@ -278,15 +276,12 @@ export default function PoliticaDePrivacidadPage() {
       >
         <li>
           📧 <strong>Email:</strong>{" "}
-          <a href="mailto:privacidad@tudominio.com.ar">
-            privacidad@[tudominio].com.ar
+          <a href="dramaraflamini@gmail.com">
+            dramaraflamini@gmail.com
           </a>
         </li>
         <li>
-          📍 <strong>Domicilio:</strong> [Dirección completa], Argentina
-        </li>
-        <li>
-          ⏰ <strong>Horario:</strong> Lunes a viernes de 9:00 a 18:00 hs
+          📍 <strong>Domicilio:</strong> Santiago Derqui 2617, Argentina
         </li>
       </ContactCard>
     </LegalPage>

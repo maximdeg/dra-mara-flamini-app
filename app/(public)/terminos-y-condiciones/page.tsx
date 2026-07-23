@@ -24,9 +24,7 @@ export default function TerminosYCondicionesPage() {
           Estos Términos y Condiciones regulan el acceso y uso del servicio de
           confirmación automática de turnos dermatológicos mediante mensajería
           WhatsApp, operado por{" "}
-          <strong>[Nombre del consultorio / profesional]</strong> (en adelante,
-          "el Consultorio"), CUIT/CUIL <strong>[número]</strong>, con domicilio
-          en <strong>[dirección]</strong>, República Argentina.
+          <strong> Dra. Mara Flamini Prida</strong>.
         </p>
         <p>
           Al proporcionar tu número de teléfono al momento de agendar un turno y
@@ -301,17 +299,17 @@ export default function TerminosYCondicionesPage() {
       >
         <li>
           📧 <strong>Email:</strong>{" "}
-          <a href="mailto:turnos@tudominio.com.ar">turnos@[tudominio].com.ar</a>
+          <a href="dramaraflamini@gmail.com">
+            dramaraflamini@gmail.com
+          </a>
         </li>
         <li>
-          📍 <strong>Domicilio:</strong> [Dirección completa], Argentina
+          📍 <strong>Domicilio:</strong> Santiago Derqui 2617, Santa Fe Capital, Santa Fe, Argentina
         </li>
         <li>
-          📞 <strong>Teléfono:</strong> [Número de teléfono]
+          📞 <strong>Teléfono:</strong> +5491134286716
         </li>
-        <li>
-          ⏰ <strong>Horario:</strong> Lunes a viernes de 9:00 a 18:00 hs
-        </li>
+
       </ContactCard>
     </LegalPage>
   );
