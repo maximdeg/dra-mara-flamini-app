@@ -13,6 +13,13 @@ describe("PublicHeader", () => {
     expect(cta).toHaveAttribute("href", "/agendar-visita");
   });
 
+  it("renders the brand logo mark", () => {
+    render(<PublicHeader />);
+    expect(
+      screen.getByRole("img", { name: "Dra. Mara Flamini" }),
+    ).toBeInTheDocument();
+  });
+
   it("links the brand lockup home", () => {
     render(<PublicHeader />);
     const links = screen.getAllByRole("link");

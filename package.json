@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
-    "seed:professional": "node --env-file=.env scripts/seed-professional.mjs"
+    "seed:professional": "node --env-file=.env scripts/seed-professional.mjs",
+    "logo:assets": "node scripts/generate-logo-assets.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
