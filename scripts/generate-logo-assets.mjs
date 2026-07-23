@@ -41,6 +41,26 @@ const cropFacesArch = {
   height: 900,
 };
 
+// The brown master is a JPEG on a solid near-white background (no alpha).
+// Drop that background to transparent so the mark blends onto the header
+// disc and the pink footer instead of sitting in a white tile. Near-white
+// pixels (all channels high) become fully transparent.
+async function toTransparentPng(sourceBuffer) {
+  const img = sharp(sourceBuffer).ensureAlpha();
+  const { data, info } = await img
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const { width, height, channels } = info;
+  for (let i = 0; i < data.length; i += channels) {
+    if (data[i] > 240 && data[i + 1] > 240 && data[i + 2] > 240) {
+      data[i + 3] = 0;
+    }
+  }
+  return sharp(data, { raw: { width, height, channels } })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+}
+
 async function makeIconFrom(sourceBuffer, size, outPath) {
   await sharp(sourceBuffer)
     .resize(size, size, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 0 } })
@@ -52,8 +72,9 @@ async function makeIconFrom(sourceBuffer, size, outPath) {
 async function main() {
   console.log("Generating logo assets from", master.replace(root, "."));
 
-  // Crop the emblem once, then downscale to each target size.
-  const emblem = await sharp(master).extract(cropFacesArch).png().toBuffer();
+  // Crop the emblem, drop its white background, then downscale to each size.
+  const emblemRaw = await sharp(master).extract(cropFacesArch).png().toBuffer();
+  const emblem = await toTransparentPng(emblemRaw);
 
   // Header mark (rendered ~40px, 2x for retina).
   await makeIconFrom(emblem, 256, join(logos, "mark-icon.png"));
@@ -61,13 +82,16 @@ async function main() {
   await makeIconFrom(emblem, 512, join(app, "icon.png"));
   await makeIconFrom(emblem, 180, join(app, "apple-icon.png"));
 
-  // Footer logo: the full lockup, right-sized and compressed.
+  // Footer logo: the full lockup, background dropped, right-sized.
+  const footerRaw = await sharp(master)
+    .resize(600, null, { withoutEnlargement: true })
+    .png()
+    .toBuffer();
   const footerOut = join(logos, "footer-logo.png");
-  await sharp(master)
-    .resize(480, null, { withoutEnlargement: true })
+  await sharp(await toTransparentPng(footerRaw))
     .png({ compressionLevel: 9 })
     .toFile(footerOut);
-  console.log(`  ${footerOut.replace(root, ".")} (width 480)`);
+  console.log(`  ${footerOut.replace(root, ".")} (width 600, transparent)`);
 
   console.log("Done.");
 }
