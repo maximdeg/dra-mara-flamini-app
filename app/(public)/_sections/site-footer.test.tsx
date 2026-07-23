@@ -21,4 +21,13 @@ describe("SiteFooter", () => {
       screen.getByRole("link", { name: "Términos y Condiciones" }),
     ).toHaveAttribute("href", "/terminos-y-condiciones");
   });
+
+  it("renders the brand logo", () => {
+    render(<SiteFooter />);
+    expect(
+      screen.getByRole("img", {
+        name: "Dra. Mara Flamini · Dermatología y Estética",
+      }),
+    ).toBeInTheDocument();
+  });
 });
