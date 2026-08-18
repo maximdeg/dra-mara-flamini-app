@@ -1,5 +1,7 @@
 # WhatsApp notifications via Baileys, not the official Business API
 
+> **Superseded by [ADR-0003](0003-whatsapp-notifications-via-meta-cloud-api.md).** The clinic completed WhatsApp Business verification and template approval, so notifications now go over the official Meta Cloud API. The best-effort, decoupled delivery principle below still holds; the Baileys transport and its ban-risk rationale do not. Retained for history.
+
 We send Patient Notifications (Confirmation on booking, Cancellation Notice on any cancellation) over **Baileys**, an unofficial WhatsApp-Web library, logged in as the clinic's **existing secretaries' number** as a linked companion device, through a single always-on worker decoupled from the booking flow.
 
 We chose this over Meta's official WhatsApp Business API because the official path requires pre-approved message templates, business verification, a dedicated number, and per-message cost — whereas the clinic wants free-form messages from the number patients already know, at low volume.
