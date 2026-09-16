@@ -52,7 +52,7 @@ describe("book", () => {
         id: "apt-1",
         patientFirstName: "Lucía",
         patientLastName: "Gómez",
-        patientPhone: "3421112233",
+        patientPhone: "+5493421112233",
         patientEmail: "lucia@example.com",
         visitType: "Consultation",
         consultType: "FirstVisit",
@@ -284,6 +284,47 @@ describe("book", () => {
     expect(
       await repository.findScheduledByPhone(consultationForm.patientPhone),
     ).toEqual([]);
+  });
+
+  it("stores the Patient's phone in E.164 so the Confirmation is deliverable", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    const result = await book(
+      { ...consultationForm, patientPhone: "0342 15 111-2233" },
+      deps({ repository }),
+    );
+
+    expect(result.ok).toBe(true);
+    const stored = await repository.findById("apt-1");
+    expect(stored?.patientPhone).toBe("+5493421112233");
+  });
+
+  it("rejects a phone that cannot be read as an Argentine number", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    const result = await book(
+      { ...consultationForm, patientPhone: "12345" },
+      deps({ repository }),
+    );
+
+    expect(result).toEqual({ ok: false, rejection: "InvalidPhone" });
+    expect(await repository.findById("apt-1")).toBeNull();
+  });
+
+  it("checks the one-open-Appointment rule against the normalized phone", async () => {
+    const checked: string[] = [];
+
+    await book(
+      { ...consultationForm, patientPhone: "0342 15 111-2233" },
+      deps({
+        hasOpenAppointmentForPhone: (phone) => {
+          checked.push(phone);
+          return false;
+        },
+      }),
+    );
+
+    expect(checked).toEqual(["+5493421112233"]);
   });
 });
 

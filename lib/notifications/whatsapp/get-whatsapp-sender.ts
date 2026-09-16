@@ -1,4 +1,7 @@
+import { getWhatsAppSendLog } from "./get-whatsapp-send-log";
+import { LoggedWhatsAppSender } from "./logged-whatsapp-sender";
 import { MetaWhatsAppSender, type GraphApiTransport } from "./meta-whatsapp-sender";
+import type { WhatsAppSendLog } from "./send-log";
 import type { WhatsAppSender } from "./whatsapp-sender";
 
 /**
@@ -19,7 +22,30 @@ export function getWhatsAppSender(): WhatsAppSender {
   }
 
   const transport = fetchGraphApiTransport(accessToken);
-  return new MetaWhatsAppSender(transport, phoneNumberId);
+  const sender = new MetaWhatsAppSender(transport, phoneNumberId);
+  // Every attempt is recorded in the Send Log so the Panel can show how much of
+  // Meta's messaging limit the rolling 24h window has used. The log is resolved
+  // lazily and its failures are swallowed inside the decorator, so bookkeeping
+  // never costs a Confirmation.
+  return new LoggedWhatsAppSender(sender, lazySendLog());
+}
+
+/**
+ * A Send Log that resolves the Mongo-backed one on first use. Keeps
+ * `getWhatsAppSender()` synchronous (Booking composes it inline) and keeps
+ * importing this module free of a database connection.
+ */
+function lazySendLog(): WhatsAppSendLog {
+  return {
+    async record(entry) {
+      const log = await getWhatsAppSendLog();
+      await log.record(entry);
+    },
+    async since(since) {
+      const log = await getWhatsAppSendLog();
+      return log.since(since);
+    },
+  };
 }
 
 /**

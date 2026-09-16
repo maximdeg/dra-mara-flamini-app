@@ -1,0 +1,64 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: var(--text-lg);
+  color: var(--brand-dark);
+}
+
+.count {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+}
+
+.used {
+  font-size: var(--text-2xl);
+  color: var(--brand-dark);
+}
+
+.limit {
+  color: var(--text-muted);
+}
+
+.track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand);
+  transition: width 0.2s ease;
+}
+
+.fill[data-level="medium"] {
+  background: #d98324;
+}
+
+.fill[data-level="high"] {
+  background: #c0392b;
+}
+
+.detail {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.failed {
+  color: #c0392b;
+  font-size: var(--text-sm);
+}

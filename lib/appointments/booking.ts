@@ -7,6 +7,7 @@ import {
 import { depositAmountFor, type SelfPayPricing } from "../deposit/deposit";
 import type { Appointment, BookingForm } from "./appointment";
 import type { AppointmentRepository } from "./appointment-repository";
+import { normalizeArgentinePhone } from "../phone/phone";
 import { statusOf } from "./status";
 import type { ConsultType, PracticeType } from "./visit-type";
 
@@ -19,6 +20,7 @@ export type BookingRejection =
   | "MissingPracticeType"
   | "InvalidCoverageForVisitType"
   | "DepositNotAcknowledged"
+  | "InvalidPhone"
   | "PhoneHasOpenAppointment"
   | "OutsideBookingWindow"
   | "SlotTaken";
@@ -128,7 +130,16 @@ export async function book(
       ? { amount: depositAmount, acknowledged: true }
       : null;
 
-  if (await deps.hasOpenAppointmentForPhone(form.patientPhone)) {
+  // The Patient's phone is canonicalized to E.164 before it is used for
+  // anything: the Confirmation is undeliverable otherwise (the Cloud API only
+  // accepts E.164), and the one-open-Appointment-per-phone rule below must
+  // compare canonical values so two spellings of one number are one Patient.
+  const patientPhone = normalizeArgentinePhone(form.patientPhone);
+  if (patientPhone === null) {
+    return { ok: false, rejection: "InvalidPhone" };
+  }
+
+  if (await deps.hasOpenAppointmentForPhone(patientPhone)) {
     return { ok: false, rejection: "PhoneHasOpenAppointment" };
   }
 
@@ -147,7 +158,7 @@ export async function book(
     id: generateId(),
     patientFirstName: form.patientFirstName,
     patientLastName: form.patientLastName,
-    patientPhone: form.patientPhone,
+    patientPhone,
     patientEmail: form.patientEmail,
     visitType: form.visitType,
     consultType: subType.consultType,

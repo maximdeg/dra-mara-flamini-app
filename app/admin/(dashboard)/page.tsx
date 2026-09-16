@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { Card } from "@/components/ui/card";
+import { getWhatsAppSendLog } from "@/lib/notifications/whatsapp/get-whatsapp-send-log";
+import {
+  summarizeUsage,
+  windowStart,
+  type MessagingUsage,
+} from "@/lib/notifications/whatsapp/send-log";
+import { WhatsAppUsage } from "./whatsapp-usage";
 import styles from "./page.module.css";
 
 // The dashboard landing. Navigation and sign-out live in the shell (layout);
@@ -40,8 +47,23 @@ const SECTIONS = [
   },
 ];
 
+/**
+ * The clinic's WhatsApp usage over Meta's rolling 24h window, or null if the
+ * Send Log cannot be read. The dashboard is the Professional's landing page and
+ * must render even when the log is unavailable, so a failure here hides the card
+ * rather than breaking the Panel.
+ */
+async function whatsappUsage(): Promise<MessagingUsage | null> {
+  try {
+    const log = await getWhatsAppSendLog();
+    return summarizeUsage(await log.since(windowStart(new Date())));
+  } catch {
+    return null;
+  }
+}
+
 export default async function AdminDashboardPage() {
-  const session = await auth();
+  const [session, usage] = await Promise.all([auth(), whatsappUsage()]);
 
   return (
     <div className={styles.page}>
@@ -52,6 +74,8 @@ export default async function AdminDashboardPage() {
           turnos, agenda y coberturas.
         </p>
       </header>
+
+      {usage !== null && <WhatsAppUsage usage={usage} />}
 
       <div className={styles.grid}>
         {SECTIONS.map((section) => (

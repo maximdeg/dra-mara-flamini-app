@@ -40,6 +40,8 @@ const REJECTION_MESSAGES: Record<string, string> = {
   InvalidCoverageForVisitType:
     "La cobertura no es válida para ese tipo de visita.",
   DepositNotAcknowledged: "Tenés que aceptar la seña para continuar.",
+  InvalidPhone:
+    "Revisá el teléfono. Escribilo con característica, por ejemplo 342 15 578-2402.",
 };
 const FALLBACK_ERROR = "No se pudo agendar la cita.";
 
@@ -225,7 +227,14 @@ export default function AgendarVisitaPage() {
               <input name="patientLastName" required />
             </Field>
             <Field label="Teléfono" required>
-              <input name="patientPhone" required />
+              <input
+                name="patientPhone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="342 15 578-2402"
+                required
+              />
             </Field>
             <Field label="Email" required>
               <input name="patientEmail" type="email" required />

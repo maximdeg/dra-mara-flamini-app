@@ -17,7 +17,15 @@ export type CancellationResult =
 
 export interface CancellationDependencies {
   repository: AppointmentRepository;
-  notifyCancellation: (appointment: Appointment) => Promise<void> | void;
+  /**
+   * Send the Cancellation Notice over WhatsApp (called best-effort). Receives
+   * the actor so the approved template matches who cancelled — the clinic
+   * apologising, or the Patient's own cancellation acknowledged (ADR-0003).
+   */
+  notifyCancellation: (
+    appointment: Appointment,
+    actor: CancellationActor,
+  ) => Promise<void> | void;
   /**
    * Send the Cancellation email (called best-effort). Receives the actor so the
    * copy can acknowledge a Patient self-cancel or apologise for a clinic one.
@@ -84,7 +92,7 @@ export async function cancel(
 
   // Best-effort, decoupled (ADR-0001).
   try {
-    await deps.notifyCancellation(cancelled);
+    await deps.notifyCancellation(cancelled, actor);
   } catch {
     // swallowed on purpose
   }

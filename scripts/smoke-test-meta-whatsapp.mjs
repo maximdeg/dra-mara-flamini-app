@@ -25,8 +25,12 @@ const {
   META_WHATSAPP_ACCESS_TOKEN,
   META_WHATSAPP_CONFIRMATION_TEMPLATE_NAME,
   META_WHATSAPP_TEMPLATE_LANGUAGE,
-  TEST_WHATSAPP_NUMBER,
 } = process.env;
+
+// The recipient to smoke-test against. WHATSAPP_TEST_RECIPIENT is the clinic's
+// own test handset; TEST_WHATSAPP_NUMBER is the older name kept as a fallback.
+const TEST_WHATSAPP_NUMBER =
+  process.env.WHATSAPP_TEST_RECIPIENT ?? process.env.TEST_WHATSAPP_NUMBER;
 
 const helloMode = process.argv.includes("--hello");
 
