@@ -57,3 +57,31 @@ Appointment-level bookkeeping — the `whatsappSent` fields track the Confirmati
 specifically, matching what the Cancellation email already does. The attempt is
 still recorded in the Send Log, so it counts against the messaging limit shown
 in the Panel.
+
+## Patient consent is captured at booking and gates every send
+
+Meta requires a Patient to have opted in before a business sends them a
+template. Nothing in the booking flow previously told Meta — or us — that a
+Patient had agreed, so every Confirmation relied on enforcement being lax.
+Sending unsolicited templates invites blocks and reports, which drive down the
+number's quality rating and can tighten the messaging tier: the cost of getting
+this wrong is the clinic's whole WhatsApp channel, which is the same liability
+ADR-0001 worried about for a different reason.
+
+The booking form now carries a pre-ticked opt-in ("Quiero recibir la
+confirmación … por WhatsApp"), and `book()` stores `whatsappConsentAt` — the
+instant consent was given, rather than a bare boolean, so the clinic can show
+*when* a Patient agreed. A Patient who unticks it is stored as `null`.
+
+`whatsappConsentGiven` is the single predicate both send paths consult, and it
+treats three states distinctly: a timestamp is consent, `null` is a refusal, and
+an absent field is an Appointment booked before the checkbox existed — treated
+as consented, because refusing those would silently cut off Confirmations for
+Appointments already in the book. The Appointments table marks a Patient who
+declined, so the clinic knows that Confirmation went out by email only.
+
+Pre-ticked rather than blank is a deliberate choice: the Patient is booking a
+medical visit and expects to hear about it, the email Confirmation goes out
+either way, and unticking is one click. If the clinic ever needs documented
+affirmative consent (rather than merely honoured refusals), this is the decision
+to revisit.

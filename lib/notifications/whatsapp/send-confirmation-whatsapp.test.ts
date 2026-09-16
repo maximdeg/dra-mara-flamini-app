@@ -71,3 +71,34 @@ describe("sendConfirmationWhatsApp", () => {
     expect(stored?.whatsappSent).toBe(false);
   });
 });
+
+describe("sendConfirmationWhatsApp — consent", () => {
+  it("sends nothing when the Patient declined WhatsApp", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const declined = { ...appointment(), whatsappConsentAt: null };
+    await repository.create(declined);
+    const sender = new FakeWhatsAppSender();
+
+    await sendConfirmationWhatsApp(declined, {
+      sender,
+      appointments: repository,
+    });
+
+    expect(sender.sent).toHaveLength(0);
+    // No send means no bookkeeping either.
+    expect((await repository.findById("apt-1"))?.whatsappSent).toBe(false);
+  });
+
+  it("sends for an Appointment booked before consent was captured", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    await repository.create(appointment());
+    const sender = new FakeWhatsAppSender();
+
+    await sendConfirmationWhatsApp(appointment(), {
+      sender,
+      appointments: repository,
+    });
+
+    expect(sender.sent).toHaveLength(1);
+  });
+});

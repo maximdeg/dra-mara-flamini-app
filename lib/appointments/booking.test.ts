@@ -62,6 +62,7 @@ describe("book", () => {
         date: "2026-06-22",
         time: "09:30",
         status: "scheduled",
+        whatsappConsentAt: "2026-06-19T12:00:00.000Z",
         whatsappSent: false,
         whatsappSentAt: null,
         whatsappMessageId: null,
@@ -373,5 +374,50 @@ describe("phoneHasOpenAppointment", () => {
 
   it("is false when there are no Scheduled Appointments", () => {
     expect(phoneHasOpenAppointment([], now)).toBe(false);
+  });
+});
+
+describe("book — WhatsApp consent", () => {
+  it("records the instant consent was given when the Patient opts in", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      { ...consultationForm, whatsappConsent: true },
+      deps({ repository }),
+    );
+
+    expect((await repository.findById("apt-1"))?.whatsappConsentAt).toBe(
+      "2026-06-19T12:00:00.000Z",
+    );
+  });
+
+  it("records a refusal as null when the Patient opts out", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      { ...consultationForm, whatsappConsent: false },
+      deps({ repository }),
+    );
+
+    expect((await repository.findById("apt-1"))?.whatsappConsentAt).toBeNull();
+  });
+
+  it("treats an omitted consent field as consent (pre-checkbox API clients)", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(consultationForm, deps({ repository }));
+
+    expect((await repository.findById("apt-1"))?.whatsappConsentAt).toBe(
+      "2026-06-19T12:00:00.000Z",
+    );
+  });
+
+  it("still books when the Patient declines WhatsApp", async () => {
+    const result = await book(
+      { ...consultationForm, whatsappConsent: false },
+      deps(),
+    );
+
+    expect(result.ok).toBe(true);
   });
 });

@@ -168,6 +168,11 @@ export async function book(
     date: form.date,
     time: form.time,
     status: "scheduled",
+    // Consent is stored as the instant it was given, so the clinic can show
+    // when a Patient agreed rather than only that they did. An omitted field
+    // means the caller predates the checkbox and is treated as consent.
+    whatsappConsentAt:
+      form.whatsappConsent === false ? null : now().toISOString(),
     whatsappSent: false,
     whatsappSentAt: null,
     whatsappMessageId: null,

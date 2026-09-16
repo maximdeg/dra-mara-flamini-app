@@ -63,3 +63,25 @@ describe("sendCancellationWhatsApp", () => {
     ).rejects.toThrow("whatsapp down");
   });
 });
+
+describe("sendCancellationWhatsApp — consent", () => {
+  it("sends nothing when the Patient declined WhatsApp", async () => {
+    const sender = new FakeWhatsAppSender();
+
+    await sendCancellationWhatsApp(
+      { ...appointment(), whatsappConsentAt: null },
+      "professional",
+      { sender },
+    );
+
+    expect(sender.sent).toHaveLength(0);
+  });
+
+  it("sends for an Appointment booked before consent was captured", async () => {
+    const sender = new FakeWhatsAppSender();
+
+    await sendCancellationWhatsApp(appointment(), "patient", { sender });
+
+    expect(sender.sent).toHaveLength(1);
+  });
+});

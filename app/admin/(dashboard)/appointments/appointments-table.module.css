@@ -4,3 +4,16 @@
 .table {
   min-width: 600px;
 }
+
+/* Marks a Patient who declined WhatsApp, so the clinic knows the Confirmation
+   went out by email only. */
+.noWhatsapp {
+  display: inline-block;
+  margin-left: var(--space-2);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--brand-soft);
+  color: var(--text-muted);
+  font-size: var(--text-xs, 0.75rem);
+  white-space: nowrap;
+}

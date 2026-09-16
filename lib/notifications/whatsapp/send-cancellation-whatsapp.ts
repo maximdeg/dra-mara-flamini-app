@@ -1,6 +1,7 @@
 import type { Appointment } from "../../appointments/appointment";
 import type { CancellationActor } from "../../appointments/cancellation";
 import { cancellationWhatsApp } from "./cancellation";
+import { whatsappConsentGiven } from "./consent";
 import type { WhatsAppSender } from "./whatsapp-sender";
 
 export interface CancellationWhatsAppDeps {
@@ -26,5 +27,10 @@ export async function sendCancellationWhatsApp(
   actor: CancellationActor,
   deps: CancellationWhatsAppDeps,
 ): Promise<void> {
+  // A Patient who declined WhatsApp gets no message (see sendConfirmationWhatsApp).
+  if (!whatsappConsentGiven(appointment)) {
+    return;
+  }
+
   await deps.sender.send(cancellationWhatsApp(appointment, actor));
 }

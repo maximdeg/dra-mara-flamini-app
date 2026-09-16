@@ -2,6 +2,7 @@ import type { Appointment } from "../../appointments/appointment";
 import type { AppointmentRepository } from "../../appointments/appointment-repository";
 import { siteUrl } from "../../site-url";
 import { confirmationWhatsApp } from "./confirmation";
+import { whatsappConsentGiven } from "./consent";
 import type { WhatsAppSender } from "./whatsapp-sender";
 
 export interface ConfirmationWhatsAppDeps {
@@ -22,6 +23,13 @@ export async function sendConfirmationWhatsApp(
   appointment: Appointment,
   deps: ConfirmationWhatsAppDeps,
 ): Promise<void> {
+  // A Patient who declined WhatsApp gets no message — Meta requires opt-in, and
+  // messaging without it invites blocks and reports that cost the clinic's
+  // sender quality rating. The email Confirmation still goes out.
+  if (!whatsappConsentGiven(appointment)) {
+    return;
+  }
+
   const message = confirmationWhatsApp(appointment, {
     manageUrl: siteUrl(`/cita/${appointment.id}`),
   });
