@@ -51,6 +51,17 @@ export interface Appointment {
   emailSent: boolean;
   emailSentAt: string | null;
   emailMessageId: string | null;
+  /**
+   * The Patient's consent to be contacted on WhatsApp, captured on the booking
+   * form. Meta requires opt-in before a business sends a template to a number,
+   * so this records that it was given: `null` means no consent (the Patient
+   * unticked it), otherwise the ISO instant they agreed. Kept as a timestamp
+   * rather than a boolean so it is evidence of when consent was obtained.
+   *
+   * Appointments booked before this field existed read as `undefined`; treat
+   * that as legacy-consented rather than refused (see whatsappConsentGiven).
+   */
+  whatsappConsentAt?: string | null;
   /** ISO timestamp of when the booking was created. */
   createdAt: string;
 }
@@ -71,6 +82,12 @@ export interface BookingForm {
   coverage: Coverage;
   /** Whether the Patient acknowledged the Deposit; only checked when one applies. */
   depositAcknowledged?: boolean;
+  /**
+   * Whether the Patient agreed to be contacted on WhatsApp. Defaults to true
+   * when absent so an API client that predates the checkbox keeps working; the
+   * form always sends it explicitly.
+   */
+  whatsappConsent?: boolean;
   date: string;
   time: string;
 }

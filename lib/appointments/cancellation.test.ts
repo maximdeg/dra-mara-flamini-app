@@ -172,6 +172,26 @@ describe("cancel", () => {
     expect(entries[0].status).toBe("sent");
   });
 
+  it.each([["patient"], ["professional"]] as const)(
+    "sends the Cancellation Notice with the %s as the cancelling actor",
+    async (actor) => {
+      const repository = await repoWith(appointment());
+      let notifiedActor: string | null = null;
+
+      await cancel(
+        "apt-1",
+        actor,
+        deps(repository, {
+          notifyCancellation: async (_appointment, a) => {
+            notifiedActor = a;
+          },
+        }),
+      );
+
+      expect(notifiedActor).toBe(actor);
+    },
+  );
+
   it("still cancels when the Cancellation Notice fails (decoupled — ADR-0001)", async () => {
     const repository = await repoWith(appointment());
 

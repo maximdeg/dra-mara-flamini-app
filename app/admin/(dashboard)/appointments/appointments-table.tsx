@@ -51,7 +51,17 @@ export function AppointmentsTable({ views }: { views: AppointmentView[] }) {
             <TR key={appointment.id}>
               <TD>{formatDateAR(appointment.date)}</TD>
               <TD>{appointment.time}</TD>
-              <TD>{patientName}</TD>
+              <TD>
+                {patientName}
+                {appointment.whatsappConsentAt === null && (
+                  <span
+                    className={styles.noWhatsapp}
+                    title="Este paciente no quiere recibir avisos por WhatsApp"
+                  >
+                    sin WhatsApp
+                  </span>
+                )}
+              </TD>
               <TD>
                 {VISIT_TYPE_LABELS[appointment.visitType]}
                 {sub ? ` · ${sub}` : ""}

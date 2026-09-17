@@ -62,6 +62,29 @@ describe("AppointmentsTable", () => {
     expect(withoutClasses(container.innerHTML)).toMatchSnapshot();
   });
 
+  it("marks a Patient who declined WhatsApp, and leaves the others unmarked", () => {
+    render(
+      <ToastProvider>
+        <AppointmentsTable
+          views={[
+            { appointment: appointment(), status: "scheduled" },
+            {
+              appointment: appointment({
+                id: "a3",
+                patientFirstName: "Bruno",
+                whatsappConsentAt: null,
+              }),
+              status: "scheduled",
+            },
+          ]}
+        />
+      </ToastProvider>,
+    );
+
+    // Only the Patient who opted out carries the marker.
+    expect(screen.getAllByText("sin WhatsApp")).toHaveLength(1);
+  });
+
   it("offers a cancel action only for a scheduled row", () => {
     render(
       <ToastProvider>

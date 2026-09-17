@@ -40,6 +40,8 @@ const REJECTION_MESSAGES: Record<string, string> = {
   InvalidCoverageForVisitType:
     "La cobertura no es válida para ese tipo de visita.",
   DepositNotAcknowledged: "Tenés que aceptar la seña para continuar.",
+  InvalidPhone:
+    "Revisá el teléfono. Escribilo con característica, por ejemplo 342 15 578-2402.",
 };
 const FALLBACK_ERROR = "No se pudo agendar la cita.";
 
@@ -57,6 +59,9 @@ export default function AgendarVisitaPage() {
   const [practiceType, setPracticeType] = useState<PracticeType | "">("");
   const [coverageValue, setCoverageValue] = useState("");
   const [depositAcknowledged, setDepositAcknowledged] = useState(false);
+  // Opt-in for the WhatsApp Confirmation, pre-ticked: the Patient is booking a
+  // visit and expects to hear about it, and unticking is one click.
+  const [whatsappConsent, setWhatsappConsent] = useState(true);
 
   const [days, setDays] = useState<string[]>([]);
   const [times, setTimes] = useState<string[]>([]);
@@ -168,6 +173,7 @@ export default function AgendarVisitaPage() {
       practiceType: visitType === "Practice" ? practiceType : null,
       coverage: selected.coverage,
       depositAcknowledged: depositAmount !== null ? depositAcknowledged : false,
+      whatsappConsent,
       date,
       time,
     };
@@ -225,12 +231,31 @@ export default function AgendarVisitaPage() {
               <input name="patientLastName" required />
             </Field>
             <Field label="Teléfono" required>
-              <input name="patientPhone" required />
+              <input
+                name="patientPhone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="342 15 578-2402"
+                required
+              />
             </Field>
             <Field label="Email" required>
               <input name="patientEmail" type="email" required />
             </Field>
           </div>
+
+          <label className={styles.whatsappConsent}>
+            <input
+              type="checkbox"
+              checked={whatsappConsent}
+              onChange={(e) => setWhatsappConsent(e.target.checked)}
+            />
+            <span>
+              Quiero recibir la confirmación y los avisos de mi visita por
+              WhatsApp al número que ingresé.
+            </span>
+          </label>
         </Card>
 
         <Card>

@@ -52,7 +52,7 @@ describe("book", () => {
         id: "apt-1",
         patientFirstName: "Lucía",
         patientLastName: "Gómez",
-        patientPhone: "3421112233",
+        patientPhone: "+5493421112233",
         patientEmail: "lucia@example.com",
         visitType: "Consultation",
         consultType: "FirstVisit",
@@ -62,6 +62,7 @@ describe("book", () => {
         date: "2026-06-22",
         time: "09:30",
         status: "scheduled",
+        whatsappConsentAt: "2026-06-19T12:00:00.000Z",
         whatsappSent: false,
         whatsappSentAt: null,
         whatsappMessageId: null,
@@ -285,6 +286,47 @@ describe("book", () => {
       await repository.findScheduledByPhone(consultationForm.patientPhone),
     ).toEqual([]);
   });
+
+  it("stores the Patient's phone in E.164 so the Confirmation is deliverable", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    const result = await book(
+      { ...consultationForm, patientPhone: "0342 15 111-2233" },
+      deps({ repository }),
+    );
+
+    expect(result.ok).toBe(true);
+    const stored = await repository.findById("apt-1");
+    expect(stored?.patientPhone).toBe("+5493421112233");
+  });
+
+  it("rejects a phone that cannot be read as an Argentine number", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    const result = await book(
+      { ...consultationForm, patientPhone: "12345" },
+      deps({ repository }),
+    );
+
+    expect(result).toEqual({ ok: false, rejection: "InvalidPhone" });
+    expect(await repository.findById("apt-1")).toBeNull();
+  });
+
+  it("checks the one-open-Appointment rule against the normalized phone", async () => {
+    const checked: string[] = [];
+
+    await book(
+      { ...consultationForm, patientPhone: "0342 15 111-2233" },
+      deps({
+        hasOpenAppointmentForPhone: (phone) => {
+          checked.push(phone);
+          return false;
+        },
+      }),
+    );
+
+    expect(checked).toEqual(["+5493421112233"]);
+  });
 });
 
 describe("phoneHasOpenAppointment", () => {
@@ -332,5 +374,50 @@ describe("phoneHasOpenAppointment", () => {
 
   it("is false when there are no Scheduled Appointments", () => {
     expect(phoneHasOpenAppointment([], now)).toBe(false);
+  });
+});
+
+describe("book — WhatsApp consent", () => {
+  it("records the instant consent was given when the Patient opts in", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      { ...consultationForm, whatsappConsent: true },
+      deps({ repository }),
+    );
+
+    expect((await repository.findById("apt-1"))?.whatsappConsentAt).toBe(
+      "2026-06-19T12:00:00.000Z",
+    );
+  });
+
+  it("records a refusal as null when the Patient opts out", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      { ...consultationForm, whatsappConsent: false },
+      deps({ repository }),
+    );
+
+    expect((await repository.findById("apt-1"))?.whatsappConsentAt).toBeNull();
+  });
+
+  it("treats an omitted consent field as consent (pre-checkbox API clients)", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(consultationForm, deps({ repository }));
+
+    expect((await repository.findById("apt-1"))?.whatsappConsentAt).toBe(
+      "2026-06-19T12:00:00.000Z",
+    );
+  });
+
+  it("still books when the Patient declines WhatsApp", async () => {
+    const result = await book(
+      { ...consultationForm, whatsappConsent: false },
+      deps(),
+    );
+
+    expect(result.ok).toBe(true);
   });
 });
