@@ -16,6 +16,8 @@
     "smoke:meta": "node --env-file=.env scripts/smoke-test-meta-whatsapp.mjs"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "mongodb": "^6.12.0",
     "next": "^15.1.6",
