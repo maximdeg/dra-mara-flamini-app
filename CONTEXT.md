@@ -7,7 +7,7 @@ A single-provider dermatology practice. Patients book appointments online with o
 ### People
 
 **Patient** (UI: _Paciente_):
-A person who books an appointment, identified by first name, last name, phone number, and email entered on the booking form. There is no separate Patient record and no login — the identification lives on the Appointment itself, and the Patient re-enters it for every booking, returning to the app only to cancel. A given phone number may hold at most two **open** Appointments at a time — open meaning Scheduled with a date still in the future. Once it holds two, the Patient cannot book again until one of them ends: either Cancelled, or Completed once its date passes.
+A person who books an appointment, identified by first name, last name, and phone number entered on the booking form, plus an optional email. There is no separate Patient record and no login — the identification lives on the Appointment itself, and the Patient re-enters it for every booking, returning to the app only to cancel. A given phone number may hold at most two **open** Appointments at a time — open meaning Scheduled with a date still in the future. Once it holds two, the Patient cannot book again until one of them ends: either Cancelled, or Completed once its date passes.
 _Avoid_: Client, User, Customer
 
 **Professional** (UI: _Profesional_):

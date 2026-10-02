@@ -40,6 +40,7 @@ const REJECTION_MESSAGES: Record<string, string> = {
   InvalidCoverageForVisitType:
     "La cobertura no es válida para ese tipo de visita.",
   DepositNotAcknowledged: "Tenés que aceptar la seña para continuar.",
+  InvalidEmail: "Revisá el email ingresado o dejalo vacío.",
   InvalidPhone:
     "Revisá el teléfono. Escribilo con característica, por ejemplo 342 15 578-2402.",
 };
@@ -240,8 +241,8 @@ export default function AgendarVisitaPage() {
                 required
               />
             </Field>
-            <Field label="Email" required>
-              <input name="patientEmail" type="email" required />
+            <Field label="Email (opcional)">
+              <input name="patientEmail" type="email" autoComplete="email" />
             </Field>
           </div>
 
