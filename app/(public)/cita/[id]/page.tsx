@@ -3,6 +3,7 @@ import { patientCanCancel } from "@/lib/appointments/cancellation";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
 import { statusOf } from "@/lib/appointments/status";
 import { getClinicInfoRepository } from "@/lib/clinic/get-clinic-info-repository";
+import { emailNotificationsEnabled } from "@/lib/notifications/email/email-notifications";
 import { AppointmentActions } from "./appointment-actions";
 import { AppointmentDetails } from "./appointment-details";
 import { AppointmentInfo } from "./appointment-info";
@@ -33,7 +34,11 @@ export default async function CitaPage({
 
   return (
     <div className={styles.page}>
-      <AppointmentDetails appointment={appointment} status={status} />
+      <AppointmentDetails
+        appointment={appointment}
+        status={status}
+        emailNotificationsEnabled={emailNotificationsEnabled()}
+      />
       <AppointmentInfo
         appointment={appointment}
         status={status}

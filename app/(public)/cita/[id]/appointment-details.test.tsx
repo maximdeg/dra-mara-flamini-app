@@ -32,7 +32,11 @@ function withoutClasses(html: string): string {
 
 describe("AppointmentDetails", () => {
   it("shows the Status badge matching the derived Status", () => {
-    render(<AppointmentDetails appointment={APPOINTMENT} status="scheduled" />);
+    render(<AppointmentDetails
+        appointment={APPOINTMENT}
+        status="scheduled"
+        emailNotificationsEnabled={false}
+      />);
     expect(screen.getByText("Agendada")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Cita confirmada" }),
@@ -40,15 +44,23 @@ describe("AppointmentDetails", () => {
   });
 
   it("titles a cancelled Appointment as cancelled", () => {
-    render(<AppointmentDetails appointment={APPOINTMENT} status="cancelled" />);
+    render(<AppointmentDetails
+        appointment={APPOINTMENT}
+        status="cancelled"
+        emailNotificationsEnabled={false}
+      />);
     expect(
       screen.getByRole("heading", { name: "Cita cancelada" }),
     ).toBeInTheDocument();
   });
 
-  it("shows the email confirmation status (Pendiente when not sent, Enviada when sent)", () => {
+  it("shows the email confirmation status when email notifications are on (Pendiente when not sent, Enviada when sent)", () => {
     const { rerender } = render(
-      <AppointmentDetails appointment={APPOINTMENT} status="scheduled" />,
+      <AppointmentDetails
+        appointment={APPOINTMENT}
+        status="scheduled"
+        emailNotificationsEnabled
+      />,
     );
     const emailRow = screen.getByText("Confirmación por email").closest("div");
     expect(emailRow).toHaveTextContent("Pendiente");
@@ -57,6 +69,7 @@ describe("AppointmentDetails", () => {
       <AppointmentDetails
         appointment={{ ...APPOINTMENT, emailSent: true }}
         status="scheduled"
+        emailNotificationsEnabled
       />,
     );
     expect(
@@ -64,9 +77,25 @@ describe("AppointmentDetails", () => {
     ).toHaveTextContent("Enviada");
   });
 
+  it("hides the email confirmation row when email notifications are off", () => {
+    render(
+      <AppointmentDetails
+        appointment={APPOINTMENT}
+        status="scheduled"
+        emailNotificationsEnabled={false}
+      />,
+    );
+    expect(screen.queryByText("Confirmación por email")).not.toBeInTheDocument();
+    expect(screen.getByText("Confirmación por WhatsApp")).toBeInTheDocument();
+  });
+
   it("matches the confirmation details structure", () => {
     const { container } = render(
-      <AppointmentDetails appointment={APPOINTMENT} status="scheduled" />,
+      <AppointmentDetails
+        appointment={APPOINTMENT}
+        status="scheduled"
+        emailNotificationsEnabled={false}
+      />,
     );
     expect(withoutClasses(container.innerHTML)).toMatchSnapshot();
   });

@@ -26,3 +26,6 @@ I added the Meta twin of the existing Twilio smoke script — scripts/smoke-test
 4. Only then add the four META_WHATSAPP_* vars (with the permanent token) plus TEST_WHATSAPP_NUMBER to Vercel → Project → Settings → Environment Variables, and push.
 
 One extra check if you ever doubt a token: curl "https://graph.facebook.com/debug_token?input_token=<TOKEN>&access_token=<TOKEN>" shows its expiry and scopes.
+## Patient email notifications (off by default)
+
+The Confirmation email and the Cancellation email to Patients are switched off at the client's request. The code is kept; to turn them back on, set `EMAIL_NOTIFICATIONS_ENABLED=true` (exactly `true`; anything else, or unset, means off) in `.env` and in Vercel, alongside `GOOGLE_EMAIL` / `GOOGLE_APP_PASSWORD`. While it's off, the Patient's appointment page hides the "Confirmación por email" row. The Professional's password-reset email is not affected and always sends.

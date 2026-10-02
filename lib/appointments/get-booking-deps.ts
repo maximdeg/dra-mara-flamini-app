@@ -2,10 +2,15 @@ import { classifyBookingDateTime } from "../availability/availability";
 import { getAvailabilityDeps } from "../availability/get-availability-deps";
 import { getHealthInsuranceRepository } from "../coverage/get-health-insurance-repository";
 import { getSelfPayPricingRepository } from "../deposit/get-self-pay-pricing-repository";
+import {
+  emailNotificationsEnabled,
+  gateEmailChannel,
+} from "../notifications/email/email-notifications";
 import { getEmailSender } from "../notifications/email/get-email-sender";
 import { sendConfirmationEmail } from "../notifications/email/send-confirmation-email";
 import { getWhatsAppSender } from "../notifications/whatsapp/get-whatsapp-sender";
 import { sendConfirmationWhatsApp } from "../notifications/whatsapp/send-confirmation-whatsapp";
+import type { Appointment } from "./appointment";
 import type { BookingDependencies } from "./booking";
 import { getAppointmentRepository } from "./get-appointment-repository";
 import { isAtOpenAppointmentLimit } from "./phone-limit";
@@ -48,12 +53,16 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
         sender: getWhatsAppSender(),
         appointments: repository,
       }),
-    // The email sender is built lazily here so missing Gmail config throws
+    // Off unless EMAIL_NOTIFICATIONS_ENABLED is "true" (client request). When
+    // on, the email sender is built lazily so missing Gmail config throws
     // inside book()'s best-effort catch rather than failing deps composition.
-    sendConfirmationEmail: (appointment) =>
-      sendConfirmationEmail(appointment, {
-        sender: getEmailSender(),
-        appointments: repository,
-      }),
+    sendConfirmationEmail: gateEmailChannel(
+      emailNotificationsEnabled(),
+      (appointment: Appointment) =>
+        sendConfirmationEmail(appointment, {
+          sender: getEmailSender(),
+          appointments: repository,
+        }),
+    ),
   };
 }
