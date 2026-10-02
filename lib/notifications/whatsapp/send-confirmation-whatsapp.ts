@@ -8,6 +8,8 @@ import type { WhatsAppSender } from "./whatsapp-sender";
 export interface ConfirmationWhatsAppDeps {
   sender: WhatsAppSender;
   appointments: AppointmentRepository;
+  /** Whether the approved template takes Coverage Instructions (7 params). */
+  withInstructions?: boolean;
   now?: () => Date;
 }
 
@@ -30,9 +32,11 @@ export async function sendConfirmationWhatsApp(
     return;
   }
 
-  const message = confirmationWhatsApp(appointment, {
-    manageUrl: siteUrl(`/cita/${appointment.id}`),
-  });
+  const message = confirmationWhatsApp(
+    appointment,
+    { manageUrl: siteUrl(`/cita/${appointment.id}`) },
+    { withInstructions: deps.withInstructions },
+  );
   const { messageId } = await deps.sender.send(message);
   const sentAt = (deps.now ?? (() => new Date()))().toISOString();
   await deps.appointments.markConfirmationSent(appointment.id, sentAt, messageId);

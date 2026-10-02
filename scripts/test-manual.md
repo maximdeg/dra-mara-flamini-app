@@ -29,3 +29,13 @@ One extra check if you ever doubt a token: curl "https://graph.facebook.com/debu
 ## Patient email notifications (off by default)
 
 The Confirmation email and the Cancellation email to Patients are switched off at the client's request. The code is kept; to turn them back on, set `EMAIL_NOTIFICATIONS_ENABLED=true` (exactly `true`; anything else, or unset, means off) in `.env` and in Vercel, alongside `GOOGLE_EMAIL` / `GOOGLE_APP_PASSWORD`. While it's off, the Patient's appointment page hides the "Confirmación por email" row. The Professional's password-reset email is not affected and always sends.
+
+## Coverage Instructions in the Confirmation (cutover)
+
+The Confirmation template `appointment_confirmation_1` was edited to carry each coverage's Indicaciones: `{{6}}` indicaciones, `{{7}}` enlace. Until Meta approves the edit, production keeps sending the old 6-parameter body (`META_WHATSAPP_CONFIRMATION_WITH_INSTRUCTIONS` unset). Once Meta shows it as Approved:
+
+1. `META_WHATSAPP_CONFIRMATION_WITH_INSTRUCTIONS=true npm run smoke:meta` — sends the 7-parameter body; the WhatsApp should show the Indicaciones line.
+2. Set `META_WHATSAPP_CONFIRMATION_WITH_INSTRUCTIONS=true` in Vercel and redeploy — promptly: from approval until this flip, 6-parameter Confirmations are rejected with error 100 (bookings still succeed; the Panel's WhatsApp usage shows the rejections).
+3. Book once with a coverage that has Indicaciones and once with one that has none — the second should read "Sin indicaciones adicionales."
+
+If Meta rejects the edit, leave the flag unset; Indicaciones still show on the Patient's cita page.

@@ -52,6 +52,10 @@ _Avoid_: Coverage, Insurer (as the canonical term), OS
 The out-of-pocket option a Patient picks when no Health Insurance applies — they pay the full fee themselves. A distinct, **system-defined** concept: its two variants are fixed and cannot be renamed or removed, so deposit and filtering logic can rely on them — though the Professional may edit each one's price. One variant per Visit Type: _Particular_ for a Consultation, _Practica Particular_ for a Practice. Offered in the same picker as Health Insurance, but not part of the Professional-editable insurer list.
 _Avoid_: Private, Out-of-pocket
 
+**Coverage Instructions** (UI: _Indicaciones para el paciente_):
+Patient-facing requirements the Professional writes for each coverage — every Health Insurance and each Self-Pay variant (e.g. "Traer carnet y orden autorizada"). A single line of at most 300 characters. Copied onto the Appointment when it is booked, so the Confirmation and the cita page show what applied then; later edits do not reach existing Appointments. Distinct from a Health Insurance's **Notas**, which are internal to the Professional and never shown to Patients.
+_Avoid_: Notes (for the Patient-facing text), Requirements
+
 **Deposit** (UI: _Seña_):
 An upfront payment a Patient commits to for **Self-Pay** Appointments only: every Self-Pay Practice, and a Self-Pay Consultation when it is a First Visit (never for Follow-ups, and never when a Health Insurance covers the visit). For a Self-Pay Practice the Deposit is the option's full price; for a Self-Pay First-Visit Consultation it is a separate, smaller amount the Professional sets. The platform captures only the Patient's **acknowledgment**; the actual transfer happens off-platform.
 _Avoid_: Down payment, Booking fee

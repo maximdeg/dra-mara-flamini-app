@@ -8,6 +8,7 @@ import {
 } from "../notifications/email/email-notifications";
 import { getEmailSender } from "../notifications/email/get-email-sender";
 import { sendConfirmationEmail } from "../notifications/email/send-confirmation-email";
+import { confirmationIncludesInstructions } from "../notifications/whatsapp/confirmation-template";
 import { getWhatsAppSender } from "../notifications/whatsapp/get-whatsapp-sender";
 import { sendConfirmationWhatsApp } from "../notifications/whatsapp/send-confirmation-whatsapp";
 import type { Appointment } from "./appointment";
@@ -52,6 +53,8 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
       sendConfirmationWhatsApp(appointment, {
         sender: getWhatsAppSender(),
         appointments: repository,
+        // Off until Meta approves the 7-parameter template edit.
+        withInstructions: confirmationIncludesInstructions(),
       }),
     // Off unless EMAIL_NOTIFICATIONS_ENABLED is "true" (client request). When
     // on, the email sender is built lazily so missing Gmail config throws

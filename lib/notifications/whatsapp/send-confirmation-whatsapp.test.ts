@@ -51,6 +51,25 @@ describe("sendConfirmationWhatsApp", () => {
     expect(stored?.whatsappMessageId).toBe("fake-whatsapp-1");
   });
 
+  it("sends the 7-parameter body, Instructions included, once the template takes them", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const withInstructions = {
+      ...appointment(),
+      coverageInstructions: "Traer carnet",
+    };
+    await repository.create(withInstructions);
+    const sender = new FakeWhatsAppSender();
+
+    await sendConfirmationWhatsApp(withInstructions, {
+      sender,
+      appointments: repository,
+      withInstructions: true,
+    });
+
+    expect(sender.last?.params).toHaveLength(7);
+    expect(sender.last?.params[5]).toBe("Traer carnet");
+  });
+
   it("propagates a sender failure (Booking invokes it best-effort)", async () => {
     const repository = new InMemoryAppointmentRepository();
     await repository.create(appointment());
