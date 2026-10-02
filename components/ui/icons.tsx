@@ -157,3 +157,13 @@ export function AwardIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** A chat bubble with a handset — the WhatsApp contact affordance. */
+export function WhatsAppIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+      <path d="M9.5 9.2c.3 1.9 1.6 3.6 3.6 4.6l1-1 1.7.6-.3 1.4c-2.9.1-6.2-2.9-6.5-6.1l1.4-.4.7 1.7Z" />
+    </Icon>
+  );
+}

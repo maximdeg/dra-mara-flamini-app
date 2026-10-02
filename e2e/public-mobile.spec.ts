@@ -24,6 +24,9 @@ test("home page", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /Tu Piel, Nuestra Especialidad/ }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Consultas por WhatsApp" }),
+  ).toBeVisible();
   await shot(page, "home.png");
 });
 
