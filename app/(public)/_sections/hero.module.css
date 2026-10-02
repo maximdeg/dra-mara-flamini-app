@@ -25,6 +25,16 @@
   order: 1;
 }
 
+/* Small tagline above the headline. */
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: var(--space-4);
+}
+
 .title {
   font-size: var(--text-4xl);
   color: var(--brand-dark);
@@ -37,8 +47,12 @@
   }
 }
 
-.accent {
+/* One headline line each: "Reserva de turnos / con la Dra. Mara / Flamini Prida". */
+.line {
   display: block;
+}
+
+.accent {
   color: var(--brand);
 }
 

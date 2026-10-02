@@ -19,12 +19,28 @@ import type { WhatsAppMessage } from "./whatsapp-sender";
  *   🏥 Obra Social: {{5}}
  *   … enlace: {{6}}
  *
+ * The Professional has edited it to carry Coverage Instructions — {{6}}
+ * indicaciones, {{7}} enlace, {{1}}–{{5}} unchanged. Until Meta approves the
+ * edit the 6-parameter body stays in use; `withInstructions` selects the
+ * 7-parameter one (see confirmation-template.ts).
+ *
  * These constants must match what was submitted to and approved by Meta; a
  * name/language mismatch is rejected with error 132001, a parameter-count
  * mismatch with 100 (both proven while wiring this up).
  */
 const CONFIRMATION_TEMPLATE_NAME = "appointment_confirmation_1";
 const CONFIRMATION_TEMPLATE_LANGUAGE = "es_AR";
+
+/**
+ * What {{6}} says when the coverage had no Instructions — Meta rejects an empty
+ * body parameter, so the line always reads as something.
+ */
+export const NO_INSTRUCTIONS_FALLBACK = "Sin indicaciones adicionales.";
+
+export interface ConfirmationOptions {
+  /** Whether the approved template has the 7-parameter Instructions body. */
+  withInstructions?: boolean;
+}
 
 export interface ConfirmationLinks {
   /** Absolute URL of the Patient's Appointment page (`/cita/[id]`). */
@@ -33,27 +49,35 @@ export interface ConfirmationLinks {
 
 /**
  * The Confirmation WhatsApp for a booked Appointment — a Patient-ready
- * `WhatsAppMessage` referencing the approved template with its six body
- * parameters in `{{1}}…{{6}}` order. Pure: the absolute manage link is passed in
+ * `WhatsAppMessage` referencing the approved template with its body
+ * parameters in order — six, or seven with Coverage Instructions. Pure: the absolute manage link is passed in
  * (built from `siteUrl`) so this stays testable without env, exactly like the
  * confirmation email builder.
  */
 export function confirmationWhatsApp(
   appointment: Appointment,
   links: ConfirmationLinks,
+  { withInstructions = false }: ConfirmationOptions = {},
 ): WhatsAppMessage {
+  const details = [
+    appointment.patientFirstName, // {{1}} nombre
+    formatDateAR(appointment.date), // {{2}} fecha
+    appointment.time, // {{3}} hora
+    visitTypeLabel(appointment), // {{4}} tipo
+    coverageLabel(appointment.coverage), // {{5}} obra social
+  ];
   return {
     to: appointment.patientPhone,
     templateName: CONFIRMATION_TEMPLATE_NAME,
     language: CONFIRMATION_TEMPLATE_LANGUAGE,
-    params: [
-      appointment.patientFirstName, // {{1}} nombre
-      formatDateAR(appointment.date), // {{2}} fecha
-      appointment.time, // {{3}} hora
-      visitTypeLabel(appointment), // {{4}} tipo
-      coverageLabel(appointment.coverage), // {{5}} obra social
-      links.manageUrl, // {{6}} enlace
-    ],
+    params: withInstructions
+      ? [
+          ...details,
+          // {{6}} indicaciones — already one sanitized line (copied at booking)
+          appointment.coverageInstructions || NO_INSTRUCTIONS_FALLBACK,
+          links.manageUrl, // {{7}} enlace
+        ]
+      : [...details, links.manageUrl], // {{6}} enlace
   };
 }
 

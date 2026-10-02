@@ -11,9 +11,9 @@ describe("HealthInsuranceRepository (in-memory)", () => {
   it("returns the saved list, including an empty one (no seed resurrection)", async () => {
     const repository = new InMemoryHealthInsuranceRepository();
 
-    await repository.save([{ name: "OSDE", price: 1000, notes: "" }]);
+    await repository.save([{ name: "OSDE", price: 1000, notes: "", instructions: "" }]);
     expect(await repository.list()).toEqual([
-      { name: "OSDE", price: 1000, notes: "" },
+      { name: "OSDE", price: 1000, notes: "", instructions: "" },
     ]);
 
     await repository.save([]);

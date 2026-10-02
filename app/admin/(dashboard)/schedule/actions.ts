@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
 import { requireProfessional } from "@/lib/auth/require-professional";
+import { getVisitDurationsRepository } from "@/lib/availability/get-visit-durations-repository";
 import { getWorkScheduleRepository } from "@/lib/availability/get-work-schedule-repository";
 import { updateWorkSchedule } from "@/lib/availability/update-work-schedule";
+import { sanitizeVisitDurations } from "@/lib/availability/visit-durations";
 import { sanitizeWorkSchedule } from "@/lib/availability/work-schedule";
 import { cancelCollision, toCollisionView } from "../collisions";
-import type { SaveScheduleState } from "./types";
+import type { SaveDurationsState, SaveScheduleState } from "./types";
 
 export async function saveScheduleAction(
   input: unknown,
@@ -27,6 +29,26 @@ export async function saveScheduleAction(
   }
 
   // The change feeds Availability (Booking Window + Time Slots).
+  revalidatePath("/admin/schedule");
+  revalidatePath("/agendar-visita");
+  return { saved: true };
+}
+
+/**
+ * Save how long each Visit Kind takes. Never collides: each Appointment keeps
+ * the duration it was booked with, so only future starts change.
+ */
+export async function saveVisitDurationsAction(
+  input: unknown,
+): Promise<SaveDurationsState> {
+  if (!(await requireProfessional()).ok) {
+    return { error: "No autorizado." };
+  }
+
+  await (await getVisitDurationsRepository()).save(
+    sanitizeVisitDurations(input),
+  );
+  // Durations decide which starts fit (Availability).
   revalidatePath("/admin/schedule");
   revalidatePath("/agendar-visita");
   return { saved: true };

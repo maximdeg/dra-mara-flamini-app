@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { HealthInsurance } from "../coverage/coverage";
+import { DEFAULT_VISIT_DURATIONS } from "../availability/visit-durations";
 import { SEEDED_SELF_PAY_PRICING } from "../deposit/deposit";
 import type { Appointment, BookingForm } from "./appointment";
-import {
-  book,
-  phoneHasOpenAppointment,
-  type BookingDependencies,
-} from "./booking";
+import { book, type BookingDependencies } from "./booking";
 import { InMemoryAppointmentRepository } from "./in-memory-appointment-repository";
+import { isAtOpenAppointmentLimit } from "./phone-limit";
 
-const accepted: HealthInsurance[] = [{ name: "OSDE", price: 0, notes: "" }];
+const accepted: HealthInsurance[] = [{ name: "OSDE", price: 0, notes: "", instructions: "" }];
 
 const consultationForm: BookingForm = {
   patientFirstName: "Lucía",
@@ -31,7 +29,8 @@ function deps(
     acceptedHealthInsurances: accepted,
     selfPayPricing: SEEDED_SELF_PAY_PRICING,
     classifyDateTime: () => "ok" as const,
-    hasOpenAppointmentForPhone: () => false,
+    visitDurations: DEFAULT_VISIT_DURATIONS,
+    isPhoneAtOpenAppointmentLimit: () => false,
     notifyConfirmation: async () => {},
     sendConfirmationEmail: async () => {},
     generateId: () => "apt-1",
@@ -58,9 +57,11 @@ describe("book", () => {
         consultType: "FirstVisit",
         practiceType: null,
         coverage: { kind: "health-insurance", name: "OSDE" },
+        coverageInstructions: "",
         deposit: null,
         date: "2026-06-22",
         time: "09:30",
+        durationMinutes: 20,
         status: "scheduled",
         whatsappConsentAt: "2026-06-19T12:00:00.000Z",
         whatsappSent: false,
@@ -252,15 +253,15 @@ describe("book", () => {
     });
   });
 
-  it("rejects when the phone already has an open Appointment", async () => {
+  it("rejects when the phone already holds the maximum open Appointments", async () => {
     const result = await book(
       consultationForm,
-      deps({ hasOpenAppointmentForPhone: () => true }),
+      deps({ isPhoneAtOpenAppointmentLimit: () => true }),
     );
 
     expect(result).toEqual({
       ok: false,
-      rejection: "PhoneHasOpenAppointment",
+      rejection: "PhoneAtOpenAppointmentLimit",
     });
   });
 
@@ -312,13 +313,13 @@ describe("book", () => {
     expect(await repository.findById("apt-1")).toBeNull();
   });
 
-  it("checks the one-open-Appointment rule against the normalized phone", async () => {
+  it("checks the open-Appointment cap against the normalized phone", async () => {
     const checked: string[] = [];
 
     await book(
       { ...consultationForm, patientPhone: "0342 15 111-2233" },
       deps({
-        hasOpenAppointmentForPhone: (phone) => {
+        isPhoneAtOpenAppointmentLimit: (phone) => {
           checked.push(phone);
           return false;
         },
@@ -329,52 +330,83 @@ describe("book", () => {
   });
 });
 
-describe("phoneHasOpenAppointment", () => {
-  const now = new Date("2026-06-19T12:00:00"); // a Friday
+describe("book — open Appointments per phone", () => {
+  const now = new Date("2026-06-19T12:00:00");
 
-  function scheduledOn(date: string): Appointment {
-    return {
-      id: "x",
-      patientFirstName: "A",
-      patientLastName: "B",
-      patientPhone: "3421112233",
-      patientEmail: "a@b.c",
-      visitType: "Consultation",
-      consultType: "FirstVisit",
-      practiceType: null,
-      coverage: { kind: "health-insurance", name: "OSDE" },
-      deposit: null,
-      date,
-      time: "09:00",
-      status: "scheduled",
-      whatsappSent: false,
-      whatsappSentAt: null,
-      whatsappMessageId: null,
-      emailSent: false,
-      emailSentAt: null,
-      emailMessageId: null,
-      createdAt: "2026-01-01T00:00:00.000Z",
-    };
+  // Mirrors the production wiring: the cap is checked against what the
+  // repository holds for the phone as of `now`.
+  function cappedDeps(repository: InMemoryAppointmentRepository) {
+    let n = 0;
+    return deps({
+      repository,
+      now: () => now,
+      generateId: () => `apt-${++n}`,
+      isPhoneAtOpenAppointmentLimit: async (phone) =>
+        isAtOpenAppointmentLimit(
+          await repository.findScheduledByPhone(phone),
+          now,
+        ),
+    });
   }
 
-  it("is true when a Scheduled Appointment is today or in the future", () => {
-    expect(phoneHasOpenAppointment([scheduledOn("2026-06-20")], now)).toBe(
-      true,
+  it("lets one phone hold two open Appointments, then rejects a third", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const bookingDeps = cappedDeps(repository);
+
+    const first = await book(consultationForm, bookingDeps);
+    const second = await book(
+      { ...consultationForm, date: "2026-06-23" },
+      bookingDeps,
     );
-    expect(phoneHasOpenAppointment([scheduledOn("2026-06-19")], now)).toBe(
-      true,
+    const third = await book(
+      { ...consultationForm, date: "2026-06-24" },
+      bookingDeps,
     );
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(true);
+    expect(third).toEqual({
+      ok: false,
+      rejection: "PhoneAtOpenAppointmentLimit",
+    });
+    expect(await repository.findById("apt-3")).toBeNull();
   });
 
-  it("is false when the only Scheduled Appointment is in the past (now Completed)", () => {
-    expect(phoneHasOpenAppointment([scheduledOn("2026-06-18")], now)).toBe(
-      false,
-    );
+  it("does not count past (Completed) Appointments against the phone", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const bookingDeps = cappedDeps(repository);
+    for (const date of ["2026-06-10", "2026-06-12"]) {
+      await repository.create({
+        ...(await bookedOn(date)),
+        id: `past-${date}`,
+      });
+    }
+
+    const result = await book(consultationForm, bookingDeps);
+
+    expect(result.ok).toBe(true);
   });
 
-  it("is false when there are no Scheduled Appointments", () => {
-    expect(phoneHasOpenAppointment([], now)).toBe(false);
+  it("frees a place once an open Appointment is Cancelled", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const bookingDeps = cappedDeps(repository);
+    await book(consultationForm, bookingDeps);
+    await book({ ...consultationForm, date: "2026-06-23" }, bookingDeps);
+    await repository.markCancelled("apt-1");
+
+    const result = await book(
+      { ...consultationForm, date: "2026-06-24" },
+      bookingDeps,
+    );
+
+    expect(result.ok).toBe(true);
   });
+
+  async function bookedOn(date: string): Promise<Appointment> {
+    const result = await book({ ...consultationForm, date }, deps());
+    if (!result.ok) throw new Error("fixture booking failed");
+    return result.appointment;
+  }
 });
 
 describe("book — WhatsApp consent", () => {
@@ -419,5 +451,164 @@ describe("book — WhatsApp consent", () => {
     );
 
     expect(result.ok).toBe(true);
+  });
+});
+
+describe("book — optional email", () => {
+  async function storedEmail(
+    patientEmail: string | null | undefined,
+  ): Promise<string | null | undefined> {
+    const repository = new InMemoryAppointmentRepository();
+    const result = await book(
+      { ...consultationForm, patientEmail },
+      deps({ repository }),
+    );
+    expect(result.ok).toBe(true);
+    return (await repository.findById("apt-1"))?.patientEmail;
+  }
+
+  it("stores a blank email as null", async () => {
+    expect(await storedEmail("")).toBeNull();
+  });
+
+  it("stores a whitespace-only email as null", async () => {
+    expect(await storedEmail("   ")).toBeNull();
+  });
+
+  it("stores an omitted email as null (API clients that send none)", async () => {
+    expect(await storedEmail(undefined)).toBeNull();
+    expect(await storedEmail(null)).toBeNull();
+  });
+
+  it("stores a valid email trimmed", async () => {
+    expect(await storedEmail("  lucia@example.com ")).toBe("lucia@example.com");
+  });
+
+  it("rejects a malformed email, creating no Appointment", async () => {
+    for (const patientEmail of ["lucia", "lucia@", "@example.com", "lucia@example", "a@b@c.com", "lu cia@example.com"]) {
+      const repository = new InMemoryAppointmentRepository();
+
+      const result = await book(
+        { ...consultationForm, patientEmail },
+        deps({ repository }),
+      );
+
+      expect(result).toEqual({ ok: false, rejection: "InvalidEmail" });
+      expect(await repository.findById("apt-1")).toBeNull();
+    }
+  });
+});
+
+describe("book — Coverage Instructions", () => {
+  const insurers: HealthInsurance[] = [
+    { name: "OSDE", price: 0, notes: "interna", instructions: "Traer carnet" },
+  ];
+
+  it("copies the chosen insurer's Instructions onto the Appointment", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      consultationForm,
+      deps({ repository, acceptedHealthInsurances: insurers }),
+    );
+
+    expect((await repository.findById("apt-1"))?.coverageInstructions).toBe(
+      "Traer carnet",
+    );
+  });
+
+  it("keeps the copied Instructions when the insurer is edited later", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const live = [...insurers];
+    await book(
+      consultationForm,
+      deps({ repository, acceptedHealthInsurances: live }),
+    );
+
+    live[0] = { ...live[0], instructions: "Nuevo requisito" };
+
+    expect((await repository.findById("apt-1"))?.coverageInstructions).toBe(
+      "Traer carnet",
+    );
+  });
+
+  it("copies a Self-Pay variant's Instructions onto the Appointment", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      {
+        ...consultationForm,
+        consultType: "FollowUp",
+        coverage: { kind: "self-pay", variant: "Particular" },
+      },
+      deps({
+        repository,
+        selfPayPricing: {
+          ...SEEDED_SELF_PAY_PRICING,
+          instructions: {
+            Particular: "Abonar en efectivo",
+            PracticaParticular: "",
+          },
+        },
+      }),
+    );
+
+    expect((await repository.findById("apt-1"))?.coverageInstructions).toBe(
+      "Abonar en efectivo",
+    );
+  });
+});
+
+describe("book — Visit Kind", () => {
+  it("classifies the date/time for the Visit Kind being booked", async () => {
+    const kinds: string[] = [];
+    const classifyDateTime = (_date: string, _time: string, kind: string) => {
+      kinds.push(kind);
+      return "ok" as const;
+    };
+
+    await book(consultationForm, deps({ classifyDateTime }));
+    await book(
+      {
+        ...consultationForm,
+        visitType: "Practice",
+        consultType: null,
+        practiceType: "Biopsy",
+      },
+      deps({ classifyDateTime }),
+    );
+
+    expect(kinds).toEqual(["FirstVisit", "Biopsy"]);
+  });
+});
+
+describe("book — Visit Duration", () => {
+  it("copies the booked Visit Kind's duration onto the Appointment", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      {
+        ...consultationForm,
+        visitType: "Practice",
+        consultType: null,
+        practiceType: "Biopsy",
+      },
+      deps({
+        repository,
+        visitDurations: { ...DEFAULT_VISIT_DURATIONS, Biopsy: 40 },
+      }),
+    );
+
+    expect((await repository.findById("apt-1"))?.durationMinutes).toBe(40);
+  });
+
+  it("keeps the copied duration when durations are edited later", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const durations = { ...DEFAULT_VISIT_DURATIONS, FirstVisit: 30 };
+    await book(consultationForm, deps({ repository, visitDurations: durations }));
+
+    durations.FirstVisit = 60;
+
+    expect((await repository.findById("apt-1"))?.durationMinutes).toBe(30);
   });
 });

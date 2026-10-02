@@ -7,7 +7,7 @@ A single-provider dermatology practice. Patients book appointments online with o
 ### People
 
 **Patient** (UI: _Paciente_):
-A person who books an appointment, identified by first name, last name, phone number, and email entered on the booking form. There is no separate Patient record and no login — the identification lives on the Appointment itself, and the Patient re-enters it for every booking, returning to the app only to cancel. A given phone number may hold only one **open** Appointment at a time — open meaning Scheduled with a date still in the future. The Patient cannot book again until that Appointment ends: either Cancelled, or Completed once its date passes.
+A person who books an appointment, identified by first name, last name, and phone number entered on the booking form, plus an optional email. There is no separate Patient record and no login — the identification lives on the Appointment itself, and the Patient re-enters it for every booking, returning to the app only to cancel. A given phone number may hold at most two **open** Appointments at a time — open meaning Scheduled with a date still in the future. Once it holds two, the Patient cannot book again until one of them ends: either Cancelled, or Completed once its date passes.
 _Avoid_: Client, User, Customer
 
 **Professional** (UI: _Profesional_):
@@ -39,6 +39,18 @@ The kind of Consultation: First Visit (_Primera vez_) or Follow-up (_Seguimiento
 **Practice Type** (UI: _Tipo de Práctica_):
 The kind of Practice: Cryosurgery (_Criocirugía_), Electrocoagulation (_Electrocoagulación_), or Biopsy (_Biopsia_).
 
+**Visit Kind**:
+What is actually being booked: a Visit Type together with its required sub-type — Consulta · Primera vez, Consulta · Seguimiento, Práctica · Criocirugía, Práctica · Electrocoagulación, or Práctica · Biopsia. Availability is set and offered per Visit Kind: the booking form offers dates and times only once the kind is complete.
+_Avoid_: Appointment type, Service, Slot type
+
+**Visit Duration** (UI: _Duración_):
+How long a Visit Kind takes — 10 to 120 minutes in steps of 10, set by the Professional on the Horarios page (20 by default). Copied onto the Appointment when it is booked, so a later change never moves or collides with existing Appointments.
+_Avoid_: Slot length, Appointment length (as the setting)
+
+**Aesthetic Treatment** (UI: _Tratamiento_):
+A treatment the practice offers that is **not** a Visit Kind — Peeling, Skinbooster, Toxina botulínica, or Plasma rico en plaquetas. It cannot be booked online: no Appointment, Time Slot, or Visit Duration exists for it. The home page lists these treatments, and the Patient arranges one with the practice over WhatsApp from a link that opens a chat. This is not a Notification, which the system sends itself.
+_Avoid_: Service, Practice, Visit Kind (for these treatments)
+
 **Status**:
 The lifecycle state of an Appointment: Scheduled, Cancelled, or Completed. A new booking is Scheduled; it becomes **Completed automatically once its date has passed** (never set by hand), or **Cancelled** when the Patient or Professional cancels it. Because the system stores only Appointments — no Patient table — this status is also what gates re-booking for a phone number (see Patient).
 
@@ -52,6 +64,10 @@ _Avoid_: Coverage, Insurer (as the canonical term), OS
 The out-of-pocket option a Patient picks when no Health Insurance applies — they pay the full fee themselves. A distinct, **system-defined** concept: its two variants are fixed and cannot be renamed or removed, so deposit and filtering logic can rely on them — though the Professional may edit each one's price. One variant per Visit Type: _Particular_ for a Consultation, _Practica Particular_ for a Practice. Offered in the same picker as Health Insurance, but not part of the Professional-editable insurer list.
 _Avoid_: Private, Out-of-pocket
 
+**Coverage Instructions** (UI: _Indicaciones para el paciente_):
+Patient-facing requirements the Professional writes for each coverage — every Health Insurance and each Self-Pay variant (e.g. "Traer carnet y orden autorizada"). A single line of at most 300 characters. Copied onto the Appointment when it is booked, so the Confirmation and the cita page show what applied then; later edits do not reach existing Appointments. Distinct from a Health Insurance's **Notas**, which are internal to the Professional and never shown to Patients.
+_Avoid_: Notes (for the Patient-facing text), Requirements
+
 **Deposit** (UI: _Seña_):
 An upfront payment a Patient commits to for **Self-Pay** Appointments only: every Self-Pay Practice, and a Self-Pay Consultation when it is a First Visit (never for Follow-ups, and never when a Health Insurance covers the visit). For a Self-Pay Practice the Deposit is the option's full price; for a Self-Pay First-Visit Consultation it is a separate, smaller amount the Professional sets. The platform captures only the Patient's **acknowledgment**; the actual transfer happens off-platform.
 _Avoid_: Down payment, Booking fee
@@ -59,15 +75,15 @@ _Avoid_: Down payment, Booking fee
 ### Scheduling & availability
 
 **Work Schedule** (UI: _Horarios_):
-The Professional's recurring weekly availability — which weekdays are worked and the time ranges within each working day. Reducing availability — un-marking a working weekday, removing a time range, or adding an Unavailable Day — that collides with existing Scheduled Appointments requires the Professional to cancel those Appointments first; each cancellation sends a Cancellation Notice.
+The Professional's recurring weekly availability — which weekdays are worked, the time ranges within each working day, and which Visit Kinds each range accepts (every kind unless the Professional narrows it). Reducing availability — un-marking a working weekday, removing a time range, narrowing the kinds a range accepts, or adding an Unavailable Day — that collides with existing Scheduled Appointments requires the Professional to cancel those Appointments first; each cancellation sends a Cancellation Notice.
 _Avoid_: Hours, Calendar
 
 **Time Slot**:
-A 20-minute bookable interval derived from the Work Schedule for a given day, minus times already taken by Scheduled Appointments.
+A bookable start time for a Visit Kind on a given day. Starts sit on a 10-minute grid (09:00, 09:10, …): one is offered wherever the whole Appointment fits inside a single Work Schedule range that accepts the kind, without overlapping any Scheduled Appointment — of any kind, since there is one Professional and one agenda.
 _Avoid_: Slot time, Appointment slot
 
 **Booking Window**:
-The range of dates open for booking: from **tomorrow** (same-day booking is not allowed) up to 30 days ahead. Weekends, holidays, Unavailable Days, and days with no remaining Time Slots are excluded from it.
+The range of dates open for booking a given Visit Kind: from **tomorrow** (same-day booking is not allowed) up to 30 days ahead. Weekends, holidays, Unavailable Days, and days with no remaining Time Slots for that kind are excluded from it.
 _Avoid_: Booking range, Availability window
 
 **Unavailable Day** (UI: _Día no laborable_):

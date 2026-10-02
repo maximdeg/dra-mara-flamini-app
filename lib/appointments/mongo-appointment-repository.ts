@@ -1,8 +1,9 @@
 import type { Db, Filter } from "mongodb";
-import type { Appointment } from "./appointment";
+import { durationOf, type Appointment } from "./appointment";
 import type {
   AppointmentQuery,
   AppointmentRepository,
+  BookedInterval,
 } from "./appointment-repository";
 
 const COLLECTION = "appointments";
@@ -30,12 +31,18 @@ export class MongoAppointmentRepository implements AppointmentRepository {
     return (doc as Appointment | null) ?? null;
   }
 
-  async scheduledTimesOn(date: string): Promise<string[]> {
+  async scheduledIntervalsOn(date: string): Promise<BookedInterval[]> {
     const docs = await this.db
       .collection<Appointment>(COLLECTION)
-      .find({ date, status: "scheduled" }, { projection: { _id: 0, time: 1 } })
+      .find(
+        { date, status: "scheduled" },
+        { projection: { _id: 0, time: 1, durationMinutes: 1 } },
+      )
       .toArray();
-    return docs.map((doc) => doc.time);
+    return docs.map((doc) => ({
+      time: doc.time,
+      durationMinutes: durationOf(doc),
+    }));
   }
 
   async findScheduledByPhone(phone: string): Promise<Appointment[]> {

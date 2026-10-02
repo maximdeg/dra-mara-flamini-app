@@ -69,4 +69,19 @@ describe("sendConfirmationEmail", () => {
     const stored = await repository.findById("apt-1");
     expect(stored?.emailSent).toBe(false);
   });
+
+  it("skips an Appointment without an email: no send, no bookkeeping", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const withoutEmail = { ...appointment(), patientEmail: null };
+    await repository.create(withoutEmail);
+    const sender = new FakeEmailSender();
+
+    await sendConfirmationEmail(withoutEmail, {
+      sender,
+      appointments: repository,
+    });
+
+    expect(sender.sent).toEqual([]);
+    expect((await repository.findById("apt-1"))?.emailSent).toBe(false);
+  });
 });

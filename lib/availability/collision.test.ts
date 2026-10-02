@@ -19,7 +19,15 @@ function appt(
   status: Appointment["status"] = "scheduled",
   id = `${date}-${time}`,
 ): Appointment {
-  return { id, date, time, status } as Appointment;
+  return {
+    id,
+    date,
+    time,
+    status,
+    visitType: "Consultation",
+    consultType: "FirstVisit",
+    practiceType: null,
+  } as Appointment;
 }
 
 function withWeekday(weekday: Weekday, patch: Partial<WorkdaySchedule>): WorkSchedule {
@@ -48,6 +56,75 @@ describe("fitsSchedule", () => {
   it("is false when the time falls outside every range", () => {
     expect(
       fitsSchedule(wednesday, withWeekday("wednesday", { ranges: [{ start: "15:00", end: "19:00" }] })),
+    ).toBe(false);
+  });
+});
+
+describe("fitsSchedule — Visit Kinds", () => {
+  it("is true when the range covering the time accepts the Appointment's kind", () => {
+    expect(
+      fitsSchedule(
+        monday,
+        withWeekday("monday", {
+          ranges: [{ start: "09:00", end: "13:00", kinds: ["FirstVisit"] }],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("is false once that range no longer accepts the Appointment's kind", () => {
+    expect(
+      fitsSchedule(
+        monday,
+        withWeekday("monday", {
+          ranges: [{ start: "09:00", end: "13:00", kinds: ["FollowUp", "Biopsy"] }],
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("collides a Scheduled Appointment when its kind is unticked, never a past or cancelled one", () => {
+    const proceduresOnly = DEFAULT_WORK_SCHEDULE.map((d) => ({
+      ...d,
+      ranges: d.ranges.map((r) => ({
+        ...r,
+        kinds: ["Cryosurgery", "Electrocoagulation", "Biopsy"] as const,
+      })),
+    })) as WorkSchedule;
+
+    expect(
+      collidingWithSchedule([monday, past, cancelled], proceduresOnly, now),
+    ).toEqual([monday]);
+  });
+});
+
+describe("fitsSchedule — whole interval", () => {
+  it("is false when the Appointment would run past the end of its range", () => {
+    // Monday 12:50 + 20 minutes ends at 13:10, past a range shortened to 13:00.
+    expect(
+      fitsSchedule(
+        appt("2026-06-22", "12:50"),
+        withWeekday("monday", { ranges: [{ start: "09:00", end: "13:00" }] }),
+      ),
+    ).toBe(false);
+  });
+
+  it("is true when the whole interval ends by the range end", () => {
+    expect(
+      fitsSchedule(
+        appt("2026-06-22", "12:40"),
+        withWeekday("monday", { ranges: [{ start: "09:00", end: "13:00" }] }),
+      ),
+    ).toBe(true);
+  });
+
+  it("uses the Appointment's own duration", () => {
+    const long = { ...appt("2026-06-22", "12:20"), durationMinutes: 60 };
+    expect(
+      fitsSchedule(
+        long,
+        withWeekday("monday", { ranges: [{ start: "09:00", end: "13:00" }] }),
+      ),
     ).toBe(false);
   });
 });

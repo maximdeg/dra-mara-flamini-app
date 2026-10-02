@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 // Two test projects, sharing the root resolve/esbuild config:
 //   - "lib": domain modules and seams under lib/, tested through their
 //     interfaces in a node environment (the in-memory repository fake stands in
-//     at the repository seam).
+//     at the repository seam), plus the thin route handlers under app/api/.
 //   - "ui": presentation primitives under components/, tested in jsdom through
 //     React Testing Library — external behavior only, never CSS class names.
 // The "ui" project is the reference pattern for future UI tests.
@@ -24,7 +24,7 @@ export default defineConfig({
         test: {
           name: "lib",
           environment: "node",
-          include: ["lib/**/*.test.ts"],
+          include: ["lib/**/*.test.ts", "app/api/**/*.test.ts"],
         },
       },
       {
@@ -35,6 +35,11 @@ export default defineConfig({
           globals: true,
           include: ["components/**/*.test.tsx", "app/**/*.test.tsx"],
           setupFiles: ["./vitest.setup.ts"],
+          // vitest.setup.ts gives findBy*/waitFor 5s of headroom for suite
+          // load. The test timeout must clear that comfortably: at Vitest's
+          // default (also 5s) one starved findBy used up the whole test's
+          // budget, so a test awaiting two in a row timed out at random.
+          testTimeout: 15_000,
         },
       },
     ],

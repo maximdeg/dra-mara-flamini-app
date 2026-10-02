@@ -1,5 +1,9 @@
 import type { Db } from "mongodb";
-import { SEEDED_HEALTH_INSURANCES, type HealthInsurance } from "./coverage";
+import {
+  readStoredHealthInsurance,
+  SEEDED_HEALTH_INSURANCES,
+  type HealthInsurance,
+} from "./coverage";
 import type { HealthInsuranceRepository } from "./health-insurance-repository";
 
 const COLLECTION = "healthInsurances";
@@ -18,10 +22,10 @@ export class MongoHealthInsuranceRepository
 
   async list(): Promise<HealthInsurance[]> {
     const doc = await this.db.collection(COLLECTION).findOne({ key: KEY });
-    return (
-      (doc?.insurances as HealthInsurance[] | undefined) ??
-      SEEDED_HEALTH_INSURANCES
-    );
+    const stored = doc?.insurances as
+      | Parameters<typeof readStoredHealthInsurance>[0][]
+      | undefined;
+    return stored?.map(readStoredHealthInsurance) ?? SEEDED_HEALTH_INSURANCES;
   }
 
   async save(insurances: HealthInsurance[]): Promise<void> {

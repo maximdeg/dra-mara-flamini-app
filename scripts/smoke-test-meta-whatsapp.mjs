@@ -59,6 +59,23 @@ if (unusable.length > 0) {
 // {{6}} enlace. Sending the wrong count is rejected with error 100. The
 // production sender (lib/notifications/whatsapp/confirmation.ts) fills the same
 // six; these are sample values proving the template end-to-end.
+//
+// The edited template adds Coverage Instructions: {{6}} indicaciones, {{7}}
+// enlace. With META_WHATSAPP_CONFIRMATION_WITH_INSTRUCTIONS=true this sends the
+// seven — run it that way once Meta approves the edit, BEFORE setting the flag
+// in Vercel, to prove the approved template accepts the new shape.
+const withInstructions =
+  process.env.META_WHATSAPP_CONFIRMATION_WITH_INSTRUCTIONS === "true";
+const confirmationParams = [
+  "Maxim",
+  "22/06/2026",
+  "09:30",
+  "Consulta · Primera vez",
+  "OSDE",
+  ...(withInstructions ? ["Traer carnet y orden autorizada"] : []),
+  "https://www.dramaraflaminiprida.com/cita/demo",
+];
+
 const template = helloMode
   ? { name: "hello_world", language: { code: "en_US" } }
   : {
@@ -67,20 +84,15 @@ const template = helloMode
       components: [
         {
           type: "body",
-          parameters: [
-            { type: "text", text: "Maxim" },
-            { type: "text", text: "22/06/2026" },
-            { type: "text", text: "09:30" },
-            { type: "text", text: "Consulta · Primera vez" },
-            { type: "text", text: "OSDE" },
-            { type: "text", text: "https://www.dramaraflaminiprida.com/cita/demo" },
-          ],
+          parameters: confirmationParams.map((text) => ({ type: "text", text })),
         },
       ],
     };
 
 console.log(
-  `Sending "${template.name}" (${template.language.code}) to ${TEST_WHATSAPP_NUMBER} ...`,
+  `Sending "${template.name}" (${template.language.code}) to ${TEST_WHATSAPP_NUMBER}` +
+    (helloMode ? "" : ` with ${confirmationParams.length} parameters`) +
+    " ...",
 );
 
 const response = await fetch(

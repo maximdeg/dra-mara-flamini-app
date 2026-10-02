@@ -40,13 +40,19 @@ const MEDALLION_TONE: Record<DerivedStatus, string> = {
 
 type Row = { label: string; value: ReactNode };
 
-/** Presentational, data-only view of an Appointment and its Status. */
+/**
+ * Presentational, data-only view of an Appointment and its Status. Whether
+ * Patient email notifications are on is passed in, so the email-confirmation
+ * row never reads "Pendiente" for an email that will never be sent.
+ */
 export function AppointmentDetails({
   appointment,
   status,
+  emailNotificationsEnabled,
 }: {
   appointment: Appointment;
   status: DerivedStatus;
+  emailNotificationsEnabled: boolean;
 }) {
   const rows: Row[] = [
     {
@@ -54,7 +60,9 @@ export function AppointmentDetails({
       value: `${appointment.patientFirstName} ${appointment.patientLastName}`,
     },
     { label: "Teléfono", value: appointment.patientPhone },
-    { label: "Email", value: appointment.patientEmail },
+    ...(appointment.patientEmail
+      ? [{ label: "Email", value: appointment.patientEmail }]
+      : []),
     { label: "Tipo de visita", value: VISIT_TYPE_LABELS[appointment.visitType] },
     ...(appointment.consultType
       ? [
@@ -87,10 +95,14 @@ export function AppointmentDetails({
       label: "Confirmación por WhatsApp",
       value: appointment.whatsappSent ? "Enviada" : "Pendiente",
     },
-    {
-      label: "Confirmación por email",
-      value: appointment.emailSent ? "Enviada" : "Pendiente",
-    },
+    ...(emailNotificationsEnabled
+      ? [
+          {
+            label: "Confirmación por email",
+            value: appointment.emailSent ? "Enviada" : "Pendiente",
+          },
+        ]
+      : []),
   ];
 
   return (

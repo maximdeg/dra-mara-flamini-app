@@ -2,17 +2,24 @@ import { classifyBookingDateTime } from "../availability/availability";
 import { getAvailabilityDeps } from "../availability/get-availability-deps";
 import { getHealthInsuranceRepository } from "../coverage/get-health-insurance-repository";
 import { getSelfPayPricingRepository } from "../deposit/get-self-pay-pricing-repository";
+import {
+  emailNotificationsEnabled,
+  gateEmailChannel,
+} from "../notifications/email/email-notifications";
 import { getEmailSender } from "../notifications/email/get-email-sender";
 import { sendConfirmationEmail } from "../notifications/email/send-confirmation-email";
+import { confirmationIncludesInstructions } from "../notifications/whatsapp/confirmation-template";
 import { getWhatsAppSender } from "../notifications/whatsapp/get-whatsapp-sender";
 import { sendConfirmationWhatsApp } from "../notifications/whatsapp/send-confirmation-whatsapp";
-import { phoneHasOpenAppointment, type BookingDependencies } from "./booking";
+import type { Appointment } from "./appointment";
+import type { BookingDependencies } from "./booking";
 import { getAppointmentRepository } from "./get-appointment-repository";
+import { isAtOpenAppointmentLimit } from "./phone-limit";
 
 /**
  * Production composition root for Booking. It wires the seeded coverage/pricing
  * config and composes the two external checks — date/time classification (from
- * Availability) and the one-open-Appointment-per-phone rule (from the
+ * Availability) and the open-Appointments-per-phone cap (from the
  * repository + today's date) — so the route handler stays a thin adapter and
  * Booking itself never creates its own dependencies.
  */
@@ -32,10 +39,12 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
     repository,
     acceptedHealthInsurances,
     selfPayPricing,
-    classifyDateTime: (date, time) =>
-      classifyBookingDateTime(date, time, availabilityDeps),
-    hasOpenAppointmentForPhone: async (phone) =>
-      phoneHasOpenAppointment(
+    classifyDateTime: (date, time, kind) =>
+      classifyBookingDateTime(date, time, kind, availabilityDeps),
+    // The same durations Availability offered the slot with.
+    visitDurations: availabilityDeps.visitDurations,
+    isPhoneAtOpenAppointmentLimit: async (phone) =>
+      isAtOpenAppointmentLimit(
         await repository.findScheduledByPhone(phone),
         now,
       ),
@@ -46,13 +55,19 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
       sendConfirmationWhatsApp(appointment, {
         sender: getWhatsAppSender(),
         appointments: repository,
+        // Off until Meta approves the 7-parameter template edit.
+        withInstructions: confirmationIncludesInstructions(),
       }),
-    // The email sender is built lazily here so missing Gmail config throws
+    // Off unless EMAIL_NOTIFICATIONS_ENABLED is "true" (client request). When
+    // on, the email sender is built lazily so missing Gmail config throws
     // inside book()'s best-effort catch rather than failing deps composition.
-    sendConfirmationEmail: (appointment) =>
-      sendConfirmationEmail(appointment, {
-        sender: getEmailSender(),
-        appointments: repository,
-      }),
+    sendConfirmationEmail: gateEmailChannel(
+      emailNotificationsEnabled(),
+      (appointment: Appointment) =>
+        sendConfirmationEmail(appointment, {
+          sender: getEmailSender(),
+          appointments: repository,
+        }),
+    ),
   };
 }

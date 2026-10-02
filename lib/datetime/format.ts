@@ -23,3 +23,19 @@ export function formatDateAR(iso: string): string {
   const [, year, month, day] = match;
   return `${day}/${month}/${year}`;
 }
+
+/**
+ * An Appointment's span as `HH:MM–HH:MM`: its start and the end its duration
+ * reaches. Same-day only — the Booking Window never offers a start that would
+ * cross midnight.
+ */
+export function formatTimeRange(
+  start: string,
+  durationMinutes: number,
+): string {
+  const [h, m] = start.split(":").map(Number);
+  const end = h * 60 + m + durationMinutes;
+  const hh = String(Math.floor(end / 60)).padStart(2, "0");
+  const mm = String(end % 60).padStart(2, "0");
+  return `${start}–${hh}:${mm}`;
+}

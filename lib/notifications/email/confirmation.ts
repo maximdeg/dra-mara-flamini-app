@@ -7,6 +7,7 @@ import {
 import { coverageLabel } from "../../coverage/coverage";
 import { formatDateAR } from "../../datetime/format";
 import { formatPesos } from "../../deposit/deposit";
+import type { AppointmentWithEmail } from "./email-notifications";
 import type { EmailMessage } from "./email-sender";
 import {
   BRAND_NAME,
@@ -29,7 +30,7 @@ export interface ConfirmationLinks {
 }
 
 /** The Appointment summary rows, mirroring the cita page (and its order). */
-function detailRows(appointment: Appointment): DetailRow[] {
+function detailRows(appointment: AppointmentWithEmail): DetailRow[] {
   const rows: DetailRow[] = [
     {
       label: "Paciente",
@@ -84,7 +85,7 @@ function textBody(
  * (built from `siteUrl`) so this stays testable without env.
  */
 export function confirmationEmail(
-  appointment: Appointment,
+  appointment: AppointmentWithEmail,
   links: ConfirmationLinks,
 ): EmailMessage {
   const rows = detailRows(appointment);

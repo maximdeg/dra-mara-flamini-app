@@ -21,19 +21,36 @@ export interface Appointment {
   patientFirstName: string;
   patientLastName: string;
   patientPhone: string;
-  patientEmail: string;
+  /**
+   * Optional: `null` when the Patient left it blank. Appointments booked
+   * before email became optional always hold a string.
+   */
+  patientEmail: string | null;
   /** What the Appointment is for, and its required sub-type. */
   visitType: VisitType;
   consultType: ConsultType | null;
   practiceType: PracticeType | null;
   /** The chosen Health Insurance or Self-Pay variant. */
   coverage: Coverage;
+  /**
+   * The chosen coverage's Coverage Instructions, copied at booking so the
+   * Confirmation and the cita page show what applied then — later edits to the
+   * coverage do not reach it. Empty when the coverage had none; absent on
+   * Appointments booked before Instructions existed (treat as empty).
+   */
+  coverageInstructions?: string;
   /** The acknowledged Deposit, or null when none applies. */
   deposit: Deposit | null;
   /** ISO calendar date, "YYYY-MM-DD". */
   date: string;
-  /** 24-hour time of the Time Slot, "HH:MM". */
+  /** 24-hour start time, "HH:MM". */
   time: string;
+  /**
+   * How long the Appointment lasts, in minutes. Absent on Appointments booked
+   * before durations existed — those last DEFAULT_DURATION_MINUTES (see
+   * durationOf).
+   */
+  durationMinutes?: number;
   status: AppointmentStatus;
   /**
    * Confirmation (WhatsApp) bookkeeping, denormalized onto the Appointment for
@@ -66,6 +83,16 @@ export interface Appointment {
   createdAt: string;
 }
 
+/** How long an Appointment lasts when nothing says otherwise. */
+export const DEFAULT_DURATION_MINUTES = 20;
+
+/** An Appointment's length in minutes; legacy Appointments last the default. */
+export function durationOf(
+  appointment: Pick<Appointment, "durationMinutes">,
+): number {
+  return appointment.durationMinutes ?? DEFAULT_DURATION_MINUTES;
+}
+
 /**
  * What a Patient submits to book an Appointment. The sub-type not required by
  * the Visit Type may be omitted — Booking normalizes it to null. Later slices
@@ -75,7 +102,8 @@ export interface BookingForm {
   patientFirstName: string;
   patientLastName: string;
   patientPhone: string;
-  patientEmail: string;
+  /** Optional; blank, whitespace-only or omitted is stored as `null`. */
+  patientEmail?: string | null;
   visitType: VisitType;
   consultType?: ConsultType | null;
   practiceType?: PracticeType | null;

@@ -22,7 +22,10 @@ async function shot(page: Page, name: string) {
 test("home page", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /Tu Piel, Nuestra Especialidad/ }),
+    page.getByRole("heading", { name: /Reserva de turnos con la Dra. Mara Flamini Prida/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Consultas Especiales" }),
   ).toBeVisible();
   await shot(page, "home.png");
 });

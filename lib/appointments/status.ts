@@ -14,7 +14,7 @@ export type DerivedStatus = "scheduled" | "cancelled" | "completed";
  * Appointment becomes Completed once its date has passed (strictly before
  * today); on its own day and in the future it is still Scheduled.
  *
- * This single rule is also what "open" means for the one-open-per-phone
+ * This single rule is also what "open" means for the open-Appointments-per-phone
  * re-booking gate: open === `statusOf(...) === "scheduled"`.
  */
 export function statusOf(

@@ -1,5 +1,9 @@
 import type { ConsultType, VisitType } from "../appointments/visit-type";
-import type { Coverage } from "../coverage/coverage";
+import {
+  sanitizeInstructions,
+  type Coverage,
+  type SelfPayVariant,
+} from "../coverage/coverage";
 
 /**
  * The Deposit (UI: _Seña_) — an upfront payment a Patient commits to for
@@ -7,9 +11,18 @@ import type { Coverage } from "../coverage/coverage";
  * Patient's acknowledgment; the actual transfer happens off-platform.
  */
 
+/** Coverage Instructions for each fixed Self-Pay variant. */
+export type SelfPayInstructions = Record<SelfPayVariant, string>;
+
+export const EMPTY_SELF_PAY_INSTRUCTIONS: SelfPayInstructions = {
+  Particular: "",
+  PracticaParticular: "",
+};
+
 /**
- * Self-Pay pricing the Deposit is computed from. Seeded now; Professional-
- * editable from slice 15. Amounts are whole Argentine pesos.
+ * The Professional-editable Self-Pay settings: the pricing the Deposit is
+ * computed from (whole Argentine pesos; editable from slice 15) and each
+ * variant's Patient-facing Coverage Instructions.
  */
 export interface SelfPayPricing {
   /** Full price of the Particular (Self-Pay Consultation) option. */
@@ -21,12 +34,18 @@ export interface SelfPayPricing {
   practiceFullPrice: number;
   /** The separate, smaller Deposit for a Self-Pay First-Visit Consultation. */
   firstVisitConsultationDeposit: number;
+  /**
+   * Each variant's Coverage Instructions, copied onto an Appointment booked
+   * with it — the Self-Pay counterpart of a Health Insurance's instructions.
+   */
+  instructions: SelfPayInstructions;
 }
 
 export const SEEDED_SELF_PAY_PRICING: SelfPayPricing = {
   consultationFullPrice: 30000,
   practiceFullPrice: 35000,
   firstVisitConsultationDeposit: 20000,
+  instructions: EMPTY_SELF_PAY_INSTRUCTIONS,
 };
 
 /** A committed Deposit on an Appointment: the amount and the acknowledgment. */
@@ -74,15 +93,26 @@ function toPesos(value: unknown): number {
 }
 
 /**
- * Coerce untrusted Self-Pay pricing input (from the editing form) into a valid
- * SelfPayPricing — the trust boundary for price edits. The two Self-Pay variants
- * themselves are fixed in code; only these three amounts are editable.
+ * Coerce untrusted Self-Pay settings (from the editing form, or a stored
+ * document) into valid SelfPayPricing — the trust boundary for these edits. The
+ * two Self-Pay variants themselves are fixed in code; only the three amounts
+ * and each variant's Instructions are editable. Settings saved before
+ * Instructions existed read as having none.
  */
 export function sanitizeSelfPayPricing(input: unknown): SelfPayPricing {
   const raw = (input ?? {}) as Partial<Record<keyof SelfPayPricing, unknown>>;
+  const instructions = (raw.instructions ?? {}) as Partial<
+    Record<SelfPayVariant, unknown>
+  >;
   return {
     consultationFullPrice: toPesos(raw.consultationFullPrice),
     practiceFullPrice: toPesos(raw.practiceFullPrice),
     firstVisitConsultationDeposit: toPesos(raw.firstVisitConsultationDeposit),
+    instructions: {
+      Particular: sanitizeInstructions(String(instructions.Particular ?? "")),
+      PracticaParticular: sanitizeInstructions(
+        String(instructions.PracticaParticular ?? ""),
+      ),
+    },
   };
 }

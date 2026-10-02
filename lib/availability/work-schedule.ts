@@ -1,3 +1,5 @@
+import { VISIT_KINDS, type VisitKind } from "../appointments/visit-kind";
+
 /**
  * The Work Schedule — the Professional's recurring weekly availability: which
  * weekdays are worked and the time ranges within each working day (CONTEXT.md).
@@ -18,6 +20,29 @@ export type Weekday =
 export interface TimeRange {
   start: string;
   end: string;
+  /**
+   * The Visit Kinds this range can be booked for. Absent on ranges saved
+   * before kinds existed — those accept every kind (see acceptedKinds).
+   */
+  kinds?: VisitKind[];
+}
+
+/** The Visit Kinds a range accepts; an untagged (legacy) range accepts all. */
+export function acceptedKinds(range: TimeRange): VisitKind[] {
+  return range.kinds ?? VISIT_KINDS;
+}
+
+/** Whether a range can be booked for a Visit Kind. */
+export function rangeAccepts(range: TimeRange, kind: VisitKind): boolean {
+  return acceptedKinds(range).includes(kind);
+}
+
+// Known kinds only, in canonical order, without duplicates — or undefined when
+// the input carried no tags at all (an untagged range accepts every kind).
+function sanitizeKinds(raw: unknown): VisitKind[] | undefined {
+  if (raw === undefined) return undefined;
+  const given = Array.isArray(raw) ? raw : [];
+  return VISIT_KINDS.filter((kind) => given.includes(kind));
 }
 
 export interface WorkdaySchedule {
@@ -58,11 +83,19 @@ function isValidTime(value: unknown): value is string {
   return h >= 0 && h <= 23 && m >= 0 && m <= 59;
 }
 
+// Edited ranges sit on the 10-minute availability grid (09:00, 09:10, …), so
+// every start offered steps evenly from a range's start. Ranges stored before
+// the grid are never re-read through here, so they keep working.
+function isOnGrid(value: unknown): value is string {
+  return isValidTime(value) && Number(value.slice(3)) % 10 === 0;
+}
+
 /**
  * Coerce untrusted input (from the editing form) into a well-formed
  * WorkSchedule: exactly one entry per weekday in order, ranges kept only when
- * both ends are valid "HH:MM" and start precedes end, and ranges dropped for a
- * non-working day. This is the trust boundary for Work Schedule edits.
+ * both ends are valid "HH:MM" on the 10-minute grid, start precedes end, and (when tagged) at least
+ * one known Visit Kind is accepted, and ranges dropped for a non-working day.
+ * This is the trust boundary for Work Schedule edits.
  */
 export function sanitizeWorkSchedule(input: unknown): WorkSchedule {
   const days: unknown[] = Array.isArray(input) ? input : [];
@@ -82,11 +115,17 @@ export function sanitizeWorkSchedule(input: unknown): WorkSchedule {
             (r): r is TimeRange =>
               typeof r === "object" &&
               r !== null &&
-              isValidTime((r as TimeRange).start) &&
-              isValidTime((r as TimeRange).end) &&
+              isOnGrid((r as TimeRange).start) &&
+              isOnGrid((r as TimeRange).end) &&
               (r as TimeRange).start < (r as TimeRange).end,
           )
-          .map((r) => ({ start: r.start, end: r.end }))
+          .map((r) => {
+            const kinds = sanitizeKinds((r as { kinds?: unknown }).kinds);
+            return kinds === undefined
+              ? { start: r.start, end: r.end }
+              : { start: r.start, end: r.end, kinds };
+          })
+          .filter((r) => r.kinds === undefined || r.kinds.length > 0)
       : [];
     return { weekday, isWorkingDay, ranges };
   });

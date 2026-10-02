@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { Appointment } from "../../appointments/appointment";
-import { confirmationWhatsApp } from "./confirmation";
+import {
+  confirmationWhatsApp,
+  NO_INSTRUCTIONS_FALLBACK,
+} from "./confirmation";
 
 function appointment(overrides: Partial<Appointment> = {}): Appointment {
   return {
@@ -71,10 +74,58 @@ describe("confirmationWhatsApp", () => {
   });
 
   it("never emits a newline or a 4+ space run in any parameter (Cloud API rejects them)", () => {
-    const message = confirmationWhatsApp(appointment(), links);
-    for (const param of message.params) {
-      expect(param).not.toMatch(/\n/);
-      expect(param).not.toMatch(/ {4,}/);
+    for (const withInstructions of [false, true]) {
+      const message = confirmationWhatsApp(
+        appointment({ coverageInstructions: "Traer carnet y orden" }),
+        links,
+        { withInstructions },
+      );
+      for (const param of message.params) {
+        expect(param).not.toMatch(/\n/);
+        expect(param).not.toMatch(/ {4,}/);
+      }
+    }
+  });
+});
+
+describe("confirmationWhatsApp — with Coverage Instructions", () => {
+  it("keeps today's six parameters when the template does not include them", () => {
+    const message = confirmationWhatsApp(
+      appointment({ coverageInstructions: "Traer carnet" }),
+      links,
+      { withInstructions: false },
+    );
+    expect(message.params).toHaveLength(6);
+    expect(message.params[5]).toBe("https://clinic.example/cita/apt-1");
+  });
+
+  it("fills seven parameters: the Instructions at {{6}}, the link at {{7}}", () => {
+    const message = confirmationWhatsApp(
+      appointment({ coverageInstructions: "Traer carnet" }),
+      links,
+      { withInstructions: true },
+    );
+    expect(message.templateName).toBe("appointment_confirmation_1");
+    expect(message.params).toEqual([
+      "Lucía", // {{1}} nombre
+      "22/06/2026", // {{2}} fecha
+      "09:30", // {{3}} hora
+      "Consulta · Primera vez", // {{4}} tipo
+      "OSDE", // {{5}} obra social
+      "Traer carnet", // {{6}} indicaciones
+      "https://clinic.example/cita/apt-1", // {{7}} enlace
+    ]);
+  });
+
+  it("sends the fallback when the coverage had no Instructions (Meta rejects empty parameters)", () => {
+    expect(NO_INSTRUCTIONS_FALLBACK).toBe("Sin indicaciones adicionales.");
+    for (const coverageInstructions of ["", undefined]) {
+      const message = confirmationWhatsApp(
+        appointment({ coverageInstructions }),
+        links,
+        { withInstructions: true },
+      );
+      expect(message.params[5]).toBe(NO_INSTRUCTIONS_FALLBACK);
     }
   });
 });

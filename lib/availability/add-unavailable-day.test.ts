@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_VISIT_DURATIONS } from "./visit-durations";
 import type { Appointment } from "../appointments/appointment";
 import { InMemoryAppointmentRepository } from "../appointments/in-memory-appointment-repository";
 import { addUnavailableDay } from "./add-unavailable-day";
@@ -91,13 +92,16 @@ describe("Unavailable Day → Booking Window", () => {
     const deps = {
       workSchedule: DEFAULT_WORK_SCHEDULE,
       unavailableDays: await unavailableDays.list(),
-      scheduledTimesOn: async () => [],
+      scheduledIntervalsOn: async () => [],
+    visitDurations: DEFAULT_VISIT_DURATIONS,
       now: () => now,
     };
 
-    const window = await bookingWindow(deps);
+    const window = await bookingWindow("FirstVisit", deps);
     expect(window).not.toContain("2026-06-22");
     expect(window).toContain("2026-06-29"); // the next Monday is still open
-    expect(await availableTimesFor("2026-06-22", deps)).toEqual([]);
+    expect(await availableTimesFor("2026-06-22", "FirstVisit", deps)).toEqual(
+      [],
+    );
   });
 });

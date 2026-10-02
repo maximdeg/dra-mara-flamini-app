@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { BookingDateTimeStatus } from "../availability/availability";
+import type { VisitDurations } from "../availability/visit-durations";
 import {
+  coverageInstructionsFor,
   isCoverageValidForVisitType,
   type HealthInsurance,
 } from "../coverage/coverage";
@@ -8,7 +10,7 @@ import { depositAmountFor, type SelfPayPricing } from "../deposit/deposit";
 import type { Appointment, BookingForm } from "./appointment";
 import type { AppointmentRepository } from "./appointment-repository";
 import { normalizeArgentinePhone } from "../phone/phone";
-import { statusOf } from "./status";
+import type { VisitKind } from "./visit-kind";
 import type { ConsultType, PracticeType } from "./visit-type";
 
 /**
@@ -21,22 +23,25 @@ export type BookingRejection =
   | "InvalidCoverageForVisitType"
   | "DepositNotAcknowledged"
   | "InvalidPhone"
-  | "PhoneHasOpenAppointment"
+  | "InvalidEmail"
+  | "PhoneAtOpenAppointmentLimit"
   | "OutsideBookingWindow"
   | "SlotTaken";
 
+// One "@", no whitespace, and a dot in the domain — a plausibility check, not
+// an RFC parser; the browser's type="email" is only a hint.
+const PLAUSIBLE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
- * Whether a phone already holds an open Appointment (ADR-0002). "Open" is the
- * derived Appointment Status being Scheduled — i.e. Scheduled and not yet
- * Completed — so a past (now Completed) Appointment does not block re-booking.
+ * The Patient's email is optional: blank, whitespace-only or omitted becomes
+ * `null`; anything else is stored trimmed, or refused when implausible.
  */
-export function phoneHasOpenAppointment(
-  scheduled: Appointment[],
-  now: Date,
-): boolean {
-  return scheduled.some(
-    (appointment) => statusOf(appointment, now) === "scheduled",
-  );
+function normalizePatientEmail(
+  raw: string | null | undefined,
+): string | null | "invalid" {
+  const email = (raw ?? "").trim();
+  if (email === "") return null;
+  return PLAUSIBLE_EMAIL.test(email) ? email : "invalid";
 }
 
 export type BookingResult =
@@ -54,13 +59,22 @@ export interface BookingDependencies {
   repository: AppointmentRepository;
   acceptedHealthInsurances: HealthInsurance[];
   selfPayPricing: SelfPayPricing;
-  /** Classify the chosen date/time against the Booking Window and Time Slots. */
+  /**
+   * Classify the chosen date/time against the Booking Window and Time Slots
+   * for the Visit Kind being booked.
+   */
   classifyDateTime: (
     date: string,
     time: string,
+    kind: VisitKind,
   ) => Promise<BookingDateTimeStatus> | BookingDateTimeStatus;
-  /** Whether this phone already holds an open Appointment (ADR-0002). */
-  hasOpenAppointmentForPhone: (phone: string) => Promise<boolean> | boolean;
+  /** How long each Visit Kind takes; the booked kind's is copied on. */
+  visitDurations: VisitDurations;
+  /**
+   * Whether this (normalized) phone already holds the maximum number of open
+   * Appointments (ADR-0002).
+   */
+  isPhoneAtOpenAppointmentLimit: (phone: string) => Promise<boolean> | boolean;
   /** Send the Confirmation for a booked Appointment (called best-effort). */
   notifyConfirmation: (appointment: Appointment) => Promise<void> | void;
   /** Send the Confirmation email for a booked Appointment (called best-effort). */
@@ -72,6 +86,8 @@ export interface BookingDependencies {
 interface SubType {
   consultType: ConsultType | null;
   practiceType: PracticeType | null;
+  /** The Visit Kind the validated sub-type makes up. */
+  kind: VisitKind;
 }
 
 /**
@@ -81,7 +97,7 @@ interface SubType {
  * It validates that the form is internally consistent (required sub-type
  * present, the other normalized away; coverage valid for the Visit Type;
  * Deposit acknowledged when one applies), then enforces external constraints
- * (the one-open-Appointment-per-phone rule and date/time availability), and
+ * (the open-Appointments-per-phone cap and date/time availability), and
  * finally persists a Scheduled Appointment. Returning a result union (not
  * throwing) keeps every refusal an explicit, typed outcome. Enqueueing a
  * Confirmation (slice 06) is the remaining behavior to layer behind this
@@ -96,12 +112,20 @@ export async function book(
     if (!form.consultType) {
       return { ok: false, rejection: "MissingConsultType" };
     }
-    subType = { consultType: form.consultType, practiceType: null };
+    subType = {
+      consultType: form.consultType,
+      practiceType: null,
+      kind: form.consultType,
+    };
   } else {
     if (!form.practiceType) {
       return { ok: false, rejection: "MissingPracticeType" };
     }
-    subType = { consultType: null, practiceType: form.practiceType };
+    subType = {
+      consultType: null,
+      practiceType: form.practiceType,
+      kind: form.practiceType,
+    };
   }
 
   if (
@@ -132,18 +156,27 @@ export async function book(
 
   // The Patient's phone is canonicalized to E.164 before it is used for
   // anything: the Confirmation is undeliverable otherwise (the Cloud API only
-  // accepts E.164), and the one-open-Appointment-per-phone rule below must
+  // accepts E.164), and the open-Appointments-per-phone cap below must
   // compare canonical values so two spellings of one number are one Patient.
   const patientPhone = normalizeArgentinePhone(form.patientPhone);
   if (patientPhone === null) {
     return { ok: false, rejection: "InvalidPhone" };
   }
 
-  if (await deps.hasOpenAppointmentForPhone(patientPhone)) {
-    return { ok: false, rejection: "PhoneHasOpenAppointment" };
+  const patientEmail = normalizePatientEmail(form.patientEmail);
+  if (patientEmail === "invalid") {
+    return { ok: false, rejection: "InvalidEmail" };
   }
 
-  const dateTime = await deps.classifyDateTime(form.date, form.time);
+  if (await deps.isPhoneAtOpenAppointmentLimit(patientPhone)) {
+    return { ok: false, rejection: "PhoneAtOpenAppointmentLimit" };
+  }
+
+  const dateTime = await deps.classifyDateTime(
+    form.date,
+    form.time,
+    subType.kind,
+  );
   if (dateTime === "outside-window") {
     return { ok: false, rejection: "OutsideBookingWindow" };
   }
@@ -159,14 +192,21 @@ export async function book(
     patientFirstName: form.patientFirstName,
     patientLastName: form.patientLastName,
     patientPhone,
-    patientEmail: form.patientEmail,
+    patientEmail,
     visitType: form.visitType,
     consultType: subType.consultType,
     practiceType: subType.practiceType,
     coverage: form.coverage,
+    coverageInstructions: coverageInstructionsFor(
+      form.coverage,
+      deps.acceptedHealthInsurances,
+      deps.selfPayPricing.instructions,
+    ),
     deposit,
     date: form.date,
     time: form.time,
+    // Copied, so a later edit to the durations never moves this Appointment.
+    durationMinutes: deps.visitDurations[subType.kind],
     status: "scheduled",
     // Consent is stored as the instant it was given, so the clinic can show
     // when a Patient agreed rather than only that they did. An omitted field

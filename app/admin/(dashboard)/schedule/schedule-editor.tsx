@@ -2,8 +2,10 @@
 
 import { useState, useTransition } from "react";
 import {
+  acceptedKinds,
   WEEKDAYS_IN_ORDER,
   WEEKDAY_LABELS,
+  type TimeRange,
   type Weekday,
   type WorkdaySchedule,
   type WorkSchedule,
@@ -14,8 +16,13 @@ import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { cancelCollisionAction, saveScheduleAction } from "./actions";
+import { KindPicker } from "./kind-picker";
 import type { CollisionSummary } from "./types";
 import styles from "./schedule-editor.module.css";
+
+function onTenMinuteGrid(time: string): boolean {
+  return /^\d{2}:\d0$/.test(time);
+}
 
 /** Always present the schedule as one ordered entry per weekday. */
 function normalize(initial: WorkSchedule): WorkSchedule {
@@ -49,11 +56,10 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
     edit((s) => s.map((d) => (d.weekday === weekday ? { ...d, ...patch } : d)));
   }
 
-  function setRange(
+  function patchRange(
     weekday: Weekday,
     index: number,
-    field: "start" | "end",
-    value: string,
+    patch: Partial<TimeRange>,
   ) {
     edit((s) =>
       s.map((d) =>
@@ -61,7 +67,7 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
           ? {
               ...d,
               ranges: d.ranges.map((r, i) =>
-                i === index ? { ...r, [field]: value } : r,
+                i === index ? { ...r, ...patch } : r,
               ),
             }
           : d,
@@ -70,6 +76,30 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
   }
 
   function save() {
+    // The server drops a range open to no Visit Kind; refuse here instead so
+    // a range is never lost silently.
+    const kindless = schedule.some(
+      (d) =>
+        d.isWorkingDay && d.ranges.some((r) => acceptedKinds(r).length === 0),
+    );
+    if (kindless) {
+      toast.error("Cada rango necesita al menos un tipo de visita.");
+      return;
+    }
+    // Likewise for times off the 10-minute availability grid.
+    const offGrid = schedule.some(
+      (d) =>
+        d.isWorkingDay &&
+        d.ranges.some(
+          (r) => !onTenMinuteGrid(r.start) || !onTenMinuteGrid(r.end),
+        ),
+    );
+    if (offGrid) {
+      toast.error(
+        "Usá horarios en múltiplos de 10 minutos (por ejemplo 09:10).",
+      );
+      return;
+    }
     startTransition(async () => {
       const result = await saveScheduleAction(schedule);
       if (result.saved) {
@@ -118,50 +148,63 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
             {day.isWorkingDay ? (
               <div className={styles.ranges}>
                 {day.ranges.map((range, index) => (
-                  <div key={index} className={styles.range}>
-                    <input
-                      type="time"
-                      // Argentine convention: render the native control in 24-hour
-                      // form (no am/pm) for a visitor on a non-es locale.
-                      lang="es-AR"
-                      className={styles.time}
-                      aria-label="Desde"
-                      value={range.start}
-                      onChange={(e) =>
-                        setRange(day.weekday, index, "start", e.target.value)
+                  <div key={index} className={styles.rangeBlock}>
+                    <div className={styles.range}>
+                      <input
+                        type="time"
+                        // Argentine convention: render the native control in 24-hour
+                        // form (no am/pm) for a visitor on a non-es locale.
+                        lang="es-AR"
+                        // Steps of 10 minutes: the availability grid.
+                        step={600}
+                        className={styles.time}
+                        aria-label="Desde"
+                        value={range.start}
+                        onChange={(e) =>
+                          patchRange(day.weekday, index, {
+                            start: e.target.value,
+                          })
+                        }
+                      />
+                      <span className={styles.sep}>a</span>
+                      <input
+                        type="time"
+                        lang="es-AR"
+                        // Steps of 10 minutes: the availability grid.
+                        step={600}
+                        className={styles.time}
+                        aria-label="Hasta"
+                        value={range.end}
+                        onChange={(e) =>
+                          patchRange(day.weekday, index, {
+                            end: e.target.value,
+                          })
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        onClick={() =>
+                          patchDay(day.weekday, {
+                            ranges: day.ranges.filter((_, i) => i !== index),
+                          })
+                        }
+                      >
+                        Quitar
+                      </Button>
+                    </div>
+                    <KindPicker
+                      kinds={acceptedKinds(range)}
+                      onChange={(kinds) =>
+                        patchRange(day.weekday, index, { kinds })
                       }
                     />
-                    <span className={styles.sep}>a</span>
-                    <input
-                      type="time"
-                      lang="es-AR"
-                      className={styles.time}
-                      aria-label="Hasta"
-                      value={range.end}
-                      onChange={(e) =>
-                        setRange(day.weekday, index, "end", e.target.value)
-                      }
-                    />
-                    <Button
-                      variant="ghost"
-                      onClick={() =>
-                        patchDay(day.weekday, {
-                          ranges: day.ranges.filter((_, i) => i !== index),
-                        })
-                      }
-                    >
-                      Quitar
-                    </Button>
                   </div>
                 ))}
                 <Button
                   variant="secondary"
                   onClick={() =>
                     patchDay(day.weekday, {
-                      ranges: [
-                        ...day.ranges,
-                        { start: "09:00", end: "13:00" },
-                      ],
+                      ranges: [...day.ranges, { start: "09:00", end: "13:00" }],
                     })
                   }
                 >

@@ -3,6 +3,7 @@ import type { CancellationActor } from "../../appointments/cancellation";
 import type { ClinicContact } from "../../clinic/clinic-info";
 import { siteUrl } from "../../site-url";
 import { cancellationEmail } from "./cancellation";
+import { hasPatientEmail } from "./email-notifications";
 import type { EmailSender } from "./email-sender";
 
 export interface CancellationEmailDeps {
@@ -16,13 +17,15 @@ export interface CancellationEmailDeps {
  * aware) and deliver it via the EmailSender. Unlike the Confirmation it records
  * no Appointment-level bookkeeping (best-effort only, mirroring the WhatsApp
  * Cancellation Notice). Callers (Cancellation) invoke this best-effort — it may
- * throw, and that must never cost the cancellation (ADR-0001).
+ * throw, and that must never cost the cancellation (ADR-0001). Email is
+ * optional, so an Appointment without one is skipped.
  */
 export async function sendCancellationEmail(
   appointment: Appointment,
   actor: CancellationActor,
   deps: CancellationEmailDeps,
 ): Promise<void> {
+  if (!hasPatientEmail(appointment)) return;
   const message = cancellationEmail(
     appointment,
     actor,

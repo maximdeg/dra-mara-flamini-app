@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { VISIT_KINDS, type VisitKind } from "../appointments/visit-kind";
 import {
+  acceptedKinds,
+  rangeAccepts,
   sanitizeWorkSchedule,
   WEEKDAYS_IN_ORDER,
 } from "./work-schedule";
@@ -53,5 +56,87 @@ describe("sanitizeWorkSchedule", () => {
     const wednesday = schedule.find((d) => d.weekday === "wednesday")!;
     expect(wednesday.isWorkingDay).toBe(false);
     expect(wednesday.ranges).toEqual([]);
+  });
+});
+
+describe("acceptedKinds / rangeAccepts", () => {
+  it("treats a range without tags (saved before kinds existed) as accepting every kind", () => {
+    const legacy = { start: "09:00", end: "13:00" };
+    expect(acceptedKinds(legacy)).toEqual(VISIT_KINDS);
+    expect(rangeAccepts(legacy, "Biopsy")).toBe(true);
+  });
+
+  it("accepts only the tagged kinds", () => {
+    const consultsOnly = {
+      start: "09:00",
+      end: "13:00",
+      kinds: ["FirstVisit", "FollowUp"] as VisitKind[],
+    };
+    expect(rangeAccepts(consultsOnly, "FollowUp")).toBe(true);
+    expect(rangeAccepts(consultsOnly, "Biopsy")).toBe(false);
+  });
+});
+
+describe("sanitizeWorkSchedule — Visit Kinds", () => {
+  function sanitizedRanges(ranges: unknown[]) {
+    return sanitizeWorkSchedule([
+      { weekday: "monday", isWorkingDay: true, ranges },
+    ])[0].ranges;
+  }
+
+  it("keeps known kinds, in canonical order, without duplicates", () => {
+    expect(
+      sanitizedRanges([
+        {
+          start: "09:00",
+          end: "13:00",
+          kinds: ["Biopsy", "FirstVisit", "Biopsy", "Particular"],
+        },
+      ]),
+    ).toEqual([{ start: "09:00", end: "13:00", kinds: ["FirstVisit", "Biopsy"] }]);
+  });
+
+  it("drops a range that accepts no kind", () => {
+    expect(
+      sanitizedRanges([
+        { start: "09:00", end: "13:00", kinds: [] },
+        { start: "14:00", end: "16:00", kinds: ["nope"] },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("leaves an untagged range accepting every kind", () => {
+    expect(sanitizedRanges([{ start: "09:00", end: "13:00" }])).toEqual([
+      { start: "09:00", end: "13:00" },
+    ]);
+  });
+});
+
+describe("sanitizeWorkSchedule — 10-minute grid", () => {
+  it("keeps ranges whose ends sit on 10-minute boundaries", () => {
+    expect(
+      sanitizeWorkSchedule([
+        {
+          weekday: "monday",
+          isWorkingDay: true,
+          ranges: [{ start: "09:10", end: "12:50" }],
+        },
+      ])[0].ranges,
+    ).toEqual([{ start: "09:10", end: "12:50" }]);
+  });
+
+  it("drops a range with an end off the grid", () => {
+    expect(
+      sanitizeWorkSchedule([
+        {
+          weekday: "monday",
+          isWorkingDay: true,
+          ranges: [
+            { start: "09:05", end: "13:00" },
+            { start: "14:00", end: "16:15" },
+          ],
+        },
+      ])[0].ranges,
+    ).toEqual([]);
   });
 });

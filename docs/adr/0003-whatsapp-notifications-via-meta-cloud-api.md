@@ -85,3 +85,32 @@ medical visit and expects to hear about it, the email Confirmation goes out
 either way, and unticking is one click. If the clinic ever needs documented
 affirmative consent (rather than merely honoured refusals), this is the decision
 to revisit.
+
+## The Confirmation carries Coverage Instructions (2026-10-02)
+
+Each coverage — every Health Insurance and both Self-Pay variants — now has
+Patient-facing **Coverage Instructions** (_Indicaciones para el paciente_),
+copied onto the Appointment at booking. To put them in the Confirmation, the
+Professional edited `appointment_confirmation_1` [es_AR] to a 7-parameter body:
+{{1}} nombre, {{2}} fecha, {{3}} hora, {{4}} tipo, {{5}} obra social,
+{{6}} indicaciones, {{7}} enlace (the link moved from {{6}}).
+
+- **Empty Instructions are never sent empty.** Meta rejects an empty body
+  parameter, so {{6}} falls back to "Sin indicaciones adicionales." when the
+  coverage had none. Instructions are sanitized to a single line of at most 300
+  characters when the Professional saves them, so they always satisfy the
+  parameter rules (no newline, no 4+ space run) and keep the body under Meta's
+  1024-character limit.
+- **The cutover is flag-gated.** The edit had to pass Meta review, and the
+  parameter count must match the approved template exactly (error 100
+  otherwise), so the 7-parameter body ships behind
+  `META_WHATSAPP_CONFIRMATION_WITH_INSTRUCTIONS` (on only when exactly
+  `"true"`), off until approval. Once Meta approves, the smoke test is run with
+  the flag set and the flag is set in Vercel promptly — from the moment the
+  approved template expects seven parameters until the flip, 6-parameter sends
+  fail (best-effort, so bookings succeed but those Patients get no
+  Confirmation; the Send Log records the error-100 rejections). The flag and
+  the 6-parameter path are removed once the new body is live.
+- **The cita page shows them regardless.** The Instructions also appear on the
+  Patient's appointment page the Confirmation links to, so they reach Patients
+  even before the cutover or if Meta were to reject the edit.

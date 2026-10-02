@@ -10,7 +10,7 @@ describe("CtaBand", () => {
       screen.getByRole("heading", { name: "¿Listo para Cuidar tu Piel?" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Agendar visita/ }),
+      screen.getByRole("link", { name: /Agenda tu turno/ }),
     ).toHaveAttribute("href", "/agendar-visita");
   });
 });

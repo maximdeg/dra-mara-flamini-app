@@ -62,6 +62,28 @@ describe("AppointmentsTable", () => {
     expect(withoutClasses(container.innerHTML)).toMatchSnapshot();
   });
 
+  it("shows each Appointment's span from its own duration (legacy ones last 20 minutes)", () => {
+    render(
+      <ToastProvider>
+        <AppointmentsTable
+          views={[
+            {
+              appointment: appointment({ time: "09:20", durationMinutes: 40 }),
+              status: "scheduled",
+            },
+            {
+              appointment: appointment({ id: "a2", time: "11:00" }),
+              status: "scheduled",
+            },
+          ]}
+        />
+      </ToastProvider>,
+    );
+
+    expect(screen.getByText("09:20–10:00")).toBeInTheDocument();
+    expect(screen.getByText("11:00–11:20")).toBeInTheDocument();
+  });
+
   it("marks a Patient who declined WhatsApp, and leaves the others unmarked", () => {
     render(
       <ToastProvider>

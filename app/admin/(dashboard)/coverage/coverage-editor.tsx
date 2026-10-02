@@ -5,6 +5,7 @@ import {
   addInsurance,
   editInsurance,
   removeInsurance,
+  sanitizeInstructions,
   type HealthInsurance,
 } from "@/lib/coverage/coverage";
 import type { SelfPayPricing } from "@/lib/deposit/deposit";
@@ -21,6 +22,7 @@ import {
   type InsuranceInput,
 } from "./actions";
 import styles from "./coverage-editor.module.css";
+import { InstructionsField } from "./instructions-field";
 
 function toPrice(value: FormDataEntryValue | null): number {
   return Math.max(0, Math.floor(Number(value) || 0));
@@ -32,6 +34,7 @@ function readInsurance(form: HTMLFormElement): InsuranceInput {
     name: String(data.get("name") ?? "").trim(),
     price: toPrice(data.get("price")),
     notes: String(data.get("notes") ?? "").trim(),
+    instructions: sanitizeInstructions(String(data.get("instructions") ?? "")),
   };
 }
 
@@ -57,6 +60,14 @@ export function CoverageEditor({
       firstVisitConsultationDeposit: toPrice(
         data.get("firstVisitConsultationDeposit"),
       ),
+      instructions: {
+        Particular: sanitizeInstructions(
+          String(data.get("instructionsParticular") ?? ""),
+        ),
+        PracticaParticular: sanitizeInstructions(
+          String(data.get("instructionsPracticaParticular") ?? ""),
+        ),
+      },
     };
     startTransition(async () => {
       await saveSelfPayPricingAction(next);
@@ -104,7 +115,7 @@ export function CoverageEditor({
         <h2 className={styles.sectionTitle}>Particular (Self-Pay)</h2>
         <p className={styles.note}>
           Las dos variantes Particular son fijas: no se pueden renombrar ni
-          eliminar, solo se editan sus precios.
+          eliminar, solo se editan sus precios e indicaciones.
         </p>
         <form onSubmit={savePricing} className={styles.pricingForm}>
           <Field label="Particular (Consulta) — precio">
@@ -115,6 +126,11 @@ export function CoverageEditor({
               defaultValue={pricing.consultationFullPrice}
             />
           </Field>
+          <InstructionsField
+            label="Particular (Consulta) — indicaciones para el paciente"
+            name="instructionsParticular"
+            defaultValue={pricing.instructions.Particular}
+          />
           <Field label="Practica Particular — precio (también es la seña)">
             <input
               type="number"
@@ -123,6 +139,11 @@ export function CoverageEditor({
               defaultValue={pricing.practiceFullPrice}
             />
           </Field>
+          <InstructionsField
+            label="Practica Particular — indicaciones para el paciente"
+            name="instructionsPracticaParticular"
+            defaultValue={pricing.instructions.PracticaParticular}
+          />
           <Field label="Seña de primera consulta Particular">
             <input
               type="number"
@@ -167,6 +188,7 @@ export function CoverageEditor({
             <Field label="Notas" className={styles.grow}>
               <input name="notes" />
             </Field>
+            <InstructionsField className={styles.full} />
             <Button type="submit" busy={pending} className={styles.rowSubmit}>
               Agregar
             </Button>
@@ -237,6 +259,10 @@ function InsuranceRow({
         <Field label="Notas" className={styles.grow}>
           <input name="notes" defaultValue={insurance.notes} />
         </Field>
+        <InstructionsField
+          defaultValue={insurance.instructions}
+          className={styles.full}
+        />
         <div className={styles.rowActions}>
           <Button type="submit" disabled={pending}>
             Guardar
