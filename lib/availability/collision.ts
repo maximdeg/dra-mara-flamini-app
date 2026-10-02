@@ -1,4 +1,4 @@
-import type { Appointment } from "../appointments/appointment";
+import { durationOf, type Appointment } from "../appointments/appointment";
 import { statusOf } from "../appointments/status";
 import { visitKindOf } from "../appointments/visit-kind";
 import { weekdayOf } from "./dates";
@@ -20,19 +20,32 @@ function toMinutes(time: string): number {
   return h * 60 + m;
 }
 
-function withinRanges(time: string, ranges: TimeRange[]): boolean {
-  const t = toMinutes(time);
-  return ranges.some((r) => toMinutes(r.start) <= t && t < toMinutes(r.end));
+// Whether [start, start + duration) lies wholly inside one of the ranges.
+function withinRanges(
+  time: string,
+  duration: number,
+  ranges: TimeRange[],
+): boolean {
+  const start = toMinutes(time);
+  return ranges.some(
+    (r) => toMinutes(r.start) <= start && start + duration <= toMinutes(r.end),
+  );
 }
 
 /**
- * Whether an Appointment still fits a (proposed) Work Schedule: its time falls
- * in a worked range that still accepts its Visit Kind.
+ * Whether an Appointment still fits a (proposed) Work Schedule: its whole
+ * interval — start plus its duration — lies inside one worked range that still
+ * accepts its Visit Kind.
  */
 export function fitsSchedule(
   appointment: Pick<
     Appointment,
-    "date" | "time" | "visitType" | "consultType" | "practiceType"
+    | "date"
+    | "time"
+    | "durationMinutes"
+    | "visitType"
+    | "consultType"
+    | "practiceType"
   >,
   schedule: WorkSchedule,
 ): boolean {
@@ -44,7 +57,7 @@ export function fitsSchedule(
   const ranges = kind
     ? day.ranges.filter((range) => rangeAccepts(range, kind))
     : day.ranges;
-  return withinRanges(appointment.time, ranges);
+  return withinRanges(appointment.time, durationOf(appointment), ranges);
 }
 
 /**

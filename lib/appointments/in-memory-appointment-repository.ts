@@ -1,7 +1,8 @@
-import type { Appointment } from "./appointment";
+import { durationOf, type Appointment } from "./appointment";
 import type {
   AppointmentQuery,
   AppointmentRepository,
+  BookedInterval,
 } from "./appointment-repository";
 
 /**
@@ -21,10 +22,10 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     return this.appointments.get(id) ?? null;
   }
 
-  async scheduledTimesOn(date: string): Promise<string[]> {
+  async scheduledIntervalsOn(date: string): Promise<BookedInterval[]> {
     return [...this.appointments.values()]
       .filter((a) => a.date === date && a.status === "scheduled")
-      .map((a) => a.time);
+      .map((a) => ({ time: a.time, durationMinutes: durationOf(a) }));
   }
 
   async findScheduledByPhone(phone: string): Promise<Appointment[]> {

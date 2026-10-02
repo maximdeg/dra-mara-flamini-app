@@ -128,6 +128,29 @@ describe("ScheduleEditor", () => {
     });
   });
 
+  describe("10-minute grid", () => {
+    it("steps the time inputs by 10 minutes", () => {
+      renderEditor();
+      expect(screen.getByLabelText("Desde")).toHaveAttribute("step", "600");
+      expect(screen.getByLabelText("Hasta")).toHaveAttribute("step", "600");
+    });
+
+    it("refuses to save a time off the grid", async () => {
+      saveMock.mockClear();
+      renderEditor();
+      fireEvent.change(screen.getByLabelText("Desde"), {
+        target: { value: "09:05" },
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: "Guardar horarios" }));
+
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Usá horarios en múltiplos de 10 minutos",
+      );
+      expect(saveMock).not.toHaveBeenCalled();
+    });
+  });
+
   it("matches the editor structure", () => {
     const { container } = renderEditor();
     expect(

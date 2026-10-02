@@ -8,6 +8,13 @@ import type { VisitType } from "./visit-type";
  * `now` and is applied above the seam by the listing module, so the
  * derived-Status rule never leaks into a persistence adapter.
  */
+/** The span a Scheduled Appointment occupies on its date. */
+export interface BookedInterval {
+  /** Start, "HH:MM". */
+  time: string;
+  durationMinutes: number;
+}
+
 export interface AppointmentQuery {
   /** Inclusive lower bound on the Appointment date, "YYYY-MM-DD". */
   from?: string;
@@ -35,11 +42,11 @@ export interface AppointmentRepository {
   create(appointment: Appointment): Promise<Appointment>;
   findById(id: string): Promise<Appointment | null>;
   /**
-   * Times (`"HH:MM"`) taken by Scheduled Appointments on a given date. Used by
-   * Availability to remove already-booked Time Slots. Added in slice 02 — the
-   * first method the seam grew beyond the walking skeleton.
+   * The intervals Scheduled Appointments occupy on a given date — start and
+   * duration (the default for Appointments booked before durations existed).
+   * Availability removes every start that would overlap one.
    */
-  scheduledTimesOn(date: string): Promise<string[]>;
+  scheduledIntervalsOn(date: string): Promise<BookedInterval[]>;
   /**
    * All Scheduled Appointments for a phone number. Booking uses this to enforce
    * the open-Appointments-per-phone cap (ADR-0002); "open" (Scheduled with

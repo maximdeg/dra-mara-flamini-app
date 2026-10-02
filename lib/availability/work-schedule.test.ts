@@ -111,3 +111,32 @@ describe("sanitizeWorkSchedule — Visit Kinds", () => {
     ]);
   });
 });
+
+describe("sanitizeWorkSchedule — 10-minute grid", () => {
+  it("keeps ranges whose ends sit on 10-minute boundaries", () => {
+    expect(
+      sanitizeWorkSchedule([
+        {
+          weekday: "monday",
+          isWorkingDay: true,
+          ranges: [{ start: "09:10", end: "12:50" }],
+        },
+      ])[0].ranges,
+    ).toEqual([{ start: "09:10", end: "12:50" }]);
+  });
+
+  it("drops a range with an end off the grid", () => {
+    expect(
+      sanitizeWorkSchedule([
+        {
+          weekday: "monday",
+          isWorkingDay: true,
+          ranges: [
+            { start: "09:05", end: "13:00" },
+            { start: "14:00", end: "16:15" },
+          ],
+        },
+      ])[0].ranges,
+    ).toEqual([]);
+  });
+});

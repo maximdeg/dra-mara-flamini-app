@@ -20,6 +20,10 @@ import { KindPicker } from "./kind-picker";
 import type { CollisionSummary } from "./types";
 import styles from "./schedule-editor.module.css";
 
+function onTenMinuteGrid(time: string): boolean {
+  return /^\d{2}:\d0$/.test(time);
+}
+
 /** Always present the schedule as one ordered entry per weekday. */
 function normalize(initial: WorkSchedule): WorkSchedule {
   return WEEKDAYS_IN_ORDER.map(
@@ -82,6 +86,20 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
       toast.error("Cada rango necesita al menos un tipo de visita.");
       return;
     }
+    // Likewise for times off the 10-minute availability grid.
+    const offGrid = schedule.some(
+      (d) =>
+        d.isWorkingDay &&
+        d.ranges.some(
+          (r) => !onTenMinuteGrid(r.start) || !onTenMinuteGrid(r.end),
+        ),
+    );
+    if (offGrid) {
+      toast.error(
+        "Usá horarios en múltiplos de 10 minutos (por ejemplo 09:10).",
+      );
+      return;
+    }
     startTransition(async () => {
       const result = await saveScheduleAction(schedule);
       if (result.saved) {
@@ -137,6 +155,8 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
                         // Argentine convention: render the native control in 24-hour
                         // form (no am/pm) for a visitor on a non-es locale.
                         lang="es-AR"
+                        // Steps of 10 minutes: the availability grid.
+                        step={600}
                         className={styles.time}
                         aria-label="Desde"
                         value={range.start}
@@ -150,6 +170,8 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
                       <input
                         type="time"
                         lang="es-AR"
+                        // Steps of 10 minutes: the availability grid.
+                        step={600}
                         className={styles.time}
                         aria-label="Hasta"
                         value={range.end}

@@ -98,6 +98,37 @@ describe("fitsSchedule — Visit Kinds", () => {
   });
 });
 
+describe("fitsSchedule — whole interval", () => {
+  it("is false when the Appointment would run past the end of its range", () => {
+    // Monday 12:50 + 20 minutes ends at 13:10, past a range shortened to 13:00.
+    expect(
+      fitsSchedule(
+        appt("2026-06-22", "12:50"),
+        withWeekday("monday", { ranges: [{ start: "09:00", end: "13:00" }] }),
+      ),
+    ).toBe(false);
+  });
+
+  it("is true when the whole interval ends by the range end", () => {
+    expect(
+      fitsSchedule(
+        appt("2026-06-22", "12:40"),
+        withWeekday("monday", { ranges: [{ start: "09:00", end: "13:00" }] }),
+      ),
+    ).toBe(true);
+  });
+
+  it("uses the Appointment's own duration", () => {
+    const long = { ...appt("2026-06-22", "12:20"), durationMinutes: 60 };
+    expect(
+      fitsSchedule(
+        long,
+        withWeekday("monday", { ranges: [{ start: "09:00", end: "13:00" }] }),
+      ),
+    ).toBe(false);
+  });
+});
+
 describe("collidingWithSchedule", () => {
   const cast = [monday, wednesday, past, cancelled];
 

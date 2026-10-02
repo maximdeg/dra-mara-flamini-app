@@ -91,13 +91,15 @@ describe("Unavailable Day → Booking Window", () => {
     const deps = {
       workSchedule: DEFAULT_WORK_SCHEDULE,
       unavailableDays: await unavailableDays.list(),
-      scheduledTimesOn: async () => [],
+      scheduledIntervalsOn: async () => [],
       now: () => now,
     };
 
     const window = await bookingWindow("FirstVisit", deps);
     expect(window).not.toContain("2026-06-22");
     expect(window).toContain("2026-06-29"); // the next Monday is still open
-    expect(await availableTimesFor("2026-06-22", "FirstVisit", deps)).toEqual([]);
+    expect(await availableTimesFor("2026-06-22", "FirstVisit", deps)).toEqual(
+      [],
+    );
   });
 });

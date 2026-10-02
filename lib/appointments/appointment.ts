@@ -43,8 +43,14 @@ export interface Appointment {
   deposit: Deposit | null;
   /** ISO calendar date, "YYYY-MM-DD". */
   date: string;
-  /** 24-hour time of the Time Slot, "HH:MM". */
+  /** 24-hour start time, "HH:MM". */
   time: string;
+  /**
+   * How long the Appointment lasts, in minutes. Absent on Appointments booked
+   * before durations existed — those last DEFAULT_DURATION_MINUTES (see
+   * durationOf).
+   */
+  durationMinutes?: number;
   status: AppointmentStatus;
   /**
    * Confirmation (WhatsApp) bookkeeping, denormalized onto the Appointment for
@@ -75,6 +81,16 @@ export interface Appointment {
   whatsappConsentAt?: string | null;
   /** ISO timestamp of when the booking was created. */
   createdAt: string;
+}
+
+/** How long an Appointment lasts when nothing says otherwise. */
+export const DEFAULT_DURATION_MINUTES = 20;
+
+/** An Appointment's length in minutes; legacy Appointments last the default. */
+export function durationOf(
+  appointment: Pick<Appointment, "durationMinutes">,
+): number {
+  return appointment.durationMinutes ?? DEFAULT_DURATION_MINUTES;
 }
 
 /**

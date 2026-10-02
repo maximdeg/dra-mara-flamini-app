@@ -13,7 +13,7 @@ vi.mock("@/lib/availability/get-availability-deps", () => ({
       ranges: [{ start: "09:00", end: "10:00" }],
     })),
     unavailableDays: [],
-    scheduledTimesOn: () => [],
+    scheduledIntervalsOn: () => [],
     now: () => new Date("2026-06-19T12:00:00"),
   }),
 }));

@@ -1,4 +1,12 @@
-import { addDays, isFixedHoliday, isWeekend, toISODate, weekdayOf } from "./dates";
+import {
+  addDays,
+  isFixedHoliday,
+  isWeekend,
+  toISODate,
+  weekdayOf,
+} from "./dates";
+import { DEFAULT_DURATION_MINUTES } from "../appointments/appointment";
+import type { BookedInterval } from "../appointments/appointment-repository";
 import type { VisitKind } from "../appointments/visit-kind";
 import {
   rangeAccepts,
@@ -7,8 +15,11 @@ import {
   type WorkdaySchedule,
 } from "./work-schedule";
 
-/** A Time Slot is a 20-minute bookable interval. */
-export const SLOT_MINUTES = 20;
+/**
+ * Availability works on a 10-minute grid: a start is offered every
+ * GRID_MINUTES within a range, wherever the whole Appointment fits.
+ */
+export const GRID_MINUTES = 10;
 
 /** The Booking Window opens tomorrow and runs this many days ahead. */
 export const BOOKING_WINDOW_DAYS = 30;
@@ -16,13 +27,15 @@ export const BOOKING_WINDOW_DAYS = 30;
 /**
  * Everything Availability needs, accepted as dependencies (not created) so the
  * module is tested through its interface: a Work Schedule, the set of
- * Unavailable Days, a way to read times already taken by Scheduled Appointments
+ * Unavailable Days, a way to read the intervals Scheduled Appointments occupy
  * on a date (the repository seam), and an injectable clock.
  */
 export interface AvailabilityDependencies {
   workSchedule: WorkSchedule;
   unavailableDays: Iterable<string>;
-  scheduledTimesOn: (date: string) => Promise<string[]> | string[];
+  scheduledIntervalsOn: (
+    date: string,
+  ) => Promise<BookedInterval[]> | BookedInterval[];
   now?: () => Date;
 }
 
@@ -37,16 +50,34 @@ function toTime(minutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-// Expand a worked range into 20-minute Time Slots (end exclusive). Carried over
-// from the prototype's generateTimeSlots(): step by SLOT_MINUTES from start
-// until the end is reached.
-function expandRange(range: TimeRange): string[] {
-  const slots: string[] = [];
+// Every start in a range, stepping GRID_MINUTES from the range's own start,
+// where an Appointment of `duration` minutes ends by the range's end — it
+// never runs into a touching range.
+function startsWithin(range: TimeRange, duration: number): number[] {
+  const starts: number[] = [];
   const end = toMinutes(range.end);
-  for (let cur = toMinutes(range.start); cur < end; cur += SLOT_MINUTES) {
-    slots.push(toTime(cur));
+  for (
+    let cur = toMinutes(range.start);
+    cur + duration <= end;
+    cur += GRID_MINUTES
+  ) {
+    starts.push(cur);
   }
-  return slots;
+  return starts;
+}
+
+// Whether [start, start + duration) overlaps any booked interval.
+function overlapsBooked(
+  start: number,
+  duration: number,
+  booked: BookedInterval[],
+): boolean {
+  return booked.some((b) => {
+    const bookedStart = toMinutes(b.time);
+    return (
+      start < bookedStart + b.durationMinutes && bookedStart < start + duration
+    );
+  });
 }
 
 // The ranges of a worked day that can be booked for a Visit Kind.
@@ -59,9 +90,10 @@ function isExcludedDay(date: string, unavailable: Set<string>): boolean {
 }
 
 /**
- * The free 20-minute Time Slots for a date, for the Visit Kind being booked:
- * every slot derived from that weekday's Work Schedule, minus times already
- * taken by Scheduled Appointments (of any kind — one Professional, one agenda).
+ * The free Time Slots — bookable start times — on a date for the Visit Kind
+ * being booked: every 10-minute start in a range accepting the kind where the
+ * whole Appointment fits the range, minus starts that would overlap a Scheduled
+ * Appointment (of any kind — one Professional, one agenda).
  * Returns [] for any non-bookable day (weekend, fixed holiday, Unavailable Day,
  * or a non-working weekday) and for a day with no range accepting the kind.
  */
@@ -80,9 +112,12 @@ export async function availableTimesFor(
     return [];
   }
 
-  const all = rangesFor(day, kind).flatMap(expandRange);
-  const taken = new Set(await deps.scheduledTimesOn(date));
-  return all.filter((time) => !taken.has(time));
+  const duration = DEFAULT_DURATION_MINUTES;
+  const booked = await deps.scheduledIntervalsOn(date);
+  return rangesFor(day, kind)
+    .flatMap((range) => startsWithin(range, duration))
+    .filter((start) => !overlapsBooked(start, duration, booked))
+    .map(toTime);
 }
 
 /**

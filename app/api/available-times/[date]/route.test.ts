@@ -12,7 +12,7 @@ vi.mock("@/lib/availability/get-availability-deps", () => ({
       },
     ],
     unavailableDays: [],
-    scheduledTimesOn: () => ["09:20"],
+    scheduledIntervalsOn: () => [{ time: "09:20", durationMinutes: 20 }],
   }),
 }));
 

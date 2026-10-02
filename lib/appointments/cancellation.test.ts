@@ -146,7 +146,7 @@ describe("cancel", () => {
 
     await cancel("apt-1", "patient", deps(repository));
 
-    expect(await repository.scheduledTimesOn("2026-06-22")).toEqual([]);
+    expect(await repository.scheduledIntervalsOn("2026-06-22")).toEqual([]);
     expect(await repository.findScheduledByPhone("3421112233")).toEqual([]);
   });
 

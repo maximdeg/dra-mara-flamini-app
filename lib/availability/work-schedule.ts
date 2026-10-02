@@ -83,10 +83,17 @@ function isValidTime(value: unknown): value is string {
   return h >= 0 && h <= 23 && m >= 0 && m <= 59;
 }
 
+// Edited ranges sit on the 10-minute availability grid (09:00, 09:10, …), so
+// every start offered steps evenly from a range's start. Ranges stored before
+// the grid are never re-read through here, so they keep working.
+function isOnGrid(value: unknown): value is string {
+  return isValidTime(value) && Number(value.slice(3)) % 10 === 0;
+}
+
 /**
  * Coerce untrusted input (from the editing form) into a well-formed
  * WorkSchedule: exactly one entry per weekday in order, ranges kept only when
- * both ends are valid "HH:MM", start precedes end, and (when tagged) at least
+ * both ends are valid "HH:MM" on the 10-minute grid, start precedes end, and (when tagged) at least
  * one known Visit Kind is accepted, and ranges dropped for a non-working day.
  * This is the trust boundary for Work Schedule edits.
  */
@@ -108,8 +115,8 @@ export function sanitizeWorkSchedule(input: unknown): WorkSchedule {
             (r): r is TimeRange =>
               typeof r === "object" &&
               r !== null &&
-              isValidTime((r as TimeRange).start) &&
-              isValidTime((r as TimeRange).end) &&
+              isOnGrid((r as TimeRange).start) &&
+              isOnGrid((r as TimeRange).end) &&
               (r as TimeRange).start < (r as TimeRange).end,
           )
           .map((r) => {

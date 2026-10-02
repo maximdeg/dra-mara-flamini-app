@@ -32,33 +32,40 @@ function deps(
   return {
     workSchedule: everyDayNineToTen,
     unavailableDays: [],
-    scheduledTimesOn: () => [],
+    scheduledIntervalsOn: () => [],
     ...overrides,
   };
 }
 
 describe("availableTimesFor", () => {
-  it("expands a worked range into 20-minute Time Slots (end exclusive)", async () => {
-    // 2026-06-22 is a Monday.
-    expect(await availableTimesFor("2026-06-22", "FirstVisit", deps())).toEqual([
-      "09:00",
-      "09:20",
-      "09:40",
-    ]);
+  it("offers a start every 10 minutes where the whole Appointment fits the range", async () => {
+    // 2026-06-22 is a Monday; 09:00–10:00 with 20-minute Appointments, so
+    // 09:50 is not offered (it would end at 10:10).
+    expect(await availableTimesFor("2026-06-22", "FirstVisit", deps())).toEqual(
+      ["09:00", "09:10", "09:20", "09:30", "09:40"],
+    );
   });
 
   it("returns no slots on a weekend", async () => {
     // 2026-06-20 is a Saturday.
-    expect(await availableTimesFor("2026-06-20", "FirstVisit", deps())).toEqual([]);
+    expect(await availableTimesFor("2026-06-20", "FirstVisit", deps())).toEqual(
+      [],
+    );
   });
 
   it("returns no slots on a fixed holiday (Christmas)", async () => {
-    expect(await availableTimesFor("2026-12-25", "FirstVisit", deps())).toEqual([]);
+    expect(await availableTimesFor("2026-12-25", "FirstVisit", deps())).toEqual(
+      [],
+    );
   });
 
   it("returns no slots on an Unavailable Day", async () => {
     expect(
-      await availableTimesFor("2026-06-22", "FirstVisit", deps({ unavailableDays: ["2026-06-22"] })),
+      await availableTimesFor(
+        "2026-06-22",
+        "FirstVisit",
+        deps({ unavailableDays: ["2026-06-22"] }),
+      ),
     ).toEqual([]);
   });
 
@@ -67,15 +74,20 @@ describe("availableTimesFor", () => {
       d.weekday === "monday" ? { ...d, isWorkingDay: false } : d,
     );
     expect(
-      await availableTimesFor("2026-06-22", "FirstVisit", deps({ workSchedule: mondayOff })),
+      await availableTimesFor(
+        "2026-06-22",
+        "FirstVisit",
+        deps({ workSchedule: mondayOff }),
+      ),
     ).toEqual([]);
   });
 
-  it("removes times already taken by Scheduled Appointments", async () => {
+  it("removes every start that would overlap a Scheduled Appointment", async () => {
     expect(
       await availableTimesFor(
-        "2026-06-22", "FirstVisit",
-        deps({ scheduledTimesOn: () => ["09:20"] }),
+        "2026-06-22",
+        "FirstVisit",
+        deps({ scheduledIntervalsOn: () => [{ time: "09:20", durationMinutes: 20 }] }),
       ),
     ).toEqual(["09:00", "09:40"]);
   });
@@ -105,12 +117,18 @@ describe("bookingWindow", () => {
   });
 
   it("excludes days with no remaining Time Slots (fully booked)", async () => {
-    // Monday the 22nd has only 09:00/09:20/09:40; book them all.
-    const days = await bookingWindow("FirstVisit", 
+    // Monday the 22nd fits three back-to-back Appointments; book them all.
+    const days = await bookingWindow(
+      "FirstVisit",
       deps({
         now,
-        scheduledTimesOn: (date) =>
-          date === "2026-06-22" ? ["09:00", "09:20", "09:40"] : [],
+        scheduledIntervalsOn: (date) =>
+          date === "2026-06-22"
+            ? ["09:00", "09:20", "09:40"].map((time) => ({
+                time,
+                durationMinutes: 20,
+              }))
+            : [],
       }),
     );
     expect(days).not.toContain("2026-06-22");
@@ -123,25 +141,45 @@ describe("classifyBookingDateTime", () => {
 
   it("returns 'ok' for a free slot on a bookable day", async () => {
     expect(
-      await classifyBookingDateTime("2026-06-22", "09:20", "FirstVisit", deps({ now })),
+      await classifyBookingDateTime(
+        "2026-06-22",
+        "09:20",
+        "FirstVisit",
+        deps({ now }),
+      ),
     ).toBe("ok");
   });
 
   it("returns 'outside-window' for the same day (no same-day booking)", async () => {
     expect(
-      await classifyBookingDateTime("2026-06-19", "09:20", "FirstVisit", deps({ now })),
+      await classifyBookingDateTime(
+        "2026-06-19",
+        "09:20",
+        "FirstVisit",
+        deps({ now }),
+      ),
     ).toBe("outside-window");
   });
 
   it("returns 'outside-window' beyond 30 days ahead", async () => {
     expect(
-      await classifyBookingDateTime("2026-08-01", "09:20", "FirstVisit", deps({ now })),
+      await classifyBookingDateTime(
+        "2026-08-01",
+        "09:20",
+        "FirstVisit",
+        deps({ now }),
+      ),
     ).toBe("outside-window");
   });
 
   it("returns 'outside-window' on a weekend", async () => {
     expect(
-      await classifyBookingDateTime("2026-06-20", "09:20", "FirstVisit", deps({ now })),
+      await classifyBookingDateTime(
+        "2026-06-20",
+        "09:20",
+        "FirstVisit",
+        deps({ now }),
+      ),
     ).toBe("outside-window");
   });
 
@@ -149,10 +187,63 @@ describe("classifyBookingDateTime", () => {
     expect(
       await classifyBookingDateTime(
         "2026-06-22",
-        "09:20", "FirstVisit",
-        deps({ now, scheduledTimesOn: () => ["09:20"] }),
+        "09:20",
+        "FirstVisit",
+        deps({ now, scheduledIntervalsOn: () => [{ time: "09:20", durationMinutes: 20 }] }),
       ),
     ).toBe("slot-taken");
+  });
+});
+
+describe("10-minute grid", () => {
+  const monday = "2026-06-22";
+
+  it("blocks starts overlapping a booked Appointment on either side", async () => {
+    const times = await availableTimesFor(
+      monday,
+      "FirstVisit",
+      deps({
+        workSchedule: everyDayNineToTen.map((d) => ({
+          ...d,
+          ranges: [{ start: "08:30", end: "10:00" }],
+        })),
+        scheduledIntervalsOn: () => [{ time: "09:00", durationMinutes: 20 }],
+      }),
+    );
+    // 08:50 would run into 09:00; 09:10 starts inside 09:00–09:20.
+    expect(times).toEqual(["08:30", "08:40", "09:20", "09:30", "09:40"]);
+  });
+
+  it("never combines touching ranges", async () => {
+    const times = await availableTimesFor(
+      monday,
+      "FirstVisit",
+      deps({
+        workSchedule: everyDayNineToTen.map((d) => ({
+          ...d,
+          ranges: [
+            { start: "09:00", end: "09:30" },
+            { start: "09:30", end: "10:00" },
+          ],
+        })),
+      }),
+    );
+    // 09:20 would end at 09:40, crossing from one range into the next.
+    expect(times).toEqual(["09:00", "09:10", "09:30", "09:40"]);
+  });
+
+  it("steps an off-grid legacy range from its own start", async () => {
+    const times = await availableTimesFor(
+      monday,
+      "FirstVisit",
+      deps({
+        workSchedule: everyDayNineToTen.map((d) => ({
+          ...d,
+          ranges: [{ start: "09:05", end: "09:45" }],
+        })),
+      }),
+    );
+    expect(times).toEqual(["09:05", "09:15", "09:25"]);
   });
 });
 
@@ -179,11 +270,15 @@ describe("Availability per Visit Kind", () => {
   it("offers a kind only the times of ranges that accept it", async () => {
     const monday = "2026-06-22";
     expect(
-      await availableTimesFor(monday, "FollowUp", deps({ workSchedule: split })),
-    ).toEqual(["09:00", "09:20"]);
+      await availableTimesFor(
+        monday,
+        "FollowUp",
+        deps({ workSchedule: split }),
+      ),
+    ).toEqual(["09:00", "09:10", "09:20"]);
     expect(
       await availableTimesFor(monday, "Biopsy", deps({ workSchedule: split })),
-    ).toEqual(["16:00", "16:20"]);
+    ).toEqual(["16:00", "16:10", "16:20"]);
   });
 
   it("leaves a day out of a kind's Booking Window when no range accepts it", async () => {

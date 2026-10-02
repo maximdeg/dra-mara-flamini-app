@@ -71,7 +71,7 @@ The Professional's recurring weekly availability — which weekdays are worked, 
 _Avoid_: Hours, Calendar
 
 **Time Slot**:
-A 20-minute bookable interval derived from the Work Schedule for a given day, minus times already taken by Scheduled Appointments.
+A bookable start time for a Visit Kind on a given day. Starts sit on a 10-minute grid (09:00, 09:10, …): one is offered wherever the whole Appointment fits inside a single Work Schedule range that accepts the kind, without overlapping any Scheduled Appointment — of any kind, since there is one Professional and one agenda.
 _Avoid_: Slot time, Appointment slot
 
 **Booking Window**:
