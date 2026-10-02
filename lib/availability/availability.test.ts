@@ -6,6 +6,7 @@ import {
   classifyBookingDateTime,
   type AvailabilityDependencies,
 } from "./availability";
+import { DEFAULT_VISIT_DURATIONS } from "./visit-durations";
 import type { WorkSchedule } from "./work-schedule";
 
 // A schedule where every weekday is worked 09:00–10:00 — handy for isolating
@@ -33,6 +34,7 @@ function deps(
     workSchedule: everyDayNineToTen,
     unavailableDays: [],
     scheduledIntervalsOn: () => [],
+    visitDurations: DEFAULT_VISIT_DURATIONS,
     ...overrides,
   };
 }
@@ -244,6 +246,41 @@ describe("10-minute grid", () => {
       }),
     );
     expect(times).toEqual(["09:05", "09:15", "09:25"]);
+  });
+});
+
+describe("Durations per Visit Kind", () => {
+  const monday = "2026-06-22";
+  const longBiopsy = { ...DEFAULT_VISIT_DURATIONS, Biopsy: 40 };
+
+  it("offers a long kind only starts where it ends by the range end", async () => {
+    expect(
+      await availableTimesFor(
+        monday,
+        "Biopsy",
+        deps({ visitDurations: longBiopsy }),
+      ),
+    ).toEqual(["09:00", "09:10", "09:20"]);
+  });
+
+  it("keeps a short kind's starts unchanged by another kind's duration", async () => {
+    expect(
+      await availableTimesFor(
+        monday,
+        "FollowUp",
+        deps({ visitDurations: longBiopsy }),
+      ),
+    ).toEqual(["09:00", "09:10", "09:20", "09:30", "09:40"]);
+  });
+
+  it("blocks every overlapping start for all kinds while a long Appointment is booked", async () => {
+    const booked = deps({
+      visitDurations: longBiopsy,
+      scheduledIntervalsOn: () => [{ time: "09:10", durationMinutes: 40 }],
+    });
+    // 09:10–09:50 is taken in a 09:00–10:00 range: 09:00 would run into it,
+    // and 09:50 would end at 10:10, past the range — no 20-minute start fits.
+    expect(await availableTimesFor(monday, "FollowUp", booked)).toEqual([]);
   });
 });
 

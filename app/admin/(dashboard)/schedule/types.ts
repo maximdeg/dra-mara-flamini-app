@@ -11,3 +11,8 @@ export interface SaveScheduleState {
   /** Present (possibly empty after cancelling) when a reduction collided. */
   collisions?: CollisionSummary[];
 }
+
+export interface SaveDurationsState {
+  saved?: boolean;
+  error?: string;
+}

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_VISIT_DURATIONS } from "./visit-durations";
 import type { Appointment } from "../appointments/appointment";
 import { InMemoryAppointmentRepository } from "../appointments/in-memory-appointment-repository";
 import { addUnavailableDay } from "./add-unavailable-day";
@@ -92,6 +93,7 @@ describe("Unavailable Day → Booking Window", () => {
       workSchedule: DEFAULT_WORK_SCHEDULE,
       unavailableDays: await unavailableDays.list(),
       scheduledIntervalsOn: async () => [],
+    visitDurations: DEFAULT_VISIT_DURATIONS,
       now: () => now,
     };
 

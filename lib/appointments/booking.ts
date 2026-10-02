@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { BookingDateTimeStatus } from "../availability/availability";
+import type { VisitDurations } from "../availability/visit-durations";
 import {
   coverageInstructionsFor,
   isCoverageValidForVisitType,
@@ -67,6 +68,8 @@ export interface BookingDependencies {
     time: string,
     kind: VisitKind,
   ) => Promise<BookingDateTimeStatus> | BookingDateTimeStatus;
+  /** How long each Visit Kind takes; the booked kind's is copied on. */
+  visitDurations: VisitDurations;
   /**
    * Whether this (normalized) phone already holds the maximum number of open
    * Appointments (ADR-0002).
@@ -202,6 +205,8 @@ export async function book(
     deposit,
     date: form.date,
     time: form.time,
+    // Copied, so a later edit to the durations never moves this Appointment.
+    durationMinutes: deps.visitDurations[subType.kind],
     status: "scheduled",
     // Consent is stored as the instant it was given, so the clinic can show
     // when a Patient agreed rather than only that they did. An omitted field

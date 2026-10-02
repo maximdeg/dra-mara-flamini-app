@@ -5,9 +5,9 @@ import {
   toISODate,
   weekdayOf,
 } from "./dates";
-import { DEFAULT_DURATION_MINUTES } from "../appointments/appointment";
 import type { BookedInterval } from "../appointments/appointment-repository";
 import type { VisitKind } from "../appointments/visit-kind";
+import type { VisitDurations } from "./visit-durations";
 import {
   rangeAccepts,
   type TimeRange,
@@ -28,7 +28,8 @@ export const BOOKING_WINDOW_DAYS = 30;
  * Everything Availability needs, accepted as dependencies (not created) so the
  * module is tested through its interface: a Work Schedule, the set of
  * Unavailable Days, a way to read the intervals Scheduled Appointments occupy
- * on a date (the repository seam), and an injectable clock.
+ * on a date (the repository seam), each Visit Kind's duration, and an
+ * injectable clock.
  */
 export interface AvailabilityDependencies {
   workSchedule: WorkSchedule;
@@ -36,6 +37,8 @@ export interface AvailabilityDependencies {
   scheduledIntervalsOn: (
     date: string,
   ) => Promise<BookedInterval[]> | BookedInterval[];
+  /** How long each Visit Kind takes — what a start must leave room for. */
+  visitDurations: VisitDurations;
   now?: () => Date;
 }
 
@@ -112,7 +115,7 @@ export async function availableTimesFor(
     return [];
   }
 
-  const duration = DEFAULT_DURATION_MINUTES;
+  const duration = deps.visitDurations[kind];
   const booked = await deps.scheduledIntervalsOn(date);
   return rangesFor(day, kind)
     .flatMap((range) => startsWithin(range, duration))

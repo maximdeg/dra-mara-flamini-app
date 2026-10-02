@@ -1,6 +1,7 @@
 import { getAppointmentRepository } from "../appointments/get-appointment-repository";
 import type { AvailabilityDependencies } from "./availability";
 import { getUnavailableDaysRepository } from "./get-unavailable-days-repository";
+import { getVisitDurationsRepository } from "./get-visit-durations-repository";
 import { getWorkScheduleRepository } from "./get-work-schedule-repository";
 
 /**
@@ -11,21 +12,28 @@ import { getWorkScheduleRepository } from "./get-work-schedule-repository";
  * Unavailable Day edits flow straight into the Booking Window and Time Slots.
  */
 export async function getAvailabilityDeps(): Promise<AvailabilityDependencies> {
-  // The three repository seams and the two reads below are independent, so each
-  // group runs in parallel — one round trip's worth of latency, not five.
-  const [repository, scheduleRepository, unavailableDaysRepository] =
-    await Promise.all([
-      getAppointmentRepository(),
-      getWorkScheduleRepository(),
-      getUnavailableDaysRepository(),
-    ]);
-  const [workSchedule, unavailableDays] = await Promise.all([
+  // The repository seams and the reads below are independent, so each group
+  // runs in parallel — two round trips' worth of latency, not seven.
+  const [
+    repository,
+    scheduleRepository,
+    unavailableDaysRepository,
+    visitDurationsRepository,
+  ] = await Promise.all([
+    getAppointmentRepository(),
+    getWorkScheduleRepository(),
+    getUnavailableDaysRepository(),
+    getVisitDurationsRepository(),
+  ]);
+  const [workSchedule, unavailableDays, visitDurations] = await Promise.all([
     scheduleRepository.get(),
     unavailableDaysRepository.list(),
+    visitDurationsRepository.get(),
   ]);
   return {
     workSchedule,
     unavailableDays,
+    visitDurations,
     scheduledIntervalsOn: (date) => repository.scheduledIntervalsOn(date),
   };
 }

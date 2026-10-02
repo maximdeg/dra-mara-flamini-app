@@ -43,6 +43,10 @@ The kind of Practice: Cryosurgery (_Criocirugía_), Electrocoagulation (_Electro
 What is actually being booked: a Visit Type together with its required sub-type — Consulta · Primera vez, Consulta · Seguimiento, Práctica · Criocirugía, Práctica · Electrocoagulación, or Práctica · Biopsia. Availability is set and offered per Visit Kind: the booking form offers dates and times only once the kind is complete.
 _Avoid_: Appointment type, Service, Slot type
 
+**Visit Duration** (UI: _Duración_):
+How long a Visit Kind takes — 10 to 120 minutes in steps of 10, set by the Professional on the Horarios page (20 by default). Copied onto the Appointment when it is booked, so a later change never moves or collides with existing Appointments.
+_Avoid_: Slot length, Appointment length (as the setting)
+
 **Status**:
 The lifecycle state of an Appointment: Scheduled, Cancelled, or Completed. A new booking is Scheduled; it becomes **Completed automatically once its date has passed** (never set by hand), or **Cancelled** when the Patient or Professional cancels it. Because the system stores only Appointments — no Patient table — this status is also what gates re-booking for a phone number (see Patient).
 

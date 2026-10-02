@@ -5,7 +5,8 @@ import {
   VISIT_TYPE_LABELS,
 } from "@/lib/appointments/visit-type";
 import { coverageLabel } from "@/lib/coverage/coverage";
-import { formatDateAR } from "@/lib/datetime/format";
+import { durationOf } from "@/lib/appointments/appointment";
+import { formatDateAR, formatTimeRange } from "@/lib/datetime/format";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { CancelAppointmentButton } from "./cancel-appointment-button";
@@ -50,7 +51,9 @@ export function AppointmentsTable({ views }: { views: AppointmentView[] }) {
           return (
             <TR key={appointment.id}>
               <TD>{formatDateAR(appointment.date)}</TD>
-              <TD>{appointment.time}</TD>
+              <TD>
+                {formatTimeRange(appointment.time, durationOf(appointment))}
+              </TD>
               <TD>
                 {patientName}
                 {appointment.whatsappConsentAt === null && (

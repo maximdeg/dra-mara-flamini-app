@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_VISIT_DURATIONS } from "@/lib/availability/visit-durations";
 import type { AvailabilityDependencies } from "@/lib/availability/availability";
 import { GET } from "./route";
 
@@ -14,6 +15,7 @@ vi.mock("@/lib/availability/get-availability-deps", () => ({
     })),
     unavailableDays: [],
     scheduledIntervalsOn: () => [],
+    visitDurations: DEFAULT_VISIT_DURATIONS,
     now: () => new Date("2026-06-19T12:00:00"),
   }),
 }));

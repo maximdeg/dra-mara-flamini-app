@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDateAR } from "./format";
+import { formatDateAR, formatTimeRange } from "./format";
 
 describe("formatDateAR", () => {
   it("formats a plain ISO date as DD/MM/YYYY", () => {
@@ -21,5 +21,15 @@ describe("formatDateAR", () => {
     expect(formatDateAR("")).toBe("");
     expect(formatDateAR("mañana")).toBe("mañana");
     expect(formatDateAR("2026/06/22")).toBe("2026/06/22");
+  });
+});
+
+describe("formatTimeRange", () => {
+  it("shows a start and its end after the duration", () => {
+    expect(formatTimeRange("09:20", 40)).toBe("09:20–10:00");
+  });
+
+  it("carries minutes into the next hour", () => {
+    expect(formatTimeRange("12:50", 20)).toBe("12:50–13:10");
   });
 });

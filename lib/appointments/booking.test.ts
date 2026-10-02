@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { HealthInsurance } from "../coverage/coverage";
+import { DEFAULT_VISIT_DURATIONS } from "../availability/visit-durations";
 import { SEEDED_SELF_PAY_PRICING } from "../deposit/deposit";
 import type { Appointment, BookingForm } from "./appointment";
 import { book, type BookingDependencies } from "./booking";
@@ -28,6 +29,7 @@ function deps(
     acceptedHealthInsurances: accepted,
     selfPayPricing: SEEDED_SELF_PAY_PRICING,
     classifyDateTime: () => "ok" as const,
+    visitDurations: DEFAULT_VISIT_DURATIONS,
     isPhoneAtOpenAppointmentLimit: () => false,
     notifyConfirmation: async () => {},
     sendConfirmationEmail: async () => {},
@@ -59,6 +61,7 @@ describe("book", () => {
         deposit: null,
         date: "2026-06-22",
         time: "09:30",
+        durationMinutes: 20,
         status: "scheduled",
         whatsappConsentAt: "2026-06-19T12:00:00.000Z",
         whatsappSent: false,
@@ -576,5 +579,36 @@ describe("book — Visit Kind", () => {
     );
 
     expect(kinds).toEqual(["FirstVisit", "Biopsy"]);
+  });
+});
+
+describe("book — Visit Duration", () => {
+  it("copies the booked Visit Kind's duration onto the Appointment", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      {
+        ...consultationForm,
+        visitType: "Practice",
+        consultType: null,
+        practiceType: "Biopsy",
+      },
+      deps({
+        repository,
+        visitDurations: { ...DEFAULT_VISIT_DURATIONS, Biopsy: 40 },
+      }),
+    );
+
+    expect((await repository.findById("apt-1"))?.durationMinutes).toBe(40);
+  });
+
+  it("keeps the copied duration when durations are edited later", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const durations = { ...DEFAULT_VISIT_DURATIONS, FirstVisit: 30 };
+    await book(consultationForm, deps({ repository, visitDurations: durations }));
+
+    durations.FirstVisit = 60;
+
+    expect((await repository.findById("apt-1"))?.durationMinutes).toBe(30);
   });
 });

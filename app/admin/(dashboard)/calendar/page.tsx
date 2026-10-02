@@ -3,7 +3,8 @@ import { listAppointments } from "@/lib/appointments/appointment-listing";
 import { buildMonthCalendar, monthBounds } from "@/lib/appointments/calendar";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
 import { VISIT_TYPE_LABELS } from "@/lib/appointments/visit-type";
-import { formatDateAR } from "@/lib/datetime/format";
+import { durationOf } from "@/lib/appointments/appointment";
+import { formatDateAR, formatTimeRange } from "@/lib/datetime/format";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -120,7 +121,9 @@ export default async function AdminCalendarPage({
               <ul className={styles.agenda}>
                 {selectedViews.map(({ appointment, status }) => (
                   <li key={appointment.id} className={styles.agendaItem}>
-                    <span className={styles.agendaTime}>{appointment.time}</span>
+                    <span className={styles.agendaTime}>
+                      {formatTimeRange(appointment.time, durationOf(appointment))}
+                    </span>
                     <span className={styles.agendaName}>
                       {appointment.patientFirstName} {appointment.patientLastName}
                     </span>
