@@ -47,8 +47,12 @@
   }
 }
 
-.accent {
+/* One headline line each: "Reserva de turnos / con la Dra. Mara / Flamini Prida". */
+.line {
   display: block;
+}
+
+.accent {
   color: var(--brand);
 }
 

@@ -12,8 +12,13 @@ export function Hero() {
         <div className={styles.copy}>
           <p className={styles.eyebrow}>Tu Piel, Nuestra Especialidad</p>
           <h1 className={styles.title}>
-            Reserva de turnos con la{" "}
-            <span className={styles.accent}>Dra. Mara Flamini Prida</span>
+            <span className={styles.line}>Reserva de turnos</span>{" "}
+            <span className={styles.line}>
+              con la <span className={styles.accent}>Dra. Mara</span>
+            </span>{" "}
+            <span className={`${styles.line} ${styles.accent}`}>
+              Flamini Prida
+            </span>
           </h1>
           <p className={styles.lead}>
             Cuidamos de la salud y belleza de tu piel con la más alta tecnología
