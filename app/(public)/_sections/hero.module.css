@@ -25,7 +25,7 @@
   order: 1;
 }
 
-/* Says up front what the site is for: booking with the Dra. */
+/* Small tagline above the headline. */
 .eyebrow {
   font-size: var(--text-xs);
   font-weight: 600;

@@ -7,10 +7,13 @@ describe("Hero", () => {
     render(<Hero />);
 
     expect(
-      screen.getByRole("heading", { name: /Tu Piel, Nuestra Especialidad/ }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Reserva de turnos con la Dra. Mara Flamini Prida",
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Reserva de visitas con la Dra. Mara Flamini Prida"),
+      screen.getByText("Tu Piel, Nuestra Especialidad"),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Cuidamos de la salud y belleza de tu piel/),
@@ -21,7 +24,7 @@ describe("Hero", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Agendar visita/ }),
+      screen.getByRole("link", { name: /Agenda tu turno/ }),
     ).toHaveAttribute("href", "/agendar-visita");
   });
 });

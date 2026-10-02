@@ -7,7 +7,7 @@ import styles from "./public-header.module.css";
 /**
  * The public site header, shared across the patient-facing pages (home,
  * booking, confirmation): the brand logo mark + the practice identity linking
- * home, and an "Agendar visita" call to action.
+ * home, and an "Agenda tu turno" call to action.
  */
 export function PublicHeader() {
   return (
@@ -29,7 +29,7 @@ export function PublicHeader() {
         </Link>
         <Button as={Link} href="/agendar-visita" className={styles.cta}>
           <CalendarIcon size={18} />
-          Agendar visita
+          Agenda tu turno
         </Button>
       </div>
     </header>

@@ -15,7 +15,7 @@ export function CtaBand() {
         </p>
         <Button as={Link} href="/agendar-visita" className={styles.cta}>
           <CalendarIcon size={20} />
-          Agendar visita
+          Agenda tu turno
           <ArrowRightIcon size={18} />
         </Button>
       </div>

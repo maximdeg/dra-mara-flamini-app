@@ -10,11 +10,10 @@ export function Hero() {
     <section className={styles.hero}>
       <div className={styles.inner}>
         <div className={styles.copy}>
-          <p className={styles.eyebrow}>
-            Reserva de visitas con la Dra. Mara Flamini Prida
-          </p>
+          <p className={styles.eyebrow}>Tu Piel, Nuestra Especialidad</p>
           <h1 className={styles.title}>
-            Tu Piel, Nuestra <span className={styles.accent}>Especialidad</span>
+            Reserva de turnos con la{" "}
+            <span className={styles.accent}>Dra. Mara Flamini Prida</span>
           </h1>
           <p className={styles.lead}>
             Cuidamos de la salud y belleza de tu piel con la más alta tecnología
@@ -22,7 +21,7 @@ export function Hero() {
           </p>
           <Button as={Link} href="/agendar-visita" className={styles.cta}>
             <CalendarIcon size={20} />
-            Agendar visita
+            Agenda tu turno
             <ArrowRightIcon size={18} />
           </Button>
         </div>

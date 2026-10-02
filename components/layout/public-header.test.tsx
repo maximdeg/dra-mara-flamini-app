@@ -3,13 +3,13 @@ import { render, screen } from "@testing-library/react";
 import { PublicHeader } from "./public-header";
 
 describe("PublicHeader", () => {
-  it("shows the practice identity and an Agendar visita CTA", () => {
+  it("shows the practice identity and an Agenda tu turno CTA", () => {
     render(<PublicHeader />);
 
     expect(screen.getByText("Dra. Mara Flamini")).toBeInTheDocument();
     expect(screen.getByText("Dermatóloga")).toBeInTheDocument();
 
-    const cta = screen.getByRole("link", { name: /Agendar visita/ });
+    const cta = screen.getByRole("link", { name: /Agenda tu turno/ });
     expect(cta).toHaveAttribute("href", "/agendar-visita");
   });
 
