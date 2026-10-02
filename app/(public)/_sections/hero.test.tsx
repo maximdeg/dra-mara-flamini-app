@@ -10,6 +10,9 @@ describe("Hero", () => {
       screen.getByRole("heading", { name: /Tu Piel, Nuestra Especialidad/ }),
     ).toBeInTheDocument();
     expect(
+      screen.getByText("Reserva de visitas con la Dra. Mara Flamini Prida"),
+    ).toBeInTheDocument();
+    expect(
       screen.getByText(/Cuidamos de la salud y belleza de tu piel/),
     ).toBeInTheDocument();
     expect(

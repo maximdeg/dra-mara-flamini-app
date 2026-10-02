@@ -10,6 +10,9 @@ export function Hero() {
     <section className={styles.hero}>
       <div className={styles.inner}>
         <div className={styles.copy}>
+          <p className={styles.eyebrow}>
+            Reserva de visitas con la Dra. Mara Flamini Prida
+          </p>
           <h1 className={styles.title}>
             Tu Piel, Nuestra <span className={styles.accent}>Especialidad</span>
           </h1>

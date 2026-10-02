@@ -25,6 +25,16 @@
   order: 1;
 }
 
+/* Says up front what the site is for: booking with the Dra. */
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: var(--space-4);
+}
+
 .title {
   font-size: var(--text-4xl);
   color: var(--brand-dark);
