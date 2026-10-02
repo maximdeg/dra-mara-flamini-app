@@ -178,6 +178,7 @@ export async function book(
     coverageInstructions: coverageInstructionsFor(
       form.coverage,
       deps.acceptedHealthInsurances,
+      deps.selfPayPricing.instructions,
     ),
     deposit,
     date: form.date,

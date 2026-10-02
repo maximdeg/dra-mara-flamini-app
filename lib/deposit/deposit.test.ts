@@ -10,6 +10,7 @@ const pricing: SelfPayPricing = {
   consultationFullPrice: 30000,
   practiceFullPrice: 35000,
   firstVisitConsultationDeposit: 20000,
+  instructions: { Particular: "", PracticaParticular: "" },
 };
 
 describe("depositAmountFor", () => {
@@ -94,6 +95,7 @@ describe("sanitizeSelfPayPricing", () => {
       consultationFullPrice: 30000,
       practiceFullPrice: 35000,
       firstVisitConsultationDeposit: 20000,
+      instructions: { Particular: "", PracticaParticular: "" },
     });
   });
 
@@ -108,6 +110,33 @@ describe("sanitizeSelfPayPricing", () => {
       consultationFullPrice: 30000,
       practiceFullPrice: 0,
       firstVisitConsultationDeposit: 0,
+      instructions: { Particular: "", PracticaParticular: "" },
     });
+  });
+});
+
+describe("sanitizeSelfPayPricing — Coverage Instructions", () => {
+  it("sanitizes each Self-Pay variant's Instructions to one clean line", () => {
+    const result = sanitizeSelfPayPricing({
+      ...pricing,
+      instructions: {
+        Particular: "  Abonar en efectivo\n o transferencia ",
+        PracticaParticular: "Traer   estudios previos",
+      },
+    });
+    expect(result.instructions).toEqual({
+      Particular: "Abonar en efectivo o transferencia",
+      PracticaParticular: "Traer estudios previos",
+    });
+  });
+
+  it("reads missing Instructions (settings saved before they existed) as empty", () => {
+    expect(
+      sanitizeSelfPayPricing({
+        consultationFullPrice: 30000,
+        practiceFullPrice: 35000,
+        firstVisitConsultationDeposit: 20000,
+      }).instructions,
+    ).toEqual({ Particular: "", PracticaParticular: "" });
   });
 });

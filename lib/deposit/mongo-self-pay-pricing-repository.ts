@@ -1,5 +1,9 @@
 import type { Db } from "mongodb";
-import { SEEDED_SELF_PAY_PRICING, type SelfPayPricing } from "./deposit";
+import {
+  sanitizeSelfPayPricing,
+  SEEDED_SELF_PAY_PRICING,
+  type SelfPayPricing,
+} from "./deposit";
 import type { SelfPayPricingRepository } from "./self-pay-pricing-repository";
 
 const COLLECTION = "selfPayPricing";
@@ -17,7 +21,11 @@ export class MongoSelfPayPricingRepository
 
   async get(): Promise<SelfPayPricing> {
     const doc = await this.db.collection(COLLECTION).findOne({ key: KEY });
-    return (doc?.pricing as SelfPayPricing | undefined) ?? SEEDED_SELF_PAY_PRICING;
+    // Read through the sanitizer so settings saved before Coverage
+    // Instructions existed come back with empty ones (no migration).
+    return doc?.pricing
+      ? sanitizeSelfPayPricing(doc.pricing)
+      : SEEDED_SELF_PAY_PRICING;
   }
 
   async save(pricing: SelfPayPricing): Promise<void> {

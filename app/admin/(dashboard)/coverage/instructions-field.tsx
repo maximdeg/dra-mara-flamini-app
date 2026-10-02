@@ -11,10 +11,12 @@ import { Field } from "@/components/ui/field";
  * server sanitizes regardless).
  */
 export function InstructionsField({
+  label = "Indicaciones para el paciente",
   name = "instructions",
   defaultValue = "",
   className,
 }: {
+  label?: string;
   name?: string;
   defaultValue?: string;
   className?: string;
@@ -23,7 +25,7 @@ export function InstructionsField({
 
   return (
     <Field
-      label="Indicaciones para el paciente"
+      label={label}
       className={className}
       hint={`Se muestran al paciente en el WhatsApp de confirmación y en su cita (las Notas no). ${length}/${MAX_INSTRUCTIONS_LENGTH}`}
     >

@@ -9,7 +9,10 @@ import {
   sanitizeInstructions,
 } from "@/lib/coverage/coverage";
 import { getHealthInsuranceRepository } from "@/lib/coverage/get-health-insurance-repository";
-import { sanitizeSelfPayPricing } from "@/lib/deposit/deposit";
+import {
+  sanitizeSelfPayPricing,
+  type SelfPayPricing,
+} from "@/lib/deposit/deposit";
 import { getSelfPayPricingRepository } from "@/lib/deposit/get-self-pay-pricing-repository";
 
 export interface InsuranceInput {
@@ -78,11 +81,9 @@ export async function removeInsuranceAction(name: string): Promise<void> {
   await reflectCoverage();
 }
 
-export async function saveSelfPayPricingAction(input: {
-  consultationFullPrice: number;
-  practiceFullPrice: number;
-  firstVisitConsultationDeposit: number;
-}): Promise<void> {
+export async function saveSelfPayPricingAction(
+  input: SelfPayPricing,
+): Promise<void> {
   if (!(await requireProfessional()).ok) return;
 
   await (await getSelfPayPricingRepository()).save(sanitizeSelfPayPricing(input));

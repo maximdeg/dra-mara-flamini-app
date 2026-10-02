@@ -14,6 +14,7 @@ describe("SelfPayPricingRepository (in-memory)", () => {
       consultationFullPrice: 40000,
       practiceFullPrice: 45000,
       firstVisitConsultationDeposit: 25000,
+      instructions: { Particular: "Efectivo", PracticaParticular: "" },
     };
 
     await repository.save(pricing);

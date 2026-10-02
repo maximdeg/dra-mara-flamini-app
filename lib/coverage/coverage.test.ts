@@ -232,11 +232,17 @@ describe("coverageInstructionsFor", () => {
     { name: "Galeno", price: 0, notes: "", instructions: "" },
   ];
 
+  const selfPay = {
+    Particular: "Abonar en efectivo",
+    PracticaParticular: "Traer estudios previos",
+  };
+
   it("returns the chosen insurer's Instructions", () => {
     expect(
       coverageInstructionsFor(
         { kind: "health-insurance", name: "OSDE" },
         withInstructions,
+        selfPay,
       ),
     ).toBe("Traer carnet");
   });
@@ -246,13 +252,32 @@ describe("coverageInstructionsFor", () => {
       coverageInstructionsFor(
         { kind: "health-insurance", name: "Galeno" },
         withInstructions,
+        selfPay,
       ),
     ).toBe("");
     expect(
       coverageInstructionsFor(
         { kind: "health-insurance", name: "IOMA" },
         withInstructions,
+        selfPay,
       ),
     ).toBe("");
+  });
+
+  it("returns each Self-Pay variant's own Instructions", () => {
+    expect(
+      coverageInstructionsFor(
+        { kind: "self-pay", variant: "Particular" },
+        withInstructions,
+        selfPay,
+      ),
+    ).toBe("Abonar en efectivo");
+    expect(
+      coverageInstructionsFor(
+        { kind: "self-pay", variant: "PracticaParticular" },
+        withInstructions,
+        selfPay,
+      ),
+    ).toBe("Traer estudios previos");
   });
 });

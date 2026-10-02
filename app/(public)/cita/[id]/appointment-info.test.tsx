@@ -104,6 +104,25 @@ describe("AppointmentInfo", () => {
       ).toBeInTheDocument();
     });
 
+    it("titles a Self-Pay Appointment's Instructions with its variant", () => {
+      render(
+        <AppointmentInfo
+          appointment={{
+            ...osde,
+            coverage: { kind: "self-pay", variant: "PracticaParticular" },
+            coverageInstructions: "Traer estudios previos",
+          }}
+          status="scheduled"
+          clinicInfo={SEEDED_CLINIC_INFO}
+        />,
+      );
+
+      expect(
+        screen.getByText("Indicaciones para Practica Particular"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Traer estudios previos")).toBeInTheDocument();
+    });
+
     it("hides them once the Appointment is no longer Scheduled", () => {
       for (const status of ["cancelled", "completed"] as const) {
         const { unmount } = render(

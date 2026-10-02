@@ -60,6 +60,14 @@ export function CoverageEditor({
       firstVisitConsultationDeposit: toPrice(
         data.get("firstVisitConsultationDeposit"),
       ),
+      instructions: {
+        Particular: sanitizeInstructions(
+          String(data.get("instructionsParticular") ?? ""),
+        ),
+        PracticaParticular: sanitizeInstructions(
+          String(data.get("instructionsPracticaParticular") ?? ""),
+        ),
+      },
     };
     startTransition(async () => {
       await saveSelfPayPricingAction(next);
@@ -107,7 +115,7 @@ export function CoverageEditor({
         <h2 className={styles.sectionTitle}>Particular (Self-Pay)</h2>
         <p className={styles.note}>
           Las dos variantes Particular son fijas: no se pueden renombrar ni
-          eliminar, solo se editan sus precios.
+          eliminar, solo se editan sus precios e indicaciones.
         </p>
         <form onSubmit={savePricing} className={styles.pricingForm}>
           <Field label="Particular (Consulta) — precio">
@@ -118,6 +126,11 @@ export function CoverageEditor({
               defaultValue={pricing.consultationFullPrice}
             />
           </Field>
+          <InstructionsField
+            label="Particular (Consulta) — indicaciones para el paciente"
+            name="instructionsParticular"
+            defaultValue={pricing.instructions.Particular}
+          />
           <Field label="Practica Particular — precio (también es la seña)">
             <input
               type="number"
@@ -126,6 +139,11 @@ export function CoverageEditor({
               defaultValue={pricing.practiceFullPrice}
             />
           </Field>
+          <InstructionsField
+            label="Practica Particular — indicaciones para el paciente"
+            name="instructionsPracticaParticular"
+            defaultValue={pricing.instructions.PracticaParticular}
+          />
           <Field label="Seña de primera consulta Particular">
             <input
               type="number"

@@ -153,14 +153,17 @@ export function isCoverageValidForVisitType(
 
 /**
  * The Coverage Instructions for a chosen coverage, as Booking copies them onto
- * the Appointment: the insurer's own, or empty when it has none or is unknown.
- * Self-Pay has none yet.
+ * the Appointment: the Self-Pay variant's own, or the insurer's — empty when
+ * it has none or is unknown.
  */
 export function coverageInstructionsFor(
   coverage: Coverage,
   insurances: HealthInsurance[],
+  selfPayInstructions: Record<SelfPayVariant, string>,
 ): string {
-  if (coverage.kind === "self-pay") return "";
+  if (coverage.kind === "self-pay") {
+    return selfPayInstructions[coverage.variant];
+  }
   return (
     insurances.find((insurance) => insurance.name === coverage.name)
       ?.instructions ?? ""

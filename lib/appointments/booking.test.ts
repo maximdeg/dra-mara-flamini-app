@@ -528,4 +528,30 @@ describe("book — Coverage Instructions", () => {
       "Traer carnet",
     );
   });
+
+  it("copies a Self-Pay variant's Instructions onto the Appointment", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      {
+        ...consultationForm,
+        consultType: "FollowUp",
+        coverage: { kind: "self-pay", variant: "Particular" },
+      },
+      deps({
+        repository,
+        selfPayPricing: {
+          ...SEEDED_SELF_PAY_PRICING,
+          instructions: {
+            Particular: "Abonar en efectivo",
+            PracticaParticular: "",
+          },
+        },
+      }),
+    );
+
+    expect((await repository.findById("apt-1"))?.coverageInstructions).toBe(
+      "Abonar en efectivo",
+    );
+  });
 });

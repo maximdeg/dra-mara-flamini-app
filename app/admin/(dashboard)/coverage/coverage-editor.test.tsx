@@ -27,6 +27,7 @@ const PRICING: SelfPayPricing = {
   consultationFullPrice: 30000,
   practiceFullPrice: 35000,
   firstVisitConsultationDeposit: 20000,
+  instructions: { Particular: "Efectivo", PracticaParticular: "" },
 };
 
 function renderEditor(insurances: HealthInsurance[] = []) {
@@ -52,6 +53,30 @@ describe("CoverageEditor", () => {
       "Precios guardados.",
     );
     expect(savePricingMock).toHaveBeenCalledWith(PRICING);
+  });
+
+  it("saves each Self-Pay variant's Indicaciones with the prices", async () => {
+    savePricingMock.mockResolvedValue(undefined);
+    renderEditor();
+
+    fireEvent.change(
+      screen.getByLabelText(
+        "Practica Particular — indicaciones para el paciente",
+      ),
+      { target: { value: "Traer   estudios previos" } },
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Guardar precios" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Precios guardados.",
+    );
+    expect(savePricingMock).toHaveBeenCalledWith({
+      ...PRICING,
+      instructions: {
+        Particular: "Efectivo",
+        PracticaParticular: "Traer estudios previos",
+      },
+    });
   });
 
   it("adds an Obra Social and shows it in the list", async () => {
@@ -98,11 +123,11 @@ describe("CoverageEditor", () => {
     renderEditor([]);
     const input = screen.getByLabelText("Indicaciones para el paciente");
     expect(input).toHaveAttribute("maxLength", "300");
-    expect(screen.getByText("0/300", { exact: false })).toBeInTheDocument();
+    expect(input.closest("div")).toHaveTextContent("0/300");
 
     fireEvent.change(input, { target: { value: "Traer carnet" } });
 
-    expect(screen.getByText("12/300", { exact: false })).toBeInTheDocument();
+    expect(input.closest("div")).toHaveTextContent("12/300");
   });
 
   it("edits the Indicaciones of an Obra Social", async () => {
