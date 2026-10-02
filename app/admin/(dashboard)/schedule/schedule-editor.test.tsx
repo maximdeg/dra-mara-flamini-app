@@ -70,6 +70,64 @@ describe("ScheduleEditor", () => {
     expect(cancelMock).toHaveBeenCalledWith("x1");
   });
 
+  describe("Visit Kinds per range", () => {
+    it("shows a range saved before kinds existed as open to every kind", () => {
+      renderEditor();
+      expect(screen.getByText("Todos los tipos")).toBeInTheDocument();
+    });
+
+    it("restricts a range to the ticked kinds and saves them", async () => {
+      saveMock.mockResolvedValue({ saved: true });
+      renderEditor();
+
+      fireEvent.click(screen.getByRole("button", { name: "Elegir tipos" }));
+      fireEvent.click(screen.getByRole("checkbox", { name: "Práctica" }));
+      fireEvent.click(screen.getByRole("button", { name: "Guardar horarios" }));
+
+      await screen.findByRole("status");
+      expect(saveMock).toHaveBeenCalledWith([
+        expect.objectContaining({
+          weekday: "monday",
+          ranges: [
+            { start: "09:00", end: "13:00", kinds: ["FirstVisit", "FollowUp"] },
+          ],
+        }),
+        ...Array(6).fill(expect.anything()),
+      ]);
+    });
+
+    it("toggles a whole group, showing it as partly ticked in between", () => {
+      renderEditor();
+      fireEvent.click(screen.getByRole("button", { name: "Elegir tipos" }));
+      const practice = screen.getByRole("checkbox", { name: "Práctica" });
+
+      fireEvent.click(practice);
+      expect(screen.getByRole("checkbox", { name: "Biopsia" })).not.toBeChecked();
+
+      fireEvent.click(screen.getByRole("checkbox", { name: "Biopsia" }));
+      expect((practice as HTMLInputElement).indeterminate).toBe(true);
+
+      fireEvent.click(practice);
+      expect(practice).toBeChecked();
+      expect(screen.getByRole("checkbox", { name: "Criocirugía" })).toBeChecked();
+    });
+
+    it("refuses to save a range that accepts no kind", async () => {
+      saveMock.mockClear();
+      renderEditor();
+      fireEvent.click(screen.getByRole("button", { name: "Elegir tipos" }));
+      fireEvent.click(screen.getByRole("checkbox", { name: "Consulta" }));
+      fireEvent.click(screen.getByRole("checkbox", { name: "Práctica" }));
+
+      fireEvent.click(screen.getByRole("button", { name: "Guardar horarios" }));
+
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Cada rango necesita al menos un tipo de visita.",
+      );
+      expect(saveMock).not.toHaveBeenCalled();
+    });
+  });
+
   it("matches the editor structure", () => {
     const { container } = renderEditor();
     expect(

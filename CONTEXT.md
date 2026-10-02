@@ -67,7 +67,7 @@ _Avoid_: Down payment, Booking fee
 ### Scheduling & availability
 
 **Work Schedule** (UI: _Horarios_):
-The Professional's recurring weekly availability — which weekdays are worked and the time ranges within each working day. Reducing availability — un-marking a working weekday, removing a time range, or adding an Unavailable Day — that collides with existing Scheduled Appointments requires the Professional to cancel those Appointments first; each cancellation sends a Cancellation Notice.
+The Professional's recurring weekly availability — which weekdays are worked, the time ranges within each working day, and which Visit Kinds each range accepts (every kind unless the Professional narrows it). Reducing availability — un-marking a working weekday, removing a time range, narrowing the kinds a range accepts, or adding an Unavailable Day — that collides with existing Scheduled Appointments requires the Professional to cancel those Appointments first; each cancellation sends a Cancellation Notice.
 _Avoid_: Hours, Calendar
 
 **Time Slot**:
@@ -75,7 +75,7 @@ A 20-minute bookable interval derived from the Work Schedule for a given day, mi
 _Avoid_: Slot time, Appointment slot
 
 **Booking Window**:
-The range of dates open for booking: from **tomorrow** (same-day booking is not allowed) up to 30 days ahead. Weekends, holidays, Unavailable Days, and days with no remaining Time Slots are excluded from it.
+The range of dates open for booking a given Visit Kind: from **tomorrow** (same-day booking is not allowed) up to 30 days ahead. Weekends, holidays, Unavailable Days, and days with no remaining Time Slots for that kind are excluded from it.
 _Avoid_: Booking range, Availability window
 
 **Unavailable Day** (UI: _Día no laborable_):

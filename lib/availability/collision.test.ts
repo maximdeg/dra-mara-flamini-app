@@ -19,7 +19,15 @@ function appt(
   status: Appointment["status"] = "scheduled",
   id = `${date}-${time}`,
 ): Appointment {
-  return { id, date, time, status } as Appointment;
+  return {
+    id,
+    date,
+    time,
+    status,
+    visitType: "Consultation",
+    consultType: "FirstVisit",
+    practiceType: null,
+  } as Appointment;
 }
 
 function withWeekday(weekday: Weekday, patch: Partial<WorkdaySchedule>): WorkSchedule {
@@ -49,6 +57,44 @@ describe("fitsSchedule", () => {
     expect(
       fitsSchedule(wednesday, withWeekday("wednesday", { ranges: [{ start: "15:00", end: "19:00" }] })),
     ).toBe(false);
+  });
+});
+
+describe("fitsSchedule — Visit Kinds", () => {
+  it("is true when the range covering the time accepts the Appointment's kind", () => {
+    expect(
+      fitsSchedule(
+        monday,
+        withWeekday("monday", {
+          ranges: [{ start: "09:00", end: "13:00", kinds: ["FirstVisit"] }],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("is false once that range no longer accepts the Appointment's kind", () => {
+    expect(
+      fitsSchedule(
+        monday,
+        withWeekday("monday", {
+          ranges: [{ start: "09:00", end: "13:00", kinds: ["FollowUp", "Biopsy"] }],
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("collides a Scheduled Appointment when its kind is unticked, never a past or cancelled one", () => {
+    const proceduresOnly = DEFAULT_WORK_SCHEDULE.map((d) => ({
+      ...d,
+      ranges: d.ranges.map((r) => ({
+        ...r,
+        kinds: ["Cryosurgery", "Electrocoagulation", "Biopsy"] as const,
+      })),
+    })) as WorkSchedule;
+
+    expect(
+      collidingWithSchedule([monday, past, cancelled], proceduresOnly, now),
+    ).toEqual([monday]);
   });
 });
 

@@ -1,6 +1,11 @@
 import { addDays, isFixedHoliday, isWeekend, toISODate, weekdayOf } from "./dates";
 import type { VisitKind } from "../appointments/visit-kind";
-import type { TimeRange, WorkSchedule } from "./work-schedule";
+import {
+  rangeAccepts,
+  type TimeRange,
+  type WorkSchedule,
+  type WorkdaySchedule,
+} from "./work-schedule";
 
 /** A Time Slot is a 20-minute bookable interval. */
 export const SLOT_MINUTES = 20;
@@ -44,6 +49,11 @@ function expandRange(range: TimeRange): string[] {
   return slots;
 }
 
+// The ranges of a worked day that can be booked for a Visit Kind.
+function rangesFor(day: WorkdaySchedule, kind: VisitKind): TimeRange[] {
+  return day.ranges.filter((range) => rangeAccepts(range, kind));
+}
+
 function isExcludedDay(date: string, unavailable: Set<string>): boolean {
   return isWeekend(date) || isFixedHoliday(date) || unavailable.has(date);
 }
@@ -53,7 +63,7 @@ function isExcludedDay(date: string, unavailable: Set<string>): boolean {
  * every slot derived from that weekday's Work Schedule, minus times already
  * taken by Scheduled Appointments (of any kind — one Professional, one agenda).
  * Returns [] for any non-bookable day (weekend, fixed holiday, Unavailable Day,
- * or a non-working weekday). Every range accepts every kind for now.
+ * or a non-working weekday) and for a day with no range accepting the kind.
  */
 export async function availableTimesFor(
   date: string,
@@ -70,7 +80,7 @@ export async function availableTimesFor(
     return [];
   }
 
-  const all = day.ranges.flatMap(expandRange);
+  const all = rangesFor(day, kind).flatMap(expandRange);
   const taken = new Set(await deps.scheduledTimesOn(date));
   return all.filter((time) => !taken.has(time));
 }
@@ -105,7 +115,8 @@ export type BookingDateTimeStatus = "ok" | "outside-window" | "slot-taken";
 /**
  * Classify a chosen date/time for Booking's server-side guard. A date outside
  * the Booking Window (past/same-day, beyond 30 days, weekend, fixed holiday,
- * Unavailable Day, or a non-working weekday) is "outside-window". A bookable
+ * Unavailable Day, a non-working weekday, or a day with no range accepting the
+ * kind) is "outside-window". A bookable
  * day whose specific time is no longer free is "slot-taken" — the race between
  * loading the form and submitting it — or a time not offered for this kind.
  */
@@ -123,7 +134,9 @@ export async function classifyBookingDateTime(
   const day = deps.workSchedule.find((d) => d.weekday === weekdayOf(date));
   const structurallyBookable =
     !isExcludedDay(date, new Set(deps.unavailableDays)) &&
-    Boolean(day?.isWorkingDay);
+    day !== undefined &&
+    day.isWorkingDay &&
+    rangesFor(day, kind).length > 0;
   if (!structurallyBookable) {
     return "outside-window";
   }

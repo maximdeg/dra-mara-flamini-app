@@ -155,3 +155,80 @@ describe("classifyBookingDateTime", () => {
     ).toBe("slot-taken");
   });
 });
+
+describe("Availability per Visit Kind", () => {
+  // Mondays: consults in the morning, procedures in the afternoon. Every other
+  // weekday (Tue–Fri) worked 09:00–10:00 for every kind.
+  const split: WorkSchedule = everyDayNineToTen.map((day) =>
+    day.weekday === "monday"
+      ? {
+          ...day,
+          ranges: [
+            { start: "09:00", end: "09:40", kinds: ["FirstVisit", "FollowUp"] },
+            {
+              start: "16:00",
+              end: "16:40",
+              kinds: ["Cryosurgery", "Electrocoagulation", "Biopsy"],
+            },
+          ],
+        }
+      : day,
+  );
+  const now = () => new Date("2026-06-19T12:00:00"); // a Friday
+
+  it("offers a kind only the times of ranges that accept it", async () => {
+    const monday = "2026-06-22";
+    expect(
+      await availableTimesFor(monday, "FollowUp", deps({ workSchedule: split })),
+    ).toEqual(["09:00", "09:20"]);
+    expect(
+      await availableTimesFor(monday, "Biopsy", deps({ workSchedule: split })),
+    ).toEqual(["16:00", "16:20"]);
+  });
+
+  it("leaves a day out of a kind's Booking Window when no range accepts it", async () => {
+    const onlyConsultsOnMonday = split.map((day) =>
+      day.weekday === "monday"
+        ? { ...day, ranges: [day.ranges[0]] }
+        : { ...day, isWorkingDay: false, ranges: [] },
+    );
+
+    expect(
+      await bookingWindow(
+        "FirstVisit",
+        deps({ workSchedule: onlyConsultsOnMonday, now }),
+      ),
+    ).toContain("2026-06-22");
+    expect(
+      await bookingWindow(
+        "Biopsy",
+        deps({ workSchedule: onlyConsultsOnMonday, now }),
+      ),
+    ).toEqual([]);
+  });
+
+  it("refuses a time offered only to another kind", async () => {
+    expect(
+      await classifyBookingDateTime(
+        "2026-06-22",
+        "09:00",
+        "Biopsy",
+        deps({ workSchedule: split, now }),
+      ),
+    ).toBe("slot-taken");
+  });
+
+  it("treats a day closed to the kind as outside its Booking Window", async () => {
+    const consultsOnly = split.map((day) =>
+      day.weekday === "monday" ? { ...day, ranges: [day.ranges[0]] } : day,
+    );
+    expect(
+      await classifyBookingDateTime(
+        "2026-06-22",
+        "16:00",
+        "Biopsy",
+        deps({ workSchedule: consultsOnly, now }),
+      ),
+    ).toBe("outside-window");
+  });
+});

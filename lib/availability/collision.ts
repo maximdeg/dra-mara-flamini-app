@@ -1,7 +1,8 @@
 import type { Appointment } from "../appointments/appointment";
 import { statusOf } from "../appointments/status";
+import { visitKindOf } from "../appointments/visit-kind";
 import { weekdayOf } from "./dates";
-import type { TimeRange, WorkSchedule } from "./work-schedule";
+import { rangeAccepts, type TimeRange, type WorkSchedule } from "./work-schedule";
 
 /**
  * The collision guard — shared by reducing the Work Schedule (slice 13) and
@@ -24,16 +25,26 @@ function withinRanges(time: string, ranges: TimeRange[]): boolean {
   return ranges.some((r) => toMinutes(r.start) <= t && t < toMinutes(r.end));
 }
 
-/** Whether an Appointment's date+time still fits a (proposed) Work Schedule. */
+/**
+ * Whether an Appointment still fits a (proposed) Work Schedule: its time falls
+ * in a worked range that still accepts its Visit Kind.
+ */
 export function fitsSchedule(
-  appointment: Pick<Appointment, "date" | "time">,
+  appointment: Pick<
+    Appointment,
+    "date" | "time" | "visitType" | "consultType" | "practiceType"
+  >,
   schedule: WorkSchedule,
 ): boolean {
   const day = schedule.find((d) => d.weekday === weekdayOf(appointment.date));
   if (!day || !day.isWorkingDay) {
     return false;
   }
-  return withinRanges(appointment.time, day.ranges);
+  const kind = visitKindOf(appointment);
+  const ranges = kind
+    ? day.ranges.filter((range) => rangeAccepts(range, kind))
+    : day.ranges;
+  return withinRanges(appointment.time, ranges);
 }
 
 /**
