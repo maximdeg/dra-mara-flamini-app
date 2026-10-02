@@ -24,6 +24,40 @@ export interface HealthInsurance {
    * and never returned by public endpoints (see toPublicHealthInsurance).
    */
   notes: string;
+  /**
+   * Coverage Instructions (UI: Indicaciones para el paciente) — Patient-facing,
+   * unlike `notes`. Copied onto each Appointment booked with this insurer and
+   * shown in its Confirmation and on the cita page. Sanitized on save.
+   */
+  instructions: string;
+}
+
+/**
+ * An insurer as read back from storage. Documents saved before Coverage
+ * Instructions existed have no `instructions`; they read as empty, so no
+ * migration is needed.
+ */
+export function readStoredHealthInsurance(
+  stored: Omit<HealthInsurance, "instructions"> & { instructions?: string },
+): HealthInsurance {
+  return { ...stored, instructions: stored.instructions ?? "" };
+}
+
+/** The longest Coverage Instructions the Professional may write. */
+export const MAX_INSTRUCTIONS_LENGTH = 300;
+
+/**
+ * Turn raw admin input into Coverage Instructions: a single trimmed line of at
+ * most MAX_INSTRUCTIONS_LENGTH characters. Instructions travel as a WhatsApp
+ * template parameter, which the Cloud API rejects if it holds a newline, a tab
+ * or 4+ consecutive spaces — so all whitespace collapses to single spaces.
+ */
+export function sanitizeInstructions(raw: string): string {
+  return raw
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_INSTRUCTIONS_LENGTH)
+    .trimEnd();
 }
 
 /**
@@ -46,9 +80,9 @@ export function toPublicHealthInsurance(
  * the list (slice 15).
  */
 export const SEEDED_HEALTH_INSURANCES: HealthInsurance[] = [
-  { name: "OSDE", price: 0, notes: "" },
-  { name: "Swiss Medical", price: 0, notes: "" },
-  { name: "Galeno", price: 0, notes: "" },
+  { name: "OSDE", price: 0, notes: "", instructions: "" },
+  { name: "Swiss Medical", price: 0, notes: "", instructions: "" },
+  { name: "Galeno", price: 0, notes: "", instructions: "" },
 ];
 
 export const SELF_PAY_LABELS: Record<SelfPayVariant, string> = {
@@ -115,6 +149,22 @@ export function isCoverageValidForVisitType(
     return coverage.variant === selfPayVariantFor(visitType);
   }
   return insurances.some((insurance) => insurance.name === coverage.name);
+}
+
+/**
+ * The Coverage Instructions for a chosen coverage, as Booking copies them onto
+ * the Appointment: the insurer's own, or empty when it has none or is unknown.
+ * Self-Pay has none yet.
+ */
+export function coverageInstructionsFor(
+  coverage: Coverage,
+  insurances: HealthInsurance[],
+): string {
+  if (coverage.kind === "self-pay") return "";
+  return (
+    insurances.find((insurance) => insurance.name === coverage.name)
+      ?.instructions ?? ""
+  );
 }
 
 /** Spanish display label for a chosen coverage. */

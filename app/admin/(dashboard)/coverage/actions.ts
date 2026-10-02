@@ -6,6 +6,7 @@ import {
   addInsurance,
   editInsurance,
   removeInsurance,
+  sanitizeInstructions,
 } from "@/lib/coverage/coverage";
 import { getHealthInsuranceRepository } from "@/lib/coverage/get-health-insurance-repository";
 import { sanitizeSelfPayPricing } from "@/lib/deposit/deposit";
@@ -15,6 +16,8 @@ export interface InsuranceInput {
   name: string;
   price: number;
   notes: string;
+  /** Patient-facing Coverage Instructions; sanitized before saving. */
+  instructions: string;
 }
 
 function toPrice(value: number): number {
@@ -39,6 +42,7 @@ export async function addInsuranceAction(input: InsuranceInput): Promise<void> {
       name,
       price: toPrice(input.price),
       notes: input.notes.trim(),
+      instructions: sanitizeInstructions(input.instructions),
     }),
   );
   await reflectCoverage();
@@ -59,6 +63,7 @@ export async function editInsuranceAction(
       name,
       price: toPrice(input.price),
       notes: input.notes.trim(),
+      instructions: sanitizeInstructions(input.instructions),
     }),
   );
   await reflectCoverage();

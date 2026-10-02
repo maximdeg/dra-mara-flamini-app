@@ -81,4 +81,57 @@ describe("AppointmentInfo", () => {
     expect(screen.queryByText(/Seña:/)).not.toBeInTheDocument();
     expect(screen.getByText(/Llegá 15 minutos antes/)).toBeInTheDocument();
   });
+
+  describe("Coverage Instructions", () => {
+    const osde: Appointment = {
+      ...APPOINTMENT,
+      coverage: { kind: "health-insurance", name: "OSDE" },
+      coverageInstructions: "Traer carnet y orden autorizada",
+    };
+
+    it("shows the copied Instructions under the coverage name while Scheduled", () => {
+      render(
+        <AppointmentInfo
+          appointment={osde}
+          status="scheduled"
+          clinicInfo={SEEDED_CLINIC_INFO}
+        />,
+      );
+
+      expect(screen.getByText("Indicaciones para OSDE")).toBeInTheDocument();
+      expect(
+        screen.getByText("Traer carnet y orden autorizada"),
+      ).toBeInTheDocument();
+    });
+
+    it("hides them once the Appointment is no longer Scheduled", () => {
+      for (const status of ["cancelled", "completed"] as const) {
+        const { unmount } = render(
+          <AppointmentInfo
+            appointment={osde}
+            status={status}
+            clinicInfo={SEEDED_CLINIC_INFO}
+          />,
+        );
+        expect(
+          screen.queryByText("Indicaciones para OSDE"),
+        ).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+
+    it("hides them when the coverage had none, or the Appointment predates them", () => {
+      for (const coverageInstructions of ["", undefined]) {
+        const { unmount } = render(
+          <AppointmentInfo
+            appointment={{ ...osde, coverageInstructions }}
+            status="scheduled"
+            clinicInfo={SEEDED_CLINIC_INFO}
+          />,
+        );
+        expect(screen.queryByText(/Indicaciones para/)).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+  });
 });

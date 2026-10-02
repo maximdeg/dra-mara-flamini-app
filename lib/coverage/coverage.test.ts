@@ -1,17 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
   addInsurance,
+  coverageInstructionsFor,
   coverageOptionsFor,
   editInsurance,
   isCoverageValidForVisitType,
   removeInsurance,
+  MAX_INSTRUCTIONS_LENGTH,
+  readStoredHealthInsurance,
+  sanitizeInstructions,
   toPublicHealthInsurance,
   type HealthInsurance,
 } from "./coverage";
 
 const insurances: HealthInsurance[] = [
-  { name: "OSDE", price: 0, notes: "" },
-  { name: "Galeno", price: 0, notes: "" },
+  { name: "OSDE", price: 0, notes: "", instructions: "" },
+  { name: "Galeno", price: 0, notes: "", instructions: "" },
 ];
 
 describe("coverageOptionsFor", () => {
@@ -62,8 +66,8 @@ describe("coverageOptionsFor", () => {
 
   it("carries each insurer's price and the Self-Pay full price for display", () => {
     const priced: HealthInsurance[] = [
-      { name: "OSDE", price: 5000, notes: "" },
-      { name: "Galeno", price: 0, notes: "" },
+      { name: "OSDE", price: 5000, notes: "", instructions: "" },
+      { name: "Galeno", price: 0, notes: "", instructions: "" },
     ];
     const options = coverageOptionsFor("Consultation", priced, 30000);
 
@@ -80,6 +84,7 @@ describe("Health Insurance list transforms", () => {
       name: "Swiss Medical",
       price: 12000,
       notes: "tope mensual",
+      instructions: "Traer orden autorizada",
     });
     expect(result.map((i) => i.name)).toEqual([
       "OSDE",
@@ -93,12 +98,14 @@ describe("Health Insurance list transforms", () => {
       name: "osde",
       price: 5000,
       notes: "actualizado",
+      instructions: "",
     });
     expect(result).toHaveLength(2);
     expect(result.find((i) => i.name.toLowerCase() === "osde")).toEqual({
       name: "osde",
       price: 5000,
       notes: "actualizado",
+      instructions: "",
     });
   });
 
@@ -113,9 +120,13 @@ describe("Health Insurance list transforms", () => {
       name: "OSDE 210",
       price: 9000,
       notes: "",
+      instructions: "Coseguro $2000",
     });
     expect(result.map((i) => i.name)).toEqual(["Galeno", "OSDE 210"]);
     expect(result.find((i) => i.name === "OSDE")).toBeUndefined();
+    expect(result.find((i) => i.name === "OSDE 210")?.instructions).toBe(
+      "Coseguro $2000",
+    );
   });
 });
 
@@ -156,13 +167,92 @@ describe("isCoverageValidForVisitType", () => {
 });
 
 describe("toPublicHealthInsurance", () => {
+  // Instructions reach the Patient through their Appointment, copied at booking.
   it("exposes only the name and price, never the internal Notas", () => {
     expect(
       toPublicHealthInsurance({
         name: "OSDE",
         price: 5000,
         notes: "tope mensual — no mostrar",
+        instructions: "Traer carnet",
       }),
     ).toEqual({ name: "OSDE", price: 5000 });
+  });
+});
+
+describe("sanitizeInstructions", () => {
+  it("flattens line breaks and tabs into a single line", () => {
+    expect(sanitizeInstructions("Traer orden\nautorizada\r\n\tdel médico")).toBe(
+      "Traer orden autorizada del médico",
+    );
+  });
+
+  it("collapses whitespace runs (WhatsApp rejects 4+ consecutive spaces)", () => {
+    expect(sanitizeInstructions("Coseguro     $2000")).toBe("Coseguro $2000");
+  });
+
+  it("trims and turns blank input into empty Instructions", () => {
+    expect(sanitizeInstructions("  Traer carnet  ")).toBe("Traer carnet");
+    expect(sanitizeInstructions(" \n ")).toBe("");
+  });
+
+  it(`caps Instructions at ${MAX_INSTRUCTIONS_LENGTH} characters`, () => {
+    expect(MAX_INSTRUCTIONS_LENGTH).toBe(300);
+    expect(sanitizeInstructions("a".repeat(400))).toHaveLength(300);
+  });
+
+  it("does not leave a trailing space where the cap cuts", () => {
+    const input = `${"a".repeat(299)} b`;
+    expect(sanitizeInstructions(input)).toBe("a".repeat(299));
+  });
+});
+
+describe("readStoredHealthInsurance", () => {
+  it("reads an insurer saved before Instructions existed as having none", () => {
+    expect(
+      readStoredHealthInsurance({ name: "OSDE", price: 1000, notes: "x" }),
+    ).toEqual({ name: "OSDE", price: 1000, notes: "x", instructions: "" });
+  });
+
+  it("keeps stored Instructions", () => {
+    expect(
+      readStoredHealthInsurance({
+        name: "OSDE",
+        price: 1000,
+        notes: "",
+        instructions: "Traer carnet",
+      }).instructions,
+    ).toBe("Traer carnet");
+  });
+});
+
+describe("coverageInstructionsFor", () => {
+  const withInstructions: HealthInsurance[] = [
+    { name: "OSDE", price: 0, notes: "interna", instructions: "Traer carnet" },
+    { name: "Galeno", price: 0, notes: "", instructions: "" },
+  ];
+
+  it("returns the chosen insurer's Instructions", () => {
+    expect(
+      coverageInstructionsFor(
+        { kind: "health-insurance", name: "OSDE" },
+        withInstructions,
+      ),
+    ).toBe("Traer carnet");
+  });
+
+  it("is empty for an insurer without Instructions, or an unknown one", () => {
+    expect(
+      coverageInstructionsFor(
+        { kind: "health-insurance", name: "Galeno" },
+        withInstructions,
+      ),
+    ).toBe("");
+    expect(
+      coverageInstructionsFor(
+        { kind: "health-insurance", name: "IOMA" },
+        withInstructions,
+      ),
+    ).toBe("");
   });
 });

@@ -32,6 +32,13 @@ export interface Appointment {
   practiceType: PracticeType | null;
   /** The chosen Health Insurance or Self-Pay variant. */
   coverage: Coverage;
+  /**
+   * The chosen coverage's Coverage Instructions, copied at booking so the
+   * Confirmation and the cita page show what applied then — later edits to the
+   * coverage do not reach it. Empty when the coverage had none; absent on
+   * Appointments booked before Instructions existed (treat as empty).
+   */
+  coverageInstructions?: string;
   /** The acknowledged Deposit, or null when none applies. */
   deposit: Deposit | null;
   /** ISO calendar date, "YYYY-MM-DD". */

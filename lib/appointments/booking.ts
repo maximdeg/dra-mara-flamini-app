@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { BookingDateTimeStatus } from "../availability/availability";
 import {
+  coverageInstructionsFor,
   isCoverageValidForVisitType,
   type HealthInsurance,
 } from "../coverage/coverage";
@@ -174,6 +175,10 @@ export async function book(
     consultType: subType.consultType,
     practiceType: subType.practiceType,
     coverage: form.coverage,
+    coverageInstructions: coverageInstructionsFor(
+      form.coverage,
+      deps.acceptedHealthInsurances,
+    ),
     deposit,
     date: form.date,
     time: form.time,

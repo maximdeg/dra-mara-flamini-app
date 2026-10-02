@@ -52,6 +52,11 @@
   flex: 1 1 160px;
 }
 
+/* Indicaciones take a whole line of the flex row. */
+.full {
+  flex: 1 1 100%;
+}
+
 .rowActions {
   display: flex;
   gap: var(--space-2);

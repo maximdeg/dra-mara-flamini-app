@@ -6,7 +6,7 @@ import { book, type BookingDependencies } from "./booking";
 import { InMemoryAppointmentRepository } from "./in-memory-appointment-repository";
 import { isAtOpenAppointmentLimit } from "./phone-limit";
 
-const accepted: HealthInsurance[] = [{ name: "OSDE", price: 0, notes: "" }];
+const accepted: HealthInsurance[] = [{ name: "OSDE", price: 0, notes: "", instructions: "" }];
 
 const consultationForm: BookingForm = {
   patientFirstName: "Lucía",
@@ -55,6 +55,7 @@ describe("book", () => {
         consultType: "FirstVisit",
         practiceType: null,
         coverage: { kind: "health-insurance", name: "OSDE" },
+        coverageInstructions: "",
         deposit: null,
         date: "2026-06-22",
         time: "09:30",
@@ -492,5 +493,39 @@ describe("book — optional email", () => {
       expect(result).toEqual({ ok: false, rejection: "InvalidEmail" });
       expect(await repository.findById("apt-1")).toBeNull();
     }
+  });
+});
+
+describe("book — Coverage Instructions", () => {
+  const insurers: HealthInsurance[] = [
+    { name: "OSDE", price: 0, notes: "interna", instructions: "Traer carnet" },
+  ];
+
+  it("copies the chosen insurer's Instructions onto the Appointment", async () => {
+    const repository = new InMemoryAppointmentRepository();
+
+    await book(
+      consultationForm,
+      deps({ repository, acceptedHealthInsurances: insurers }),
+    );
+
+    expect((await repository.findById("apt-1"))?.coverageInstructions).toBe(
+      "Traer carnet",
+    );
+  });
+
+  it("keeps the copied Instructions when the insurer is edited later", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const live = [...insurers];
+    await book(
+      consultationForm,
+      deps({ repository, acceptedHealthInsurances: live }),
+    );
+
+    live[0] = { ...live[0], instructions: "Nuevo requisito" };
+
+    expect((await repository.findById("apt-1"))?.coverageInstructions).toBe(
+      "Traer carnet",
+    );
   });
 });

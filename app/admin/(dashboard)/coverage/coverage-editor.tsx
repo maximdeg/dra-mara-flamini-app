@@ -5,6 +5,7 @@ import {
   addInsurance,
   editInsurance,
   removeInsurance,
+  sanitizeInstructions,
   type HealthInsurance,
 } from "@/lib/coverage/coverage";
 import type { SelfPayPricing } from "@/lib/deposit/deposit";
@@ -21,6 +22,7 @@ import {
   type InsuranceInput,
 } from "./actions";
 import styles from "./coverage-editor.module.css";
+import { InstructionsField } from "./instructions-field";
 
 function toPrice(value: FormDataEntryValue | null): number {
   return Math.max(0, Math.floor(Number(value) || 0));
@@ -32,6 +34,7 @@ function readInsurance(form: HTMLFormElement): InsuranceInput {
     name: String(data.get("name") ?? "").trim(),
     price: toPrice(data.get("price")),
     notes: String(data.get("notes") ?? "").trim(),
+    instructions: sanitizeInstructions(String(data.get("instructions") ?? "")),
   };
 }
 
@@ -167,6 +170,7 @@ export function CoverageEditor({
             <Field label="Notas" className={styles.grow}>
               <input name="notes" />
             </Field>
+            <InstructionsField className={styles.full} />
             <Button type="submit" busy={pending} className={styles.rowSubmit}>
               Agregar
             </Button>
@@ -237,6 +241,10 @@ function InsuranceRow({
         <Field label="Notas" className={styles.grow}>
           <input name="notes" defaultValue={insurance.notes} />
         </Field>
+        <InstructionsField
+          defaultValue={insurance.instructions}
+          className={styles.full}
+        />
         <div className={styles.rowActions}>
           <Button type="submit" disabled={pending}>
             Guardar
