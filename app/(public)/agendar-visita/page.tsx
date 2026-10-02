@@ -16,7 +16,7 @@ import {
 import { MAX_OPEN_APPOINTMENTS_PER_PHONE } from "@/lib/appointments/phone-limit";
 import {
   coverageOptionsFor,
-  type HealthInsurance,
+  type PublicHealthInsurance,
 } from "@/lib/coverage/coverage";
 import {
   depositAmountFor,
@@ -53,7 +53,7 @@ const FALLBACK_ERROR = "No se pudo agendar la cita.";
 export default function AgendarVisitaPage() {
   const router = useRouter();
 
-  const [insurances, setInsurances] = useState<HealthInsurance[]>([]);
+  const [insurances, setInsurances] = useState<PublicHealthInsurance[]>([]);
   const [pricing, setPricing] = useState<SelfPayPricing | null>(null);
   const [visitType, setVisitType] = useState<VisitType | "">("");
   const [consultType, setConsultType] = useState<ConsultType | "">("");
@@ -79,7 +79,7 @@ export default function AgendarVisitaPage() {
       .catch(() => setError("No se pudo cargar la disponibilidad."));
     fetch("/api/health-insurances")
       .then((res) => res.json())
-      .then((data: { insurances: HealthInsurance[] }) =>
+      .then((data: { insurances: PublicHealthInsurance[] }) =>
         setInsurances(data.insurances),
       )
       .catch(() => setError("No se pudieron cargar las coberturas."));

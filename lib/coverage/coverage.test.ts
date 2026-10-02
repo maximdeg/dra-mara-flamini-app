@@ -5,6 +5,7 @@ import {
   editInsurance,
   isCoverageValidForVisitType,
   removeInsurance,
+  toPublicHealthInsurance,
   type HealthInsurance,
 } from "./coverage";
 
@@ -151,5 +152,17 @@ describe("isCoverageValidForVisitType", () => {
         insurances,
       ),
     ).toBe(false);
+  });
+});
+
+describe("toPublicHealthInsurance", () => {
+  it("exposes only the name and price, never the internal Notas", () => {
+    expect(
+      toPublicHealthInsurance({
+        name: "OSDE",
+        price: 5000,
+        notes: "tope mensual — no mostrar",
+      }),
+    ).toEqual({ name: "OSDE", price: 5000 });
   });
 });

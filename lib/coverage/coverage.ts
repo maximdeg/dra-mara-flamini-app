@@ -19,8 +19,24 @@ export interface HealthInsurance {
   name: string;
   /** Price in whole Argentine pesos. */
   price: number;
-  /** Free-text notes for the Professional. */
+  /**
+   * Free-text notes for the Professional. Internal: never shown to Patients
+   * and never returned by public endpoints (see toPublicHealthInsurance).
+   */
   notes: string;
+}
+
+/**
+ * What a Patient-facing surface may know about an insurer: enough for the
+ * booking picker (its name and price), never the internal Notas.
+ */
+export type PublicHealthInsurance = Pick<HealthInsurance, "name" | "price">;
+
+/** Project an insurer onto its Patient-safe view for public endpoints. */
+export function toPublicHealthInsurance(
+  insurance: HealthInsurance,
+): PublicHealthInsurance {
+  return { name: insurance.name, price: insurance.price };
 }
 
 /**
@@ -63,7 +79,7 @@ export interface CoverageOption {
  */
 export function coverageOptionsFor(
   visitType: VisitType,
-  insurances: HealthInsurance[],
+  insurances: PublicHealthInsurance[],
   selfPayPrice = 0,
 ): CoverageOption[] {
   const variant = selfPayVariantFor(visitType);
