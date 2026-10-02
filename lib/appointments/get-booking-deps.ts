@@ -39,8 +39,8 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
     repository,
     acceptedHealthInsurances,
     selfPayPricing,
-    classifyDateTime: (date, time) =>
-      classifyBookingDateTime(date, time, availabilityDeps),
+    classifyDateTime: (date, time, kind) =>
+      classifyBookingDateTime(date, time, kind, availabilityDeps),
     isPhoneAtOpenAppointmentLimit: async (phone) =>
       isAtOpenAppointmentLimit(
         await repository.findScheduledByPhone(phone),

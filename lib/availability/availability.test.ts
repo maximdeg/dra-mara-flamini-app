@@ -40,7 +40,7 @@ function deps(
 describe("availableTimesFor", () => {
   it("expands a worked range into 20-minute Time Slots (end exclusive)", async () => {
     // 2026-06-22 is a Monday.
-    expect(await availableTimesFor("2026-06-22", deps())).toEqual([
+    expect(await availableTimesFor("2026-06-22", "FirstVisit", deps())).toEqual([
       "09:00",
       "09:20",
       "09:40",
@@ -49,16 +49,16 @@ describe("availableTimesFor", () => {
 
   it("returns no slots on a weekend", async () => {
     // 2026-06-20 is a Saturday.
-    expect(await availableTimesFor("2026-06-20", deps())).toEqual([]);
+    expect(await availableTimesFor("2026-06-20", "FirstVisit", deps())).toEqual([]);
   });
 
   it("returns no slots on a fixed holiday (Christmas)", async () => {
-    expect(await availableTimesFor("2026-12-25", deps())).toEqual([]);
+    expect(await availableTimesFor("2026-12-25", "FirstVisit", deps())).toEqual([]);
   });
 
   it("returns no slots on an Unavailable Day", async () => {
     expect(
-      await availableTimesFor("2026-06-22", deps({ unavailableDays: ["2026-06-22"] })),
+      await availableTimesFor("2026-06-22", "FirstVisit", deps({ unavailableDays: ["2026-06-22"] })),
     ).toEqual([]);
   });
 
@@ -67,14 +67,14 @@ describe("availableTimesFor", () => {
       d.weekday === "monday" ? { ...d, isWorkingDay: false } : d,
     );
     expect(
-      await availableTimesFor("2026-06-22", deps({ workSchedule: mondayOff })),
+      await availableTimesFor("2026-06-22", "FirstVisit", deps({ workSchedule: mondayOff })),
     ).toEqual([]);
   });
 
   it("removes times already taken by Scheduled Appointments", async () => {
     expect(
       await availableTimesFor(
-        "2026-06-22",
+        "2026-06-22", "FirstVisit",
         deps({ scheduledTimesOn: () => ["09:20"] }),
       ),
     ).toEqual(["09:00", "09:40"]);
@@ -85,13 +85,13 @@ describe("bookingWindow", () => {
   const now = () => new Date("2026-06-19T08:00:00"); // a Friday
 
   it("opens tomorrow and never offers the same day", async () => {
-    const days = await bookingWindow(deps({ now }));
+    const days = await bookingWindow("FirstVisit", deps({ now }));
     expect(days).not.toContain("2026-06-19"); // today
     expect(days.every((d) => d > "2026-06-19")).toBe(true);
   });
 
   it("excludes weekends, and the earliest open day is the following Monday", async () => {
-    const days = await bookingWindow(deps({ now }));
+    const days = await bookingWindow("FirstVisit", deps({ now }));
     // Sat 20th and Sun 21st are weekends; Mon 22nd is the first bookable day.
     expect(days).not.toContain("2026-06-20");
     expect(days).not.toContain("2026-06-21");
@@ -99,14 +99,14 @@ describe("bookingWindow", () => {
   });
 
   it("stays within 30 days ahead", async () => {
-    const days = await bookingWindow(deps({ now }));
+    const days = await bookingWindow("FirstVisit", deps({ now }));
     expect(days.every((d) => d <= "2026-07-19")).toBe(true);
     expect(BOOKING_WINDOW_DAYS).toBe(30);
   });
 
   it("excludes days with no remaining Time Slots (fully booked)", async () => {
     // Monday the 22nd has only 09:00/09:20/09:40; book them all.
-    const days = await bookingWindow(
+    const days = await bookingWindow("FirstVisit", 
       deps({
         now,
         scheduledTimesOn: (date) =>
@@ -123,25 +123,25 @@ describe("classifyBookingDateTime", () => {
 
   it("returns 'ok' for a free slot on a bookable day", async () => {
     expect(
-      await classifyBookingDateTime("2026-06-22", "09:20", deps({ now })),
+      await classifyBookingDateTime("2026-06-22", "09:20", "FirstVisit", deps({ now })),
     ).toBe("ok");
   });
 
   it("returns 'outside-window' for the same day (no same-day booking)", async () => {
     expect(
-      await classifyBookingDateTime("2026-06-19", "09:20", deps({ now })),
+      await classifyBookingDateTime("2026-06-19", "09:20", "FirstVisit", deps({ now })),
     ).toBe("outside-window");
   });
 
   it("returns 'outside-window' beyond 30 days ahead", async () => {
     expect(
-      await classifyBookingDateTime("2026-08-01", "09:20", deps({ now })),
+      await classifyBookingDateTime("2026-08-01", "09:20", "FirstVisit", deps({ now })),
     ).toBe("outside-window");
   });
 
   it("returns 'outside-window' on a weekend", async () => {
     expect(
-      await classifyBookingDateTime("2026-06-20", "09:20", deps({ now })),
+      await classifyBookingDateTime("2026-06-20", "09:20", "FirstVisit", deps({ now })),
     ).toBe("outside-window");
   });
 
@@ -149,7 +149,7 @@ describe("classifyBookingDateTime", () => {
     expect(
       await classifyBookingDateTime(
         "2026-06-22",
-        "09:20",
+        "09:20", "FirstVisit",
         deps({ now, scheduledTimesOn: () => ["09:20"] }),
       ),
     ).toBe("slot-taken");

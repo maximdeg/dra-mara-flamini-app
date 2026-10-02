@@ -14,6 +14,7 @@ import {
   type VisitType,
 } from "@/lib/appointments/visit-type";
 import { MAX_OPEN_APPOINTMENTS_PER_PHONE } from "@/lib/appointments/phone-limit";
+import { visitKindOf } from "@/lib/appointments/visit-kind";
 import {
   coverageOptionsFor,
   type PublicHealthInsurance,
@@ -72,11 +73,17 @@ export default function AgendarVisitaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // What is being booked decides which dates and times are offered, so they
+  // load only once the Visit Kind is complete.
+  const kind = visitType
+    ? visitKindOf({
+        visitType,
+        consultType: consultType || null,
+        practiceType: practiceType || null,
+      })
+    : null;
+
   useEffect(() => {
-    fetch("/api/availability")
-      .then((res) => res.json())
-      .then((data: { days: string[] }) => setDays(data.days))
-      .catch(() => setError("No se pudo cargar la disponibilidad."));
     fetch("/api/health-insurances")
       .then((res) => res.json())
       .then((data: { insurances: PublicHealthInsurance[] }) =>
@@ -89,17 +96,28 @@ export default function AgendarVisitaPage() {
       .catch(() => setError("No se pudo cargar el precio de la seña."));
   }, []);
 
+  // A new Visit Kind invalidates the chosen date (and with it the time).
+  useEffect(() => {
+    setDate("");
+    setDays([]);
+    if (!kind) return;
+    fetch(`/api/availability?kind=${kind}`)
+      .then((res) => res.json())
+      .then((data: { days: string[] }) => setDays(data.days))
+      .catch(() => setError("No se pudo cargar la disponibilidad."));
+  }, [kind]);
+
   useEffect(() => {
     setTime("");
-    if (!date) {
+    if (!date || !kind) {
       setTimes([]);
       return;
     }
-    fetch(`/api/available-times/${date}`)
+    fetch(`/api/available-times/${date}?kind=${kind}`)
       .then((res) => res.json())
       .then((data: { times: string[] }) => setTimes(data.times))
       .catch(() => setError("No se pudieron cargar los horarios."));
-  }, [date]);
+  }, [date, kind]);
 
   // Changing the Visit Type resets its sub-type and coverage.
   useEffect(() => {
@@ -194,8 +212,8 @@ export default function AgendarVisitaPage() {
         const rejection = data.rejection;
         setError((rejection && REJECTION_MESSAGES[rejection]) || FALLBACK_ERROR);
         // The chosen slot was taken since the form loaded — refresh the list.
-        if (rejection === "SlotTaken" && date) {
-          fetch(`/api/available-times/${date}`)
+        if (rejection === "SlotTaken" && date && kind) {
+          fetch(`/api/available-times/${date}?kind=${kind}`)
             .then((r) => r.json())
             .then((d: { times: string[] }) => setTimes(d.times))
             .catch(() => {});
@@ -362,9 +380,12 @@ export default function AgendarVisitaPage() {
               <select
                 required
                 value={date}
+                disabled={!kind}
                 onChange={(e) => setDate(e.target.value)}
               >
-                <option value="">Elegí una fecha…</option>
+                <option value="">
+                  {kind ? "Elegí una fecha…" : "Elegí el tipo de visita primero"}
+                </option>
                 {days.map((day) => (
                   <option key={day} value={day}>
                     {formatDateAR(day)}

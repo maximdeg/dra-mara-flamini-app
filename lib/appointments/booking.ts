@@ -9,6 +9,7 @@ import { depositAmountFor, type SelfPayPricing } from "../deposit/deposit";
 import type { Appointment, BookingForm } from "./appointment";
 import type { AppointmentRepository } from "./appointment-repository";
 import { normalizeArgentinePhone } from "../phone/phone";
+import type { VisitKind } from "./visit-kind";
 import type { ConsultType, PracticeType } from "./visit-type";
 
 /**
@@ -57,10 +58,14 @@ export interface BookingDependencies {
   repository: AppointmentRepository;
   acceptedHealthInsurances: HealthInsurance[];
   selfPayPricing: SelfPayPricing;
-  /** Classify the chosen date/time against the Booking Window and Time Slots. */
+  /**
+   * Classify the chosen date/time against the Booking Window and Time Slots
+   * for the Visit Kind being booked.
+   */
   classifyDateTime: (
     date: string,
     time: string,
+    kind: VisitKind,
   ) => Promise<BookingDateTimeStatus> | BookingDateTimeStatus;
   /**
    * Whether this (normalized) phone already holds the maximum number of open
@@ -78,6 +83,8 @@ export interface BookingDependencies {
 interface SubType {
   consultType: ConsultType | null;
   practiceType: PracticeType | null;
+  /** The Visit Kind the validated sub-type makes up. */
+  kind: VisitKind;
 }
 
 /**
@@ -102,12 +109,20 @@ export async function book(
     if (!form.consultType) {
       return { ok: false, rejection: "MissingConsultType" };
     }
-    subType = { consultType: form.consultType, practiceType: null };
+    subType = {
+      consultType: form.consultType,
+      practiceType: null,
+      kind: form.consultType,
+    };
   } else {
     if (!form.practiceType) {
       return { ok: false, rejection: "MissingPracticeType" };
     }
-    subType = { consultType: null, practiceType: form.practiceType };
+    subType = {
+      consultType: null,
+      practiceType: form.practiceType,
+      kind: form.practiceType,
+    };
   }
 
   if (
@@ -154,7 +169,11 @@ export async function book(
     return { ok: false, rejection: "PhoneAtOpenAppointmentLimit" };
   }
 
-  const dateTime = await deps.classifyDateTime(form.date, form.time);
+  const dateTime = await deps.classifyDateTime(
+    form.date,
+    form.time,
+    subType.kind,
+  );
   if (dateTime === "outside-window") {
     return { ok: false, rejection: "OutsideBookingWindow" };
   }

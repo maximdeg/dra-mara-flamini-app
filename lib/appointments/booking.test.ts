@@ -555,3 +555,26 @@ describe("book — Coverage Instructions", () => {
     );
   });
 });
+
+describe("book — Visit Kind", () => {
+  it("classifies the date/time for the Visit Kind being booked", async () => {
+    const kinds: string[] = [];
+    const classifyDateTime = (_date: string, _time: string, kind: string) => {
+      kinds.push(kind);
+      return "ok" as const;
+    };
+
+    await book(consultationForm, deps({ classifyDateTime }));
+    await book(
+      {
+        ...consultationForm,
+        visitType: "Practice",
+        consultType: null,
+        practiceType: "Biopsy",
+      },
+      deps({ classifyDateTime }),
+    );
+
+    expect(kinds).toEqual(["FirstVisit", "Biopsy"]);
+  });
+});

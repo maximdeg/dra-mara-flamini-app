@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 // Two test projects, sharing the root resolve/esbuild config:
 //   - "lib": domain modules and seams under lib/, tested through their
 //     interfaces in a node environment (the in-memory repository fake stands in
-//     at the repository seam).
+//     at the repository seam), plus the thin route handlers under app/api/.
 //   - "ui": presentation primitives under components/, tested in jsdom through
 //     React Testing Library — external behavior only, never CSS class names.
 // The "ui" project is the reference pattern for future UI tests.
@@ -24,7 +24,7 @@ export default defineConfig({
         test: {
           name: "lib",
           environment: "node",
-          include: ["lib/**/*.test.ts"],
+          include: ["lib/**/*.test.ts", "app/api/**/*.test.ts"],
         },
       },
       {

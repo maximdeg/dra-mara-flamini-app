@@ -67,20 +67,30 @@ beforeEach(() => {
   });
 });
 
+const change = (label: string, value: string) =>
+  fireEvent.change(screen.getByLabelText(label, { exact: false }), {
+    target: { value },
+  });
+
+/** The URLs fetched so far that match a fragment. */
+function fetchedUrls(fragment: string): string[] {
+  return vi
+    .mocked(fetch)
+    .mock.calls.map(([input]) => String(input))
+    .filter((url) => url.includes(fragment));
+}
+
 /** Fill every required field for a Health Insurance Follow-up, email blank. */
 async function fillBookingForm(email = "") {
   const view = render(<AgendarVisitaPage />);
-  await screen.findByText("22/06/2026");
-  const change = (label: string, value: string) =>
-    fireEvent.change(screen.getByLabelText(label, { exact: false }), {
-      target: { value },
-    });
   change("Nombre", "Lucía");
   change("Apellido", "Gómez");
   change("Teléfono", "342 15 111-2233");
   change("Email", email);
   change("Tipo de visita", "Consultation");
   change("Tipo de consulta", "FollowUp");
+  // Dates load once the Visit Kind is complete (DD/MM/YYYY).
+  await screen.findByText("22/06/2026");
   await screen.findByRole("option", { name: /OSDE/ });
   change("Cobertura", "health-insurance:OSDE");
   change("Fecha", "2026-06-22");
@@ -88,6 +98,57 @@ async function fillBookingForm(email = "") {
   change("Hora", "09:20");
   return view;
 }
+
+describe("AgendarVisitaPage — Visit Kind", () => {
+  it("keeps Fecha disabled until the Visit Kind is complete", async () => {
+    render(<AgendarVisitaPage />);
+    const fecha = screen.getByLabelText("Fecha", { exact: false });
+    expect(fecha).toBeDisabled();
+
+    change("Tipo de visita", "Practice");
+    expect(fecha).toBeDisabled();
+
+    change("Tipo de práctica", "Biopsy");
+    await waitFor(() => expect(fecha).toBeEnabled());
+  });
+
+  it("fetches dates and times for the chosen Visit Kind", async () => {
+    render(<AgendarVisitaPage />);
+    change("Tipo de visita", "Practice");
+    change("Tipo de práctica", "Biopsy");
+    await screen.findByText("22/06/2026");
+
+    change("Fecha", "2026-06-22");
+    await screen.findByRole("option", { name: "09:20" });
+
+    expect(fetchedUrls("/api/availability")).toEqual([
+      "/api/availability?kind=Biopsy",
+    ]);
+    expect(fetchedUrls("/api/available-times/")).toEqual([
+      "/api/available-times/2026-06-22?kind=Biopsy",
+    ]);
+  });
+
+  it("clears date and time and refetches when the Visit Kind changes", async () => {
+    render(<AgendarVisitaPage />);
+    change("Tipo de visita", "Consultation");
+    change("Tipo de consulta", "FirstVisit");
+    await screen.findByText("22/06/2026");
+    change("Fecha", "2026-06-22");
+    await screen.findByRole("option", { name: "09:20" });
+    change("Hora", "09:20");
+
+    change("Tipo de consulta", "FollowUp");
+
+    await waitFor(() =>
+      expect(fetchedUrls("/api/availability")).toContain(
+        "/api/availability?kind=FollowUp",
+      ),
+    );
+    expect(screen.getByLabelText("Fecha", { exact: false })).toHaveValue("");
+    expect(screen.getByLabelText("Hora", { exact: false })).toHaveValue("");
+  });
+});
 
 describe("AgendarVisitaPage — optional email", () => {
   it("labels the email as optional and does not require it", async () => {
@@ -126,9 +187,11 @@ function withoutClasses(html: string): string {
 describe("AgendarVisitaPage", () => {
   it("matches the booking form structure", async () => {
     const { container } = render(<AgendarVisitaPage />);
-    // Wait until availability has loaded so the date options are present
-    // (rendered in Argentine DD/MM/YYYY form).
-    await screen.findByText("22/06/2026");
+    // Initial state: coverage config loaded, no Visit Kind chosen yet, so
+    // Fecha and Hora are disabled and no dates are listed.
+    await waitFor(() =>
+      expect(fetchedUrls("/api/self-pay-pricing")).toHaveLength(1),
+    );
 
     const form = container.querySelector("form");
     expect(form).not.toBeNull();

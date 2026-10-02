@@ -1,4 +1,5 @@
 import { addDays, isFixedHoliday, isWeekend, toISODate, weekdayOf } from "./dates";
+import type { VisitKind } from "../appointments/visit-kind";
 import type { TimeRange, WorkSchedule } from "./work-schedule";
 
 /** A Time Slot is a 20-minute bookable interval. */
@@ -48,13 +49,15 @@ function isExcludedDay(date: string, unavailable: Set<string>): boolean {
 }
 
 /**
- * The free 20-minute Time Slots for a date: every slot derived from that
- * weekday's Work Schedule, minus times already taken by Scheduled Appointments.
+ * The free 20-minute Time Slots for a date, for the Visit Kind being booked:
+ * every slot derived from that weekday's Work Schedule, minus times already
+ * taken by Scheduled Appointments (of any kind — one Professional, one agenda).
  * Returns [] for any non-bookable day (weekend, fixed holiday, Unavailable Day,
- * or a non-working weekday).
+ * or a non-working weekday). Every range accepts every kind for now.
  */
 export async function availableTimesFor(
   date: string,
+  kind: VisitKind,
   deps: AvailabilityDependencies,
 ): Promise<string[]> {
   const unavailable = new Set(deps.unavailableDays);
@@ -73,11 +76,13 @@ export async function availableTimesFor(
 }
 
 /**
- * The Booking Window: the dates open for booking — from tomorrow through 30
- * days ahead (same-day booking is not allowed), excluding weekends, fixed
- * holidays, Unavailable Days, and any day with no remaining Time Slots.
+ * The Booking Window for a Visit Kind: the dates open for booking it — from
+ * tomorrow through 30 days ahead (same-day booking is not allowed), excluding
+ * weekends, fixed holidays, Unavailable Days, and any day with no remaining
+ * Time Slots for that kind.
  */
 export async function bookingWindow(
+  kind: VisitKind,
   deps: AvailabilityDependencies,
 ): Promise<string[]> {
   const today = toISODate((deps.now ?? (() => new Date()))());
@@ -85,7 +90,7 @@ export async function bookingWindow(
 
   for (let offset = 1; offset <= BOOKING_WINDOW_DAYS; offset += 1) {
     const date = addDays(today, offset);
-    const times = await availableTimesFor(date, deps);
+    const times = await availableTimesFor(date, kind, deps);
     if (times.length > 0) {
       open.push(date);
     }
@@ -102,11 +107,12 @@ export type BookingDateTimeStatus = "ok" | "outside-window" | "slot-taken";
  * the Booking Window (past/same-day, beyond 30 days, weekend, fixed holiday,
  * Unavailable Day, or a non-working weekday) is "outside-window". A bookable
  * day whose specific time is no longer free is "slot-taken" — the race between
- * loading the form and submitting it.
+ * loading the form and submitting it — or a time not offered for this kind.
  */
 export async function classifyBookingDateTime(
   date: string,
   time: string,
+  kind: VisitKind,
   deps: AvailabilityDependencies,
 ): Promise<BookingDateTimeStatus> {
   const today = toISODate((deps.now ?? (() => new Date()))());
@@ -122,6 +128,6 @@ export async function classifyBookingDateTime(
     return "outside-window";
   }
 
-  const times = await availableTimesFor(date, deps);
+  const times = await availableTimesFor(date, kind, deps);
   return times.includes(time) ? "ok" : "slot-taken";
 }
