@@ -1,4 +1,4 @@
-/* Full-bleed band, matching "Nuestros Servicios" below it. */
+/* Full-bleed band, matching "Nuestros Servicios" above it. */
 .treatments {
   width: 100vw;
   margin-inline: calc(50% - 50vw);
@@ -26,12 +26,6 @@
   font-size: var(--text-lg);
   color: var(--text-muted);
   line-height: 1.6;
-}
-
-.number {
-  font-weight: 600;
-  color: var(--brand-dark);
-  white-space: nowrap;
 }
 
 .grid {

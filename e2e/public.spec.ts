@@ -17,7 +17,7 @@ test("home page", async ({ page }) => {
     page.getByRole("heading", { name: /Tu Piel, Nuestra Especialidad/ }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Consultas por WhatsApp" }),
+    page.getByRole("heading", { name: "Consultas Especiales" }),
   ).toBeVisible();
   await shot(page, "home.png");
 });

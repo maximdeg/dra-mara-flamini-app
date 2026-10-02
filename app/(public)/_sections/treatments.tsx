@@ -1,10 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { WhatsAppIcon } from "@/components/ui/icons";
-import {
-  CLINIC_WHATSAPP_DISPLAY,
-  clinicWhatsAppLink,
-} from "@/lib/clinic/whatsapp-contact";
+import { clinicWhatsAppLink } from "@/lib/clinic/whatsapp-contact";
 import styles from "./treatments.module.css";
 
 type Treatment = {
@@ -37,16 +34,16 @@ const TREATMENTS: Treatment[] = [
   },
 ];
 
-/** The "Consultas por WhatsApp" band: Aesthetic Treatments, each with a WhatsApp link. */
+/** The "Consultas Especiales" band: Aesthetic Treatments, each with a WhatsApp link. */
 export function Treatments() {
   return (
     <section className={styles.treatments}>
       <div className={styles.inner}>
         <header className={styles.head}>
-          <h2 className={styles.title}>Consultas por WhatsApp</h2>
+          <h2 className={styles.title}>Consultas Especiales</h2>
           <p className={styles.subtitle}>
-            Estos tratamientos se coordinan por WhatsApp. Escríbenos al{" "}
-            <span className={styles.number}>{CLINIC_WHATSAPP_DISPLAY}</span>.
+            Tratamientos estéticos ofrecidos por nuestra clínica. Para más
+            información contáctanos directamente.
           </p>
         </header>
         <div className={styles.grid}>

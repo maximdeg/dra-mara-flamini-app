@@ -10,13 +10,15 @@ const TREATMENTS = [
 ];
 
 describe("Treatments", () => {
-  it("renders the heading and the clinic's WhatsApp number", () => {
+  it("renders the heading and subtitle", () => {
     render(<Treatments />);
 
     expect(
-      screen.getByRole("heading", { name: "Consultas por WhatsApp" }),
+      screen.getByRole("heading", { name: "Consultas Especiales" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/\+54 9 3425 78-2344/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Tratamientos estéticos ofrecidos por nuestra clínica/),
+    ).toBeInTheDocument();
   });
 
   it("renders one card per Aesthetic Treatment", () => {

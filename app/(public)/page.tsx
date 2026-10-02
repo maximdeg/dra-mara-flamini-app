@@ -8,8 +8,8 @@ export default function HomePage() {
   return (
     <div className={styles.home}>
       <Hero />
-      <Treatments />
       <Services />
+      <Treatments />
       <CtaBand />
     </div>
   );
