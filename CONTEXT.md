@@ -47,6 +47,10 @@ _Avoid_: Appointment type, Service, Slot type
 How long a Visit Kind takes — 10 to 120 minutes in steps of 10, set by the Professional on the Horarios page (20 by default). Copied onto the Appointment when it is booked, so a later change never moves or collides with existing Appointments.
 _Avoid_: Slot length, Appointment length (as the setting)
 
+**Aesthetic Treatment** (UI: _Tratamiento_):
+A treatment the practice offers that is **not** a Visit Kind — Peeling, Skinbooster, Toxina botulínica, or Plasma rico en plaquetas. It cannot be booked online: no Appointment, Time Slot, or Visit Duration exists for it. The home page lists these treatments, and the Patient arranges one with the practice over WhatsApp from a link that opens a chat. This is not a Notification, which the system sends itself.
+_Avoid_: Service, Practice, Visit Kind (for these treatments)
+
 **Status**:
 The lifecycle state of an Appointment: Scheduled, Cancelled, or Completed. A new booking is Scheduled; it becomes **Completed automatically once its date has passed** (never set by hand), or **Cancelled** when the Patient or Professional cancels it. Because the system stores only Appointments — no Patient table — this status is also what gates re-booking for a phone number (see Patient).
 
