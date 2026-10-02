@@ -449,3 +449,48 @@ describe("book — WhatsApp consent", () => {
     expect(result.ok).toBe(true);
   });
 });
+
+describe("book — optional email", () => {
+  async function storedEmail(
+    patientEmail: string | null | undefined,
+  ): Promise<string | null | undefined> {
+    const repository = new InMemoryAppointmentRepository();
+    const result = await book(
+      { ...consultationForm, patientEmail },
+      deps({ repository }),
+    );
+    expect(result.ok).toBe(true);
+    return (await repository.findById("apt-1"))?.patientEmail;
+  }
+
+  it("stores a blank email as null", async () => {
+    expect(await storedEmail("")).toBeNull();
+  });
+
+  it("stores a whitespace-only email as null", async () => {
+    expect(await storedEmail("   ")).toBeNull();
+  });
+
+  it("stores an omitted email as null (API clients that send none)", async () => {
+    expect(await storedEmail(undefined)).toBeNull();
+    expect(await storedEmail(null)).toBeNull();
+  });
+
+  it("stores a valid email trimmed", async () => {
+    expect(await storedEmail("  lucia@example.com ")).toBe("lucia@example.com");
+  });
+
+  it("rejects a malformed email, creating no Appointment", async () => {
+    for (const patientEmail of ["lucia", "lucia@", "@example.com", "lucia@example", "a@b@c.com", "lu cia@example.com"]) {
+      const repository = new InMemoryAppointmentRepository();
+
+      const result = await book(
+        { ...consultationForm, patientEmail },
+        deps({ repository }),
+      );
+
+      expect(result).toEqual({ ok: false, rejection: "InvalidEmail" });
+      expect(await repository.findById("apt-1")).toBeNull();
+    }
+  });
+});

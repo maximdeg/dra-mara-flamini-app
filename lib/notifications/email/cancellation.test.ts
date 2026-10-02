@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { Appointment } from "../../appointments/appointment";
+import type { AppointmentWithEmail } from "./email-notifications";
 import { SEEDED_CLINIC_INFO } from "../../clinic/clinic-info";
 import { cancellationEmail } from "./cancellation";
 
 const contacts = SEEDED_CLINIC_INFO.contact.contacts;
 
-function appointment(overrides: Partial<Appointment> = {}): Appointment {
+function appointment(
+  overrides: Partial<AppointmentWithEmail> = {},
+): AppointmentWithEmail {
   return {
     id: "apt-1",
     patientFirstName: "Lucía",

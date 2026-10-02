@@ -2,6 +2,7 @@ import type { Appointment } from "../../appointments/appointment";
 import type { AppointmentRepository } from "../../appointments/appointment-repository";
 import { siteUrl } from "../../site-url";
 import { confirmationEmail } from "./confirmation";
+import { hasPatientEmail } from "./email-notifications";
 import type { EmailSender } from "./email-sender";
 
 export interface ConfirmationEmailDeps {
@@ -15,12 +16,14 @@ export interface ConfirmationEmailDeps {
  * EmailSender, and record the email bookkeeping on the Appointment. The manage
  * link is the absolute `/cita/[id]` URL (built from `siteUrl`). Callers
  * (Booking) invoke this best-effort — it may throw, and that must never cost the
- * Patient their Appointment (ADR-0001).
+ * Patient their Appointment (ADR-0001). Email is optional, so an Appointment
+ * without one is skipped: nothing is sent and no bookkeeping is written.
  */
 export async function sendConfirmationEmail(
   appointment: Appointment,
   deps: ConfirmationEmailDeps,
 ): Promise<void> {
+  if (!hasPatientEmail(appointment)) return;
   const message = confirmationEmail(appointment, {
     manageUrl: siteUrl(`/cita/${appointment.id}`),
   });

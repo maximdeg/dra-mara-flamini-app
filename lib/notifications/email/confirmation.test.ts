@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { Appointment } from "../../appointments/appointment";
+import type { AppointmentWithEmail } from "./email-notifications";
 import { confirmationEmail } from "./confirmation";
 
-function appointment(overrides: Partial<Appointment> = {}): Appointment {
+function appointment(
+  overrides: Partial<AppointmentWithEmail> = {},
+): AppointmentWithEmail {
   return {
     id: "apt-1",
     patientFirstName: "Lucía",

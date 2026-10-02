@@ -1,3 +1,5 @@
+import type { Appointment } from "../../appointments/appointment";
+
 /**
  * Whether Patient email notifications — the Confirmation email and the
  * Cancellation email — are sent. The client asked for them to stop while the
@@ -24,4 +26,14 @@ export function gateEmailChannel<Args extends unknown[]>(
   send: (...args: Args) => Promise<void>,
 ): (...args: Args) => Promise<void> {
   return enabled ? send : async () => {};
+}
+
+/** An Appointment whose Patient left an email — the only kind that can be mailed. */
+export type AppointmentWithEmail = Appointment & { patientEmail: string };
+
+/** Whether the Patient gave an email (it is optional on the booking form). */
+export function hasPatientEmail(
+  appointment: Appointment,
+): appointment is AppointmentWithEmail {
+  return appointment.patientEmail !== null && appointment.patientEmail !== "";
 }

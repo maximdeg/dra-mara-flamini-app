@@ -59,4 +59,16 @@ describe("sendCancellationEmail", () => {
       }),
     ).rejects.toThrow("smtp down");
   });
+
+  it("skips an Appointment without an email", async () => {
+    const sender = new FakeEmailSender();
+
+    await sendCancellationEmail(
+      { ...appointment(), patientEmail: null },
+      "patient",
+      { sender, contacts },
+    );
+
+    expect(sender.sent).toEqual([]);
+  });
 });

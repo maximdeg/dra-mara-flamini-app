@@ -60,7 +60,9 @@ export function AppointmentDetails({
       value: `${appointment.patientFirstName} ${appointment.patientLastName}`,
     },
     { label: "Teléfono", value: appointment.patientPhone },
-    { label: "Email", value: appointment.patientEmail },
+    ...(appointment.patientEmail
+      ? [{ label: "Email", value: appointment.patientEmail }]
+      : []),
     { label: "Tipo de visita", value: VISIT_TYPE_LABELS[appointment.visitType] },
     ...(appointment.consultType
       ? [

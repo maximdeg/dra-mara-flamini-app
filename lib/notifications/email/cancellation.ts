@@ -4,6 +4,7 @@ import { VISIT_TYPE_LABELS } from "../../appointments/visit-type";
 import type { ClinicContact } from "../../clinic/clinic-info";
 import { coverageLabel } from "../../coverage/coverage";
 import { formatDateAR } from "../../datetime/format";
+import type { AppointmentWithEmail } from "./email-notifications";
 import type { EmailMessage } from "./email-sender";
 import {
   BRAND_NAME,
@@ -77,7 +78,7 @@ function textBody(
  * contacts come from the persisted, Professional-editable clinic info).
  */
 export function cancellationEmail(
-  appointment: Appointment,
+  appointment: AppointmentWithEmail,
   actor: CancellationActor,
   links: CancellationLinks,
   contacts: ClinicContact[],

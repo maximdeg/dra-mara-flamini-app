@@ -89,6 +89,26 @@ describe("AppointmentDetails", () => {
     expect(screen.getByText("Confirmación por WhatsApp")).toBeInTheDocument();
   });
 
+  it("shows the Email row only when the Patient gave an email", () => {
+    const { rerender } = render(
+      <AppointmentDetails
+        appointment={APPOINTMENT}
+        status="scheduled"
+        emailNotificationsEnabled={false}
+      />,
+    );
+    expect(screen.getByText("ana@example.com")).toBeInTheDocument();
+
+    rerender(
+      <AppointmentDetails
+        appointment={{ ...APPOINTMENT, patientEmail: null }}
+        status="scheduled"
+        emailNotificationsEnabled={false}
+      />,
+    );
+    expect(screen.queryByText("Email")).not.toBeInTheDocument();
+  });
+
   it("matches the confirmation details structure", () => {
     const { container } = render(
       <AppointmentDetails

@@ -21,7 +21,11 @@ export interface Appointment {
   patientFirstName: string;
   patientLastName: string;
   patientPhone: string;
-  patientEmail: string;
+  /**
+   * Optional: `null` when the Patient left it blank. Appointments booked
+   * before email became optional always hold a string.
+   */
+  patientEmail: string | null;
   /** What the Appointment is for, and its required sub-type. */
   visitType: VisitType;
   consultType: ConsultType | null;
@@ -75,7 +79,8 @@ export interface BookingForm {
   patientFirstName: string;
   patientLastName: string;
   patientPhone: string;
-  patientEmail: string;
+  /** Optional; blank, whitespace-only or omitted is stored as `null`. */
+  patientEmail?: string | null;
   visitType: VisitType;
   consultType?: ConsultType | null;
   practiceType?: PracticeType | null;

@@ -20,9 +20,26 @@ export type BookingRejection =
   | "InvalidCoverageForVisitType"
   | "DepositNotAcknowledged"
   | "InvalidPhone"
+  | "InvalidEmail"
   | "PhoneAtOpenAppointmentLimit"
   | "OutsideBookingWindow"
   | "SlotTaken";
+
+// One "@", no whitespace, and a dot in the domain — a plausibility check, not
+// an RFC parser; the browser's type="email" is only a hint.
+const PLAUSIBLE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * The Patient's email is optional: blank, whitespace-only or omitted becomes
+ * `null`; anything else is stored trimmed, or refused when implausible.
+ */
+function normalizePatientEmail(
+  raw: string | null | undefined,
+): string | null | "invalid" {
+  const email = (raw ?? "").trim();
+  if (email === "") return null;
+  return PLAUSIBLE_EMAIL.test(email) ? email : "invalid";
+}
 
 export type BookingResult =
   | { ok: true; appointment: Appointment }
@@ -127,6 +144,11 @@ export async function book(
     return { ok: false, rejection: "InvalidPhone" };
   }
 
+  const patientEmail = normalizePatientEmail(form.patientEmail);
+  if (patientEmail === "invalid") {
+    return { ok: false, rejection: "InvalidEmail" };
+  }
+
   if (await deps.isPhoneAtOpenAppointmentLimit(patientPhone)) {
     return { ok: false, rejection: "PhoneAtOpenAppointmentLimit" };
   }
@@ -147,7 +169,7 @@ export async function book(
     patientFirstName: form.patientFirstName,
     patientLastName: form.patientLastName,
     patientPhone,
-    patientEmail: form.patientEmail,
+    patientEmail,
     visitType: form.visitType,
     consultType: subType.consultType,
     practiceType: subType.practiceType,
