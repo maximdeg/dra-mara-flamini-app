@@ -35,6 +35,11 @@ export default defineConfig({
           globals: true,
           include: ["components/**/*.test.tsx", "app/**/*.test.tsx"],
           setupFiles: ["./vitest.setup.ts"],
+          // vitest.setup.ts gives findBy*/waitFor 5s of headroom for suite
+          // load. The test timeout must clear that comfortably: at Vitest's
+          // default (also 5s) one starved findBy used up the whole test's
+          // budget, so a test awaiting two in a row timed out at random.
+          testTimeout: 15_000,
         },
       },
     ],
