@@ -62,7 +62,7 @@ export function patientCanCancel(
  * Cancellation — transition a Scheduled Appointment to Cancelled and send a
  * Cancellation Notice. The Professional may cancel at any time; a Patient only
  * within the Cancellation Window. Cancelling frees the Time Slot (Availability
- * counts only Scheduled times) and clears the one-open-per-phone gate.
+ * counts only Scheduled times) and frees a place under the per-phone cap.
  */
 export async function cancel(
   appointmentId: string,

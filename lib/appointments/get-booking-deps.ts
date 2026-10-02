@@ -6,13 +6,14 @@ import { getEmailSender } from "../notifications/email/get-email-sender";
 import { sendConfirmationEmail } from "../notifications/email/send-confirmation-email";
 import { getWhatsAppSender } from "../notifications/whatsapp/get-whatsapp-sender";
 import { sendConfirmationWhatsApp } from "../notifications/whatsapp/send-confirmation-whatsapp";
-import { phoneHasOpenAppointment, type BookingDependencies } from "./booking";
+import type { BookingDependencies } from "./booking";
 import { getAppointmentRepository } from "./get-appointment-repository";
+import { isAtOpenAppointmentLimit } from "./phone-limit";
 
 /**
  * Production composition root for Booking. It wires the seeded coverage/pricing
  * config and composes the two external checks — date/time classification (from
- * Availability) and the one-open-Appointment-per-phone rule (from the
+ * Availability) and the open-Appointments-per-phone cap (from the
  * repository + today's date) — so the route handler stays a thin adapter and
  * Booking itself never creates its own dependencies.
  */
@@ -34,8 +35,8 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
     selfPayPricing,
     classifyDateTime: (date, time) =>
       classifyBookingDateTime(date, time, availabilityDeps),
-    hasOpenAppointmentForPhone: async (phone) =>
-      phoneHasOpenAppointment(
+    isPhoneAtOpenAppointmentLimit: async (phone) =>
+      isAtOpenAppointmentLimit(
         await repository.findScheduledByPhone(phone),
         now,
       ),

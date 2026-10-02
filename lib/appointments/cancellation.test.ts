@@ -141,7 +141,7 @@ describe("cancel", () => {
     expect(result).toEqual({ ok: false, rejection: "AlreadyCompleted" });
   });
 
-  it("frees the Time Slot and clears the one-open-per-phone gate", async () => {
+  it("frees the Time Slot and frees a place under the per-phone cap", async () => {
     const repository = await repoWith(appointment());
 
     await cancel("apt-1", "patient", deps(repository));

@@ -13,6 +13,7 @@ import {
   type PracticeType,
   type VisitType,
 } from "@/lib/appointments/visit-type";
+import { MAX_OPEN_APPOINTMENTS_PER_PHONE } from "@/lib/appointments/phone-limit";
 import {
   coverageOptionsFor,
   type HealthInsurance,
@@ -31,8 +32,7 @@ import styles from "./page.module.css";
 
 // Spanish messages for the server-side Booking Rejections.
 const REJECTION_MESSAGES: Record<string, string> = {
-  PhoneHasOpenAppointment:
-    "Ya tenés una cita reservada con este teléfono. Cancelala antes de reservar otra.",
+  PhoneAtOpenAppointmentLimit: `Ya tenés ${MAX_OPEN_APPOINTMENTS_PER_PHONE} citas reservadas con este teléfono. Cancelá una antes de reservar otra.`,
   SlotTaken: "Ese horario acaba de reservarse. Elegí otro.",
   OutsideBookingWindow: "Esa fecha no está disponible para reservar.",
   MissingConsultType: "Elegí el tipo de consulta.",

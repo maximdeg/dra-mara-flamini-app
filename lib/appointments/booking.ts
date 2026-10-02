@@ -8,7 +8,6 @@ import { depositAmountFor, type SelfPayPricing } from "../deposit/deposit";
 import type { Appointment, BookingForm } from "./appointment";
 import type { AppointmentRepository } from "./appointment-repository";
 import { normalizeArgentinePhone } from "../phone/phone";
-import { statusOf } from "./status";
 import type { ConsultType, PracticeType } from "./visit-type";
 
 /**
@@ -21,23 +20,9 @@ export type BookingRejection =
   | "InvalidCoverageForVisitType"
   | "DepositNotAcknowledged"
   | "InvalidPhone"
-  | "PhoneHasOpenAppointment"
+  | "PhoneAtOpenAppointmentLimit"
   | "OutsideBookingWindow"
   | "SlotTaken";
-
-/**
- * Whether a phone already holds an open Appointment (ADR-0002). "Open" is the
- * derived Appointment Status being Scheduled — i.e. Scheduled and not yet
- * Completed — so a past (now Completed) Appointment does not block re-booking.
- */
-export function phoneHasOpenAppointment(
-  scheduled: Appointment[],
-  now: Date,
-): boolean {
-  return scheduled.some(
-    (appointment) => statusOf(appointment, now) === "scheduled",
-  );
-}
 
 export type BookingResult =
   | { ok: true; appointment: Appointment }
@@ -59,8 +44,11 @@ export interface BookingDependencies {
     date: string,
     time: string,
   ) => Promise<BookingDateTimeStatus> | BookingDateTimeStatus;
-  /** Whether this phone already holds an open Appointment (ADR-0002). */
-  hasOpenAppointmentForPhone: (phone: string) => Promise<boolean> | boolean;
+  /**
+   * Whether this (normalized) phone already holds the maximum number of open
+   * Appointments (ADR-0002).
+   */
+  isPhoneAtOpenAppointmentLimit: (phone: string) => Promise<boolean> | boolean;
   /** Send the Confirmation for a booked Appointment (called best-effort). */
   notifyConfirmation: (appointment: Appointment) => Promise<void> | void;
   /** Send the Confirmation email for a booked Appointment (called best-effort). */
@@ -81,7 +69,7 @@ interface SubType {
  * It validates that the form is internally consistent (required sub-type
  * present, the other normalized away; coverage valid for the Visit Type;
  * Deposit acknowledged when one applies), then enforces external constraints
- * (the one-open-Appointment-per-phone rule and date/time availability), and
+ * (the open-Appointments-per-phone cap and date/time availability), and
  * finally persists a Scheduled Appointment. Returning a result union (not
  * throwing) keeps every refusal an explicit, typed outcome. Enqueueing a
  * Confirmation (slice 06) is the remaining behavior to layer behind this
@@ -132,15 +120,15 @@ export async function book(
 
   // The Patient's phone is canonicalized to E.164 before it is used for
   // anything: the Confirmation is undeliverable otherwise (the Cloud API only
-  // accepts E.164), and the one-open-Appointment-per-phone rule below must
+  // accepts E.164), and the open-Appointments-per-phone cap below must
   // compare canonical values so two spellings of one number are one Patient.
   const patientPhone = normalizeArgentinePhone(form.patientPhone);
   if (patientPhone === null) {
     return { ok: false, rejection: "InvalidPhone" };
   }
 
-  if (await deps.hasOpenAppointmentForPhone(patientPhone)) {
-    return { ok: false, rejection: "PhoneHasOpenAppointment" };
+  if (await deps.isPhoneAtOpenAppointmentLimit(patientPhone)) {
+    return { ok: false, rejection: "PhoneAtOpenAppointmentLimit" };
   }
 
   const dateTime = await deps.classifyDateTime(form.date, form.time);

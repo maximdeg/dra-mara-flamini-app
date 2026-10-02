@@ -42,7 +42,7 @@ export interface AppointmentRepository {
   scheduledTimesOn(date: string): Promise<string[]>;
   /**
    * All Scheduled Appointments for a phone number. Booking uses this to enforce
-   * the one-open-Appointment-per-phone rule (ADR-0002); "open" (Scheduled with
+   * the open-Appointments-per-phone cap (ADR-0002); "open" (Scheduled with
    * a future date) is determined by the caller. Added in slice 05.
    */
   findScheduledByPhone(phone: string): Promise<Appointment[]>;

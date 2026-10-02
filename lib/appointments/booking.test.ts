@@ -2,12 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { HealthInsurance } from "../coverage/coverage";
 import { SEEDED_SELF_PAY_PRICING } from "../deposit/deposit";
 import type { Appointment, BookingForm } from "./appointment";
-import {
-  book,
-  phoneHasOpenAppointment,
-  type BookingDependencies,
-} from "./booking";
+import { book, type BookingDependencies } from "./booking";
 import { InMemoryAppointmentRepository } from "./in-memory-appointment-repository";
+import { isAtOpenAppointmentLimit } from "./phone-limit";
 
 const accepted: HealthInsurance[] = [{ name: "OSDE", price: 0, notes: "" }];
 
@@ -31,7 +28,7 @@ function deps(
     acceptedHealthInsurances: accepted,
     selfPayPricing: SEEDED_SELF_PAY_PRICING,
     classifyDateTime: () => "ok" as const,
-    hasOpenAppointmentForPhone: () => false,
+    isPhoneAtOpenAppointmentLimit: () => false,
     notifyConfirmation: async () => {},
     sendConfirmationEmail: async () => {},
     generateId: () => "apt-1",
@@ -252,15 +249,15 @@ describe("book", () => {
     });
   });
 
-  it("rejects when the phone already has an open Appointment", async () => {
+  it("rejects when the phone already holds the maximum open Appointments", async () => {
     const result = await book(
       consultationForm,
-      deps({ hasOpenAppointmentForPhone: () => true }),
+      deps({ isPhoneAtOpenAppointmentLimit: () => true }),
     );
 
     expect(result).toEqual({
       ok: false,
-      rejection: "PhoneHasOpenAppointment",
+      rejection: "PhoneAtOpenAppointmentLimit",
     });
   });
 
@@ -312,13 +309,13 @@ describe("book", () => {
     expect(await repository.findById("apt-1")).toBeNull();
   });
 
-  it("checks the one-open-Appointment rule against the normalized phone", async () => {
+  it("checks the open-Appointment cap against the normalized phone", async () => {
     const checked: string[] = [];
 
     await book(
       { ...consultationForm, patientPhone: "0342 15 111-2233" },
       deps({
-        hasOpenAppointmentForPhone: (phone) => {
+        isPhoneAtOpenAppointmentLimit: (phone) => {
           checked.push(phone);
           return false;
         },
@@ -329,52 +326,83 @@ describe("book", () => {
   });
 });
 
-describe("phoneHasOpenAppointment", () => {
-  const now = new Date("2026-06-19T12:00:00"); // a Friday
+describe("book — open Appointments per phone", () => {
+  const now = new Date("2026-06-19T12:00:00");
 
-  function scheduledOn(date: string): Appointment {
-    return {
-      id: "x",
-      patientFirstName: "A",
-      patientLastName: "B",
-      patientPhone: "3421112233",
-      patientEmail: "a@b.c",
-      visitType: "Consultation",
-      consultType: "FirstVisit",
-      practiceType: null,
-      coverage: { kind: "health-insurance", name: "OSDE" },
-      deposit: null,
-      date,
-      time: "09:00",
-      status: "scheduled",
-      whatsappSent: false,
-      whatsappSentAt: null,
-      whatsappMessageId: null,
-      emailSent: false,
-      emailSentAt: null,
-      emailMessageId: null,
-      createdAt: "2026-01-01T00:00:00.000Z",
-    };
+  // Mirrors the production wiring: the cap is checked against what the
+  // repository holds for the phone as of `now`.
+  function cappedDeps(repository: InMemoryAppointmentRepository) {
+    let n = 0;
+    return deps({
+      repository,
+      now: () => now,
+      generateId: () => `apt-${++n}`,
+      isPhoneAtOpenAppointmentLimit: async (phone) =>
+        isAtOpenAppointmentLimit(
+          await repository.findScheduledByPhone(phone),
+          now,
+        ),
+    });
   }
 
-  it("is true when a Scheduled Appointment is today or in the future", () => {
-    expect(phoneHasOpenAppointment([scheduledOn("2026-06-20")], now)).toBe(
-      true,
+  it("lets one phone hold two open Appointments, then rejects a third", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const bookingDeps = cappedDeps(repository);
+
+    const first = await book(consultationForm, bookingDeps);
+    const second = await book(
+      { ...consultationForm, date: "2026-06-23" },
+      bookingDeps,
     );
-    expect(phoneHasOpenAppointment([scheduledOn("2026-06-19")], now)).toBe(
-      true,
+    const third = await book(
+      { ...consultationForm, date: "2026-06-24" },
+      bookingDeps,
     );
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(true);
+    expect(third).toEqual({
+      ok: false,
+      rejection: "PhoneAtOpenAppointmentLimit",
+    });
+    expect(await repository.findById("apt-3")).toBeNull();
   });
 
-  it("is false when the only Scheduled Appointment is in the past (now Completed)", () => {
-    expect(phoneHasOpenAppointment([scheduledOn("2026-06-18")], now)).toBe(
-      false,
-    );
+  it("does not count past (Completed) Appointments against the phone", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const bookingDeps = cappedDeps(repository);
+    for (const date of ["2026-06-10", "2026-06-12"]) {
+      await repository.create({
+        ...(await bookedOn(date)),
+        id: `past-${date}`,
+      });
+    }
+
+    const result = await book(consultationForm, bookingDeps);
+
+    expect(result.ok).toBe(true);
   });
 
-  it("is false when there are no Scheduled Appointments", () => {
-    expect(phoneHasOpenAppointment([], now)).toBe(false);
+  it("frees a place once an open Appointment is Cancelled", async () => {
+    const repository = new InMemoryAppointmentRepository();
+    const bookingDeps = cappedDeps(repository);
+    await book(consultationForm, bookingDeps);
+    await book({ ...consultationForm, date: "2026-06-23" }, bookingDeps);
+    await repository.markCancelled("apt-1");
+
+    const result = await book(
+      { ...consultationForm, date: "2026-06-24" },
+      bookingDeps,
+    );
+
+    expect(result.ok).toBe(true);
   });
+
+  async function bookedOn(date: string): Promise<Appointment> {
+    const result = await book({ ...consultationForm, date }, deps());
+    if (!result.ok) throw new Error("fixture booking failed");
+    return result.appointment;
+  }
 });
 
 describe("book — WhatsApp consent", () => {

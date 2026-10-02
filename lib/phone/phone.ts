@@ -5,7 +5,7 @@
  * anything else with error 131026 ("message undeliverable"). Normalizing at the
  * Booking seam means the stored `patientPhone` is canonical everywhere
  * downstream: the Confirmation reaches the Patient, and the
- * one-open-Appointment-per-phone rule (ADR-0002) compares like with like
+ * open-Appointments-per-phone cap (ADR-0002) compares like with like
  * instead of treating two spellings of one number as two people.
  *
  * Argentine mobile numbers are the whole point here, so the rules below encode
