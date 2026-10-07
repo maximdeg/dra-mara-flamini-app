@@ -86,7 +86,7 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
       toast.error("Cada rango necesita al menos un tipo de visita.");
       return;
     }
-    // Likewise for times off the 10-minute availability grid.
+    // Likewise for times off 10-minute boundaries (durations are multiples of 10).
     const offGrid = schedule.some(
       (d) =>
         d.isWorkingDay &&
@@ -155,7 +155,7 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
                         // Argentine convention: render the native control in 24-hour
                         // form (no am/pm) for a visitor on a non-es locale.
                         lang="es-AR"
-                        // Steps of 10 minutes: the availability grid.
+                        // Steps of 10 minutes: durations are multiples of 10.
                         step={600}
                         className={styles.time}
                         aria-label="Desde"
@@ -170,7 +170,7 @@ export function ScheduleEditor({ initial }: { initial: WorkSchedule }) {
                       <input
                         type="time"
                         lang="es-AR"
-                        // Steps of 10 minutes: the availability grid.
+                        // Steps of 10 minutes: durations are multiples of 10.
                         step={600}
                         className={styles.time}
                         aria-label="Hasta"

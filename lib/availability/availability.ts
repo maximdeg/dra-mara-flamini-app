@@ -15,12 +15,6 @@ import {
   type WorkdaySchedule,
 } from "./work-schedule";
 
-/**
- * Availability works on a 10-minute grid: a start is offered every
- * GRID_MINUTES within a range, wherever the whole Appointment fits.
- */
-export const GRID_MINUTES = 10;
-
 /** The Booking Window opens tomorrow and runs this many days ahead. */
 export const BOOKING_WINDOW_DAYS = 30;
 
@@ -53,34 +47,35 @@ function toTime(minutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-// Every start in a range, stepping GRID_MINUTES from the range's own start,
-// where an Appointment of `duration` minutes ends by the range's end — it
-// never runs into a touching range.
-function startsWithin(range: TimeRange, duration: number): number[] {
-  const starts: number[] = [];
-  const end = toMinutes(range.end);
-  for (
-    let cur = toMinutes(range.start);
-    cur + duration <= end;
-    cur += GRID_MINUTES
-  ) {
-    starts.push(cur);
-  }
-  return starts;
-}
-
-// Whether [start, start + duration) overlaps any booked interval.
-function overlapsBooked(
-  start: number,
+// The back-to-back starts in a range for an Appointment of `duration`
+// minutes: from the range's own start, each start follows the previous
+// Appointment's end, and a start that would overlap a booked interval moves to
+// where that booking ends — so the agenda fills without gaps. Every
+// Appointment ends by the range's end; it never runs into a touching range.
+function startsWithin(
+  range: TimeRange,
   duration: number,
   booked: BookedInterval[],
-): boolean {
-  return booked.some((b) => {
-    const bookedStart = toMinutes(b.time);
-    return (
-      start < bookedStart + b.durationMinutes && bookedStart < start + duration
-    );
-  });
+): number[] {
+  const starts: number[] = [];
+  const end = toMinutes(range.end);
+  let cur = toMinutes(range.start);
+  while (cur + duration <= end) {
+    const overlappingEnds = booked
+      .map((b) => ({
+        start: toMinutes(b.time),
+        end: toMinutes(b.time) + b.durationMinutes,
+      }))
+      .filter((b) => cur < b.end && b.start < cur + duration)
+      .map((b) => b.end);
+    if (overlappingEnds.length > 0) {
+      cur = Math.max(...overlappingEnds);
+    } else {
+      starts.push(cur);
+      cur += duration;
+    }
+  }
+  return starts;
 }
 
 // The ranges of a worked day that can be booked for a Visit Kind.
@@ -94,9 +89,10 @@ function isExcludedDay(date: string, unavailable: Set<string>): boolean {
 
 /**
  * The free Time Slots — bookable start times — on a date for the Visit Kind
- * being booked: every 10-minute start in a range accepting the kind where the
- * whole Appointment fits the range, minus starts that would overlap a Scheduled
- * Appointment (of any kind — one Professional, one agenda).
+ * being booked: back-to-back starts, one Visit Duration apart, in each range
+ * accepting the kind, where the whole Appointment fits the range. A Scheduled
+ * Appointment (of any kind — one Professional, one agenda) is stepped around:
+ * the next start is where it ends.
  * Returns [] for any non-bookable day (weekend, fixed holiday, Unavailable Day,
  * or a non-working weekday) and for a day with no range accepting the kind.
  */
@@ -118,8 +114,7 @@ export async function availableTimesFor(
   const duration = deps.visitDurations[kind];
   const booked = await deps.scheduledIntervalsOn(date);
   return rangesFor(day, kind)
-    .flatMap((range) => startsWithin(range, duration))
-    .filter((start) => !overlapsBooked(start, duration, booked))
+    .flatMap((range) => startsWithin(range, duration, booked))
     .map(toTime);
 }
 

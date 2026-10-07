@@ -1,5 +1,7 @@
 # Availability per Visit Kind, on a 10-minute grid
 
+> **Start-time rule superseded by [ADR-0005](0005-back-to-back-starts-stepped-by-visit-duration.md).** Starts now step by the Visit Duration, back to back, instead of every 10 minutes. Tagged ranges, the shared agenda and copying the duration at booking below still hold.
+
 The Professional needs different kinds of visit at different times, and of different lengths: First Visits on Monday mornings, Biopsias on Wednesday afternoons, a Biopsia taking longer than a Follow-up. We model this as **one Work Schedule whose ranges are tagged with the Visit Kinds they accept**, plus a **Visit Duration** per kind, on a **10-minute grid of start times**.
 
 - **Tagged ranges, not a schedule per kind.** Each range lists its accepted Visit Kinds; an untagged range (everything saved before this) accepts all, so no migration was needed. We rejected one schedule per kind: with one Professional there is one agenda, and parallel schedules make overlaps easy to create and the week hard to read at a glance.

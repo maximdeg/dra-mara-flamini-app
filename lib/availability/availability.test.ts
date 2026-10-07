@@ -40,11 +40,10 @@ function deps(
 }
 
 describe("availableTimesFor", () => {
-  it("offers a start every 10 minutes where the whole Appointment fits the range", async () => {
-    // 2026-06-22 is a Monday; 09:00–10:00 with 20-minute Appointments, so
-    // 09:50 is not offered (it would end at 10:10).
+  it("offers back-to-back starts where the whole Appointment fits the range", async () => {
+    // 2026-06-22 is a Monday; 09:00–10:00 with 20-minute Appointments.
     expect(await availableTimesFor("2026-06-22", "FirstVisit", deps())).toEqual(
-      ["09:00", "09:10", "09:20", "09:30", "09:40"],
+      ["09:00", "09:20", "09:40"],
     );
   });
 
@@ -89,7 +88,9 @@ describe("availableTimesFor", () => {
       await availableTimesFor(
         "2026-06-22",
         "FirstVisit",
-        deps({ scheduledIntervalsOn: () => [{ time: "09:20", durationMinutes: 20 }] }),
+        deps({
+          scheduledIntervalsOn: () => [{ time: "09:20", durationMinutes: 20 }],
+        }),
       ),
     ).toEqual(["09:00", "09:40"]);
   });
@@ -191,16 +192,50 @@ describe("classifyBookingDateTime", () => {
         "2026-06-22",
         "09:20",
         "FirstVisit",
-        deps({ now, scheduledIntervalsOn: () => [{ time: "09:20", durationMinutes: 20 }] }),
+        deps({
+          now,
+          scheduledIntervalsOn: () => [{ time: "09:20", durationMinutes: 20 }],
+        }),
       ),
     ).toBe("slot-taken");
   });
 });
 
-describe("10-minute grid", () => {
+describe("Starts stepped by the Visit Duration", () => {
+  it("offers back-to-back starts, one Appointment after another", async () => {
+    // The Professional's Tuesday: 13:40–14:20 with 20-minute Electrocoagulación.
+    // 2026-10-27 is a Tuesday.
+    const times = await availableTimesFor(
+      "2026-10-27",
+      "Electrocoagulation",
+      deps({
+        workSchedule: everyDayNineToTen.map((d) => ({
+          ...d,
+          ranges: [{ start: "13:40", end: "14:20" }],
+        })),
+      }),
+    );
+    expect(times).toEqual(["13:40", "14:00"]);
+  });
+
+  it("follows a longer Appointment of another kind without a gap", async () => {
+    // A 30-minute Biopsia booked at 09:00; the next 20-minute Follow-up
+    // starts when it ends.
+    const times = await availableTimesFor(
+      "2026-06-22",
+      "FollowUp",
+      deps({
+        scheduledIntervalsOn: () => [{ time: "09:00", durationMinutes: 30 }],
+      }),
+    );
+    expect(times).toEqual(["09:30"]);
+  });
+});
+
+describe("Range edges and bookings", () => {
   const monday = "2026-06-22";
 
-  it("blocks starts overlapping a booked Appointment on either side", async () => {
+  it("resumes right where a booked Appointment ends", async () => {
     const times = await availableTimesFor(
       monday,
       "FirstVisit",
@@ -212,8 +247,9 @@ describe("10-minute grid", () => {
         scheduledIntervalsOn: () => [{ time: "09:00", durationMinutes: 20 }],
       }),
     );
-    // 08:50 would run into 09:00; 09:10 starts inside 09:00–09:20.
-    expect(times).toEqual(["08:30", "08:40", "09:20", "09:30", "09:40"]);
+    // 08:50 would run into 09:00–09:20, so the next start is 09:20 — not
+    // 09:30, which would leave a gap after the booking.
+    expect(times).toEqual(["08:30", "09:20", "09:40"]);
   });
 
   it("never combines touching ranges", async () => {
@@ -231,7 +267,7 @@ describe("10-minute grid", () => {
       }),
     );
     // 09:20 would end at 09:40, crossing from one range into the next.
-    expect(times).toEqual(["09:00", "09:10", "09:30", "09:40"]);
+    expect(times).toEqual(["09:00", "09:30"]);
   });
 
   it("steps an off-grid legacy range from its own start", async () => {
@@ -245,7 +281,7 @@ describe("10-minute grid", () => {
         })),
       }),
     );
-    expect(times).toEqual(["09:05", "09:15", "09:25"]);
+    expect(times).toEqual(["09:05", "09:25"]);
   });
 });
 
@@ -260,7 +296,7 @@ describe("Durations per Visit Kind", () => {
         "Biopsy",
         deps({ visitDurations: longBiopsy }),
       ),
-    ).toEqual(["09:00", "09:10", "09:20"]);
+    ).toEqual(["09:00"]);
   });
 
   it("keeps a short kind's starts unchanged by another kind's duration", async () => {
@@ -270,7 +306,7 @@ describe("Durations per Visit Kind", () => {
         "FollowUp",
         deps({ visitDurations: longBiopsy }),
       ),
-    ).toEqual(["09:00", "09:10", "09:20", "09:30", "09:40"]);
+    ).toEqual(["09:00", "09:20", "09:40"]);
   });
 
   it("blocks every overlapping start for all kinds while a long Appointment is booked", async () => {
@@ -312,10 +348,10 @@ describe("Availability per Visit Kind", () => {
         "FollowUp",
         deps({ workSchedule: split }),
       ),
-    ).toEqual(["09:00", "09:10", "09:20"]);
+    ).toEqual(["09:00", "09:20"]);
     expect(
       await availableTimesFor(monday, "Biopsy", deps({ workSchedule: split })),
-    ).toEqual(["16:00", "16:10", "16:20"]);
+    ).toEqual(["16:00", "16:20"]);
   });
 
   it("leaves a day out of a kind's Booking Window when no range accepts it", async () => {
