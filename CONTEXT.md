@@ -79,7 +79,7 @@ The Professional's recurring weekly availability — which weekdays are worked, 
 _Avoid_: Hours, Calendar
 
 **Time Slot**:
-A bookable start time for a Visit Kind on a given day. Starts sit on a 10-minute grid (09:00, 09:10, …): one is offered wherever the whole Appointment fits inside a single Work Schedule range that accepts the kind, without overlapping any Scheduled Appointment — of any kind, since there is one Professional and one agenda.
+A bookable start time for a Visit Kind on a given day. Starts run back to back, one Visit Duration apart from the start of a Work Schedule range that accepts the kind (13:40, 14:00, … for 20 minutes). The whole Appointment must fit inside that single range. Starts never overlap a Scheduled Appointment — of any kind, since there is one Professional and one agenda. When one is in the way, the next start is where it ends.
 _Avoid_: Slot time, Appointment slot
 
 **Booking Window**:
