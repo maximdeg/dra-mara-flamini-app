@@ -21,7 +21,7 @@ If Meta **rejects** the edit, leave the flag off. Indicaciones still reach Patie
 
 ## Acceptance criteria
 
-- [ ] Meta shows the edited template as Approved.
+- [x] Meta shows the edited template as Approved (reported 2026-10-03).
 - [ ] The smoke test with the flag set delivers the 7-parameter message.
 - [ ] The flag is set in Vercel, and a production booking's WhatsApp shows the Indicaciones, or the fallback when there are none.
 - [ ] The Panel's usage log shows no error-100 rejections after the flip.
