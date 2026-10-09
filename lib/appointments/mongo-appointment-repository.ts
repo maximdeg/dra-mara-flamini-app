@@ -45,6 +45,27 @@ export class MongoAppointmentRepository implements AppointmentRepository {
     }));
   }
 
+  async scheduledIntervalsBetween(
+    from: string,
+    to: string,
+  ): Promise<Record<string, BookedInterval[]>> {
+    const docs = await this.db
+      .collection<Appointment>(COLLECTION)
+      .find(
+        { date: { $gte: from, $lte: to }, status: "scheduled" },
+        { projection: { _id: 0, date: 1, time: 1, durationMinutes: 1 } },
+      )
+      .toArray();
+    const byDate: Record<string, BookedInterval[]> = {};
+    for (const doc of docs) {
+      (byDate[doc.date] ??= []).push({
+        time: doc.time,
+        durationMinutes: durationOf(doc),
+      });
+    }
+    return byDate;
+  }
+
   async findScheduledByPhone(phone: string): Promise<Appointment[]> {
     const docs = await this.db
       .collection<Appointment>(COLLECTION)

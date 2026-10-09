@@ -28,6 +28,22 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
       .map((a) => ({ time: a.time, durationMinutes: durationOf(a) }));
   }
 
+  async scheduledIntervalsBetween(
+    from: string,
+    to: string,
+  ): Promise<Record<string, BookedInterval[]>> {
+    const byDate: Record<string, BookedInterval[]> = {};
+    for (const a of this.appointments.values()) {
+      if (a.status === "scheduled" && a.date >= from && a.date <= to) {
+        (byDate[a.date] ??= []).push({
+          time: a.time,
+          durationMinutes: durationOf(a),
+        });
+      }
+    }
+    return byDate;
+  }
+
   async findScheduledByPhone(phone: string): Promise<Appointment[]> {
     return [...this.appointments.values()].filter(
       (a) => a.patientPhone === phone && a.status === "scheduled",

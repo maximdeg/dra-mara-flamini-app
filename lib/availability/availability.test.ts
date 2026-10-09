@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
-  BOOKING_WINDOW_DAYS,
   availableTimesFor,
   bookingWindow,
   classifyBookingDateTime,
@@ -113,10 +112,9 @@ describe("bookingWindow", () => {
     expect(days[0]).toBe("2026-06-22");
   });
 
-  it("stays within 30 days ahead", async () => {
+  it("stays within 30 days ahead by default", async () => {
     const days = await bookingWindow("FirstVisit", deps({ now }));
     expect(days.every((d) => d <= "2026-07-19")).toBe(true);
-    expect(BOOKING_WINDOW_DAYS).toBe(30);
   });
 
   it("excludes days with no remaining Time Slots (fully booked)", async () => {
@@ -398,5 +396,110 @@ describe("Availability per Visit Kind", () => {
         deps({ workSchedule: consultsOnly, now }),
       ),
     ).toBe("outside-window");
+  });
+});
+
+describe("Booking Window length set by the Professional", () => {
+  const now = () => new Date("2026-06-19T08:00:00"); // a Friday
+
+  it("offers dates up to the configured number of days ahead", async () => {
+    const days = await bookingWindow(
+      "FirstVisit",
+      deps({ now, bookingWindowDays: 90 }),
+    );
+    // Thursday 2026-09-17 is 90 days ahead; Friday the 18th is 91.
+    expect(days.at(-1)).toBe("2026-09-17");
+  });
+
+  it("accepts the last day of a longer window and refuses the day after", async () => {
+    const longWindow = deps({ now, bookingWindowDays: 90 });
+    expect(
+      await classifyBookingDateTime(
+        "2026-09-17",
+        "09:20",
+        "FirstVisit",
+        longWindow,
+      ),
+    ).toBe("ok");
+    expect(
+      await classifyBookingDateTime(
+        "2026-09-18",
+        "09:20",
+        "FirstVisit",
+        longWindow,
+      ),
+    ).toBe("outside-window");
+  });
+
+  it("refuses a date a shorter window no longer reaches", async () => {
+    const shortWindow = deps({ now, bookingWindowDays: 14 });
+    // Friday 2026-07-03 is 14 days ahead; Monday the 6th is beyond it.
+    expect(
+      await classifyBookingDateTime(
+        "2026-07-03",
+        "09:20",
+        "FirstVisit",
+        shortWindow,
+      ),
+    ).toBe("ok");
+    expect(
+      await classifyBookingDateTime(
+        "2026-07-06",
+        "09:20",
+        "FirstVisit",
+        shortWindow,
+      ),
+    ).toBe("outside-window");
+    expect((await bookingWindow("FirstVisit", shortWindow)).at(-1)).toBe(
+      "2026-07-03",
+    );
+  });
+});
+
+describe("Booking Window read in one go", () => {
+  const now = () => new Date("2026-06-19T08:00:00"); // a Friday
+  const fullMonday = ["09:00", "09:20", "09:40"].map((time) => ({
+    time,
+    durationMinutes: 20,
+  }));
+
+  it("reads the whole window's bookings once, not once per day", async () => {
+    const rangeRead = vi.fn(() => ({ "2026-06-22": fullMonday }));
+    const perDayRead = vi.fn(() => []);
+
+    await bookingWindow(
+      "FirstVisit",
+      deps({
+        now,
+        bookingWindowDays: 90,
+        scheduledIntervalsOn: perDayRead,
+        scheduledIntervalsBetween: rangeRead,
+      }),
+    );
+
+    expect(rangeRead).toHaveBeenCalledTimes(1);
+    expect(rangeRead).toHaveBeenCalledWith("2026-06-20", "2026-09-17");
+    expect(perDayRead).not.toHaveBeenCalled();
+  });
+
+  it("opens the same days as reading each day", async () => {
+    const perDay = await bookingWindow(
+      "FirstVisit",
+      deps({
+        now,
+        scheduledIntervalsOn: (date) =>
+          date === "2026-06-22" ? fullMonday : [],
+      }),
+    );
+    const inOneGo = await bookingWindow(
+      "FirstVisit",
+      deps({
+        now,
+        scheduledIntervalsBetween: () => ({ "2026-06-22": fullMonday }),
+      }),
+    );
+
+    expect(inOneGo).toEqual(perDay);
+    expect(inOneGo).not.toContain("2026-06-22");
   });
 });

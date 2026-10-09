@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { WorkSchedule } from "@/lib/availability/work-schedule";
 import { ToastProvider } from "@/components/ui/toast";
 import { cancelCollisionAction, saveScheduleAction } from "./actions";
@@ -62,7 +62,11 @@ describe("ScheduleEditor", () => {
     });
     expect(dialog).toHaveTextContent("Ana García");
 
-    fireEvent.click(screen.getByRole("button", { name: "Cancelar turno" }));
+    // The dialog opens while the save transition is still pending, and its
+    // buttons stay disabled until it settles — a click before then is lost.
+    const cancel = screen.getByRole("button", { name: "Cancelar turno" });
+    await waitFor(() => expect(cancel).toBeEnabled());
+    fireEvent.click(cancel);
 
     expect(
       await screen.findByText(/Conflictos resueltos/),

@@ -8,6 +8,7 @@ import {
 import type { BookedInterval } from "../appointments/appointment-repository";
 import type { VisitKind } from "../appointments/visit-kind";
 import type { VisitDurations } from "./visit-durations";
+import { DEFAULT_BOOKING_WINDOW_DAYS } from "./booking-window-length";
 import {
   rangeAccepts,
   type TimeRange,
@@ -15,14 +16,12 @@ import {
   type WorkdaySchedule,
 } from "./work-schedule";
 
-/** The Booking Window opens tomorrow and runs this many days ahead. */
-export const BOOKING_WINDOW_DAYS = 30;
-
 /**
  * Everything Availability needs, accepted as dependencies (not created) so the
  * module is tested through its interface: a Work Schedule, the set of
  * Unavailable Days, a way to read the intervals Scheduled Appointments occupy
- * on a date (the repository seam), each Visit Kind's duration, and an
+ * on a date (the repository seam), each Visit Kind's duration, how many days
+ * ahead the Booking Window runs (the Professional's setting), and an
  * injectable clock.
  */
 export interface AvailabilityDependencies {
@@ -31,8 +30,20 @@ export interface AvailabilityDependencies {
   scheduledIntervalsOn: (
     date: string,
   ) => Promise<BookedInterval[]> | BookedInterval[];
+  /**
+   * The same intervals across an inclusive date range, keyed by date. When
+   * given, the Booking Window reads its whole span once instead of per day.
+   */
+  scheduledIntervalsBetween?: (
+    from: string,
+    to: string,
+  ) =>
+    | Promise<Record<string, BookedInterval[]>>
+    | Record<string, BookedInterval[]>;
   /** How long each Visit Kind takes — what a start must leave room for. */
   visitDurations: VisitDurations;
+  /** How many days ahead the Booking Window runs; 30 when not given. */
+  bookingWindowDays?: number;
   now?: () => Date;
 }
 
@@ -120,7 +131,8 @@ export async function availableTimesFor(
 
 /**
  * The Booking Window for a Visit Kind: the dates open for booking it — from
- * tomorrow through 30 days ahead (same-day booking is not allowed), excluding
+ * tomorrow through the Booking Window length ahead (30 days unless the
+ * Professional sets another; same-day booking is not allowed), excluding
  * weekends, fixed holidays, Unavailable Days, and any day with no remaining
  * Time Slots for that kind.
  */
@@ -129,11 +141,22 @@ export async function bookingWindow(
   deps: AvailabilityDependencies,
 ): Promise<string[]> {
   const today = toISODate((deps.now ?? (() => new Date()))());
+  const length = deps.bookingWindowDays ?? DEFAULT_BOOKING_WINDOW_DAYS;
   const open: string[] = [];
 
-  for (let offset = 1; offset <= BOOKING_WINDOW_DAYS; offset += 1) {
+  // A long window would mean one read per day; read its span once instead.
+  let dayDeps = deps;
+  if (deps.scheduledIntervalsBetween) {
+    const byDate = await deps.scheduledIntervalsBetween(
+      addDays(today, 1),
+      addDays(today, length),
+    );
+    dayDeps = { ...deps, scheduledIntervalsOn: (date) => byDate[date] ?? [] };
+  }
+
+  for (let offset = 1; offset <= length; offset += 1) {
     const date = addDays(today, offset);
-    const times = await availableTimesFor(date, kind, deps);
+    const times = await availableTimesFor(date, kind, dayDeps);
     if (times.length > 0) {
       open.push(date);
     }
@@ -147,7 +170,7 @@ export type BookingDateTimeStatus = "ok" | "outside-window" | "slot-taken";
 
 /**
  * Classify a chosen date/time for Booking's server-side guard. A date outside
- * the Booking Window (past/same-day, beyond 30 days, weekend, fixed holiday,
+ * the Booking Window (past/same-day, beyond its length, weekend, fixed holiday,
  * Unavailable Day, a non-working weekday, or a day with no range accepting the
  * kind) is "outside-window". A bookable
  * day whose specific time is no longer free is "slot-taken" — the race between
@@ -160,7 +183,8 @@ export async function classifyBookingDateTime(
   deps: AvailabilityDependencies,
 ): Promise<BookingDateTimeStatus> {
   const today = toISODate((deps.now ?? (() => new Date()))());
-  if (date < addDays(today, 1) || date > addDays(today, BOOKING_WINDOW_DAYS)) {
+  const length = deps.bookingWindowDays ?? DEFAULT_BOOKING_WINDOW_DAYS;
+  if (date < addDays(today, 1) || date > addDays(today, length)) {
     return "outside-window";
   }
 

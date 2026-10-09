@@ -16,3 +16,8 @@ export interface SaveDurationsState {
   saved?: boolean;
   error?: string;
 }
+
+export interface SaveBookingWindowLengthState {
+  saved?: boolean;
+  error?: string;
+}

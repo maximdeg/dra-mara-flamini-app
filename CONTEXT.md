@@ -83,8 +83,12 @@ A bookable start time for a Visit Kind on a given day. Starts run back to back, 
 _Avoid_: Slot time, Appointment slot
 
 **Booking Window**:
-The range of dates open for booking a given Visit Kind: from **tomorrow** (same-day booking is not allowed) up to 30 days ahead. Weekends, holidays, Unavailable Days, and days with no remaining Time Slots for that kind are excluded from it.
+The range of dates open for booking a given Visit Kind: from **tomorrow** (same-day booking is not allowed) up to the Booking Window length ahead. Weekends, holidays, Unavailable Days, and days with no remaining Time Slots for that kind are excluded from it.
 _Avoid_: Booking range, Availability window
+
+**Booking Window length** (UI: _Ventana de reservas_):
+How many days ahead the Booking Window runs — one setting for every Visit Kind, picked by the Professional on the Horarios page: 14 days (_2 semanas_), or 30 to 180 days in steps of 15 (_1 mes_ … _6 meses_); 30 by default. A "month" here is a fixed 30 days, not a calendar month. Changing it only limits new bookings: Appointments already booked beyond a shorter window stay Scheduled.
+_Avoid_: Booking horizon, Max booking date
 
 **Unavailable Day** (UI: _Día no laborable_):
 A specific calendar date the Professional has blocked, making it non-bookable even though it falls on a working weekday.
