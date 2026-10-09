@@ -48,6 +48,15 @@ export interface AppointmentRepository {
    */
   scheduledIntervalsOn(date: string): Promise<BookedInterval[]>;
   /**
+   * The same intervals across an inclusive date range, keyed by date (dates
+   * with none are absent) — one read for a whole Booking Window instead of
+   * one per day.
+   */
+  scheduledIntervalsBetween(
+    from: string,
+    to: string,
+  ): Promise<Record<string, BookedInterval[]>>;
+  /**
    * All Scheduled Appointments for a phone number. Booking uses this to enforce
    * the open-Appointments-per-phone cap (ADR-0002); "open" (Scheduled with
    * a future date) is determined by the caller. Added in slice 05.
