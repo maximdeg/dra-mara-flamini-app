@@ -5,6 +5,7 @@ import {
   DEFAULT_BOOKING_WINDOW_DAYS,
   sanitizeBookingWindowLength,
 } from "./booking-window-length";
+import { InMemoryBookingWindowLengthRepository } from "./in-memory-booking-window-length-repository";
 
 describe("Booking Window length", () => {
   it("defaults to 30 days", () => {
@@ -38,5 +39,19 @@ describe("sanitizeBookingWindowLength", () => {
     expect(sanitizeBookingWindowLength(365)).toBe(30);
     expect(sanitizeBookingWindowLength("abc")).toBe(30);
     expect(sanitizeBookingWindowLength(undefined)).toBe(30);
+  });
+});
+
+describe("BookingWindowLengthRepository (in-memory)", () => {
+  it("returns the default until saved", async () => {
+    expect(await new InMemoryBookingWindowLengthRepository().get()).toBe(30);
+  });
+
+  it("returns the saved length", async () => {
+    const repository = new InMemoryBookingWindowLengthRepository();
+
+    await repository.save(90);
+
+    expect(await repository.get()).toBe(90);
   });
 });
