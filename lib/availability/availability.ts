@@ -16,9 +16,6 @@ import {
   type WorkdaySchedule,
 } from "./work-schedule";
 
-/** The Booking Window opens tomorrow and, by default, runs this many days ahead. */
-export const BOOKING_WINDOW_DAYS = DEFAULT_BOOKING_WINDOW_DAYS;
-
 /**
  * Everything Availability needs, accepted as dependencies (not created) so the
  * module is tested through its interface: a Work Schedule, the set of
@@ -124,7 +121,8 @@ export async function availableTimesFor(
 
 /**
  * The Booking Window for a Visit Kind: the dates open for booking it — from
- * tomorrow through 30 days ahead (same-day booking is not allowed), excluding
+ * tomorrow through the Booking Window length ahead (30 days unless the
+ * Professional sets another; same-day booking is not allowed), excluding
  * weekends, fixed holidays, Unavailable Days, and any day with no remaining
  * Time Slots for that kind.
  */
@@ -152,7 +150,7 @@ export type BookingDateTimeStatus = "ok" | "outside-window" | "slot-taken";
 
 /**
  * Classify a chosen date/time for Booking's server-side guard. A date outside
- * the Booking Window (past/same-day, beyond 30 days, weekend, fixed holiday,
+ * the Booking Window (past/same-day, beyond its length, weekend, fixed holiday,
  * Unavailable Day, a non-working weekday, or a day with no range accepting the
  * kind) is "outside-window". A bookable
  * day whose specific time is no longer free is "slot-taken" — the race between

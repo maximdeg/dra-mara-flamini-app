@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  BOOKING_WINDOW_DAYS,
   availableTimesFor,
   bookingWindow,
   classifyBookingDateTime,
@@ -113,10 +112,9 @@ describe("bookingWindow", () => {
     expect(days[0]).toBe("2026-06-22");
   });
 
-  it("stays within 30 days ahead", async () => {
+  it("stays within 30 days ahead by default", async () => {
     const days = await bookingWindow("FirstVisit", deps({ now }));
     expect(days.every((d) => d <= "2026-07-19")).toBe(true);
-    expect(BOOKING_WINDOW_DAYS).toBe(30);
   });
 
   it("excludes days with no remaining Time Slots (fully booked)", async () => {
