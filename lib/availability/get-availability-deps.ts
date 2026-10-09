@@ -42,5 +42,7 @@ export async function getAvailabilityDeps(): Promise<AvailabilityDependencies> {
     visitDurations,
     bookingWindowDays,
     scheduledIntervalsOn: (date) => repository.scheduledIntervalsOn(date),
+    scheduledIntervalsBetween: (from, to) =>
+      repository.scheduledIntervalsBetween(from, to),
   };
 }

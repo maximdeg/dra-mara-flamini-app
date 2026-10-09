@@ -30,6 +30,16 @@ export interface AvailabilityDependencies {
   scheduledIntervalsOn: (
     date: string,
   ) => Promise<BookedInterval[]> | BookedInterval[];
+  /**
+   * The same intervals across an inclusive date range, keyed by date. When
+   * given, the Booking Window reads its whole span once instead of per day.
+   */
+  scheduledIntervalsBetween?: (
+    from: string,
+    to: string,
+  ) =>
+    | Promise<Record<string, BookedInterval[]>>
+    | Record<string, BookedInterval[]>;
   /** How long each Visit Kind takes — what a start must leave room for. */
   visitDurations: VisitDurations;
   /** How many days ahead the Booking Window runs; 30 when not given. */
@@ -131,12 +141,22 @@ export async function bookingWindow(
   deps: AvailabilityDependencies,
 ): Promise<string[]> {
   const today = toISODate((deps.now ?? (() => new Date()))());
+  const length = deps.bookingWindowDays ?? DEFAULT_BOOKING_WINDOW_DAYS;
   const open: string[] = [];
 
-  const length = deps.bookingWindowDays ?? DEFAULT_BOOKING_WINDOW_DAYS;
+  // A long window would mean one read per day; read its span once instead.
+  let dayDeps = deps;
+  if (deps.scheduledIntervalsBetween) {
+    const byDate = await deps.scheduledIntervalsBetween(
+      addDays(today, 1),
+      addDays(today, length),
+    );
+    dayDeps = { ...deps, scheduledIntervalsOn: (date) => byDate[date] ?? [] };
+  }
+
   for (let offset = 1; offset <= length; offset += 1) {
     const date = addDays(today, offset);
-    const times = await availableTimesFor(date, kind, deps);
+    const times = await availableTimesFor(date, kind, dayDeps);
     if (times.length > 0) {
       open.push(date);
     }

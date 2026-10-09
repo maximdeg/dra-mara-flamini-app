@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   availableTimesFor,
   bookingWindow,
@@ -453,5 +453,53 @@ describe("Booking Window length set by the Professional", () => {
     expect((await bookingWindow("FirstVisit", shortWindow)).at(-1)).toBe(
       "2026-07-03",
     );
+  });
+});
+
+describe("Booking Window read in one go", () => {
+  const now = () => new Date("2026-06-19T08:00:00"); // a Friday
+  const fullMonday = ["09:00", "09:20", "09:40"].map((time) => ({
+    time,
+    durationMinutes: 20,
+  }));
+
+  it("reads the whole window's bookings once, not once per day", async () => {
+    const rangeRead = vi.fn(() => ({ "2026-06-22": fullMonday }));
+    const perDayRead = vi.fn(() => []);
+
+    await bookingWindow(
+      "FirstVisit",
+      deps({
+        now,
+        bookingWindowDays: 90,
+        scheduledIntervalsOn: perDayRead,
+        scheduledIntervalsBetween: rangeRead,
+      }),
+    );
+
+    expect(rangeRead).toHaveBeenCalledTimes(1);
+    expect(rangeRead).toHaveBeenCalledWith("2026-06-20", "2026-09-17");
+    expect(perDayRead).not.toHaveBeenCalled();
+  });
+
+  it("opens the same days as reading each day", async () => {
+    const perDay = await bookingWindow(
+      "FirstVisit",
+      deps({
+        now,
+        scheduledIntervalsOn: (date) =>
+          date === "2026-06-22" ? fullMonday : [],
+      }),
+    );
+    const inOneGo = await bookingWindow(
+      "FirstVisit",
+      deps({
+        now,
+        scheduledIntervalsBetween: () => ({ "2026-06-22": fullMonday }),
+      }),
+    );
+
+    expect(inOneGo).toEqual(perDay);
+    expect(inOneGo).not.toContain("2026-06-22");
   });
 });
