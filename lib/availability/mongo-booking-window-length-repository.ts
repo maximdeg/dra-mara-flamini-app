@@ -13,9 +13,7 @@ const KEY = "singleton";
  * fixed `key`. Until it exists, `get` returns the default; a stored value is
  * read through the sanitizer so one no longer offered reads as the default.
  */
-export class MongoBookingWindowLengthRepository
-  implements BookingWindowLengthRepository
-{
+export class MongoBookingWindowLengthRepository implements BookingWindowLengthRepository {
   constructor(private readonly db: Db) {}
 
   async get(): Promise<number> {

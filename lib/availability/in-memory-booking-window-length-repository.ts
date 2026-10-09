@@ -6,9 +6,7 @@ import type { BookingWindowLengthRepository } from "./booking-window-length-repo
  * tests and dev. `get` returns the default until a length is saved, matching
  * the Mongo adapter.
  */
-export class InMemoryBookingWindowLengthRepository
-  implements BookingWindowLengthRepository
-{
+export class InMemoryBookingWindowLengthRepository implements BookingWindowLengthRepository {
   private days: number | null;
 
   constructor(seed: number | null = null) {

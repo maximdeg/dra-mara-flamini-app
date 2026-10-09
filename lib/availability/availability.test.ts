@@ -400,3 +400,60 @@ describe("Availability per Visit Kind", () => {
     ).toBe("outside-window");
   });
 });
+
+describe("Booking Window length set by the Professional", () => {
+  const now = () => new Date("2026-06-19T08:00:00"); // a Friday
+
+  it("offers dates up to the configured number of days ahead", async () => {
+    const days = await bookingWindow(
+      "FirstVisit",
+      deps({ now, bookingWindowDays: 90 }),
+    );
+    // Thursday 2026-09-17 is 90 days ahead; Friday the 18th is 91.
+    expect(days.at(-1)).toBe("2026-09-17");
+  });
+
+  it("accepts the last day of a longer window and refuses the day after", async () => {
+    const longWindow = deps({ now, bookingWindowDays: 90 });
+    expect(
+      await classifyBookingDateTime(
+        "2026-09-17",
+        "09:20",
+        "FirstVisit",
+        longWindow,
+      ),
+    ).toBe("ok");
+    expect(
+      await classifyBookingDateTime(
+        "2026-09-18",
+        "09:20",
+        "FirstVisit",
+        longWindow,
+      ),
+    ).toBe("outside-window");
+  });
+
+  it("refuses a date a shorter window no longer reaches", async () => {
+    const shortWindow = deps({ now, bookingWindowDays: 14 });
+    // Friday 2026-07-03 is 14 days ahead; Monday the 6th is beyond it.
+    expect(
+      await classifyBookingDateTime(
+        "2026-07-03",
+        "09:20",
+        "FirstVisit",
+        shortWindow,
+      ),
+    ).toBe("ok");
+    expect(
+      await classifyBookingDateTime(
+        "2026-07-06",
+        "09:20",
+        "FirstVisit",
+        shortWindow,
+      ),
+    ).toBe("outside-window");
+    expect((await bookingWindow("FirstVisit", shortWindow)).at(-1)).toBe(
+      "2026-07-03",
+    );
+  });
+});
