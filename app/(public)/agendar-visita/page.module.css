@@ -110,10 +110,12 @@
   gap: var(--space-4);
 }
 
-/* Volver then Agendar in one row; on phones they stack with Agendar on top. */
+/* Volver at the form's left edge, Agendar at its right; on phones they stack
+   with Agendar on top. */
 .buttons {
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-between;
   gap: var(--space-3);
 }
 
