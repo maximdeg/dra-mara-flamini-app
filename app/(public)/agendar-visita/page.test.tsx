@@ -198,3 +198,16 @@ describe("AgendarVisitaPage", () => {
     expect(withoutClasses(form!.outerHTML)).toMatchSnapshot();
   });
 });
+
+describe("AgendarVisitaPage — back navigation", () => {
+  it("offers a Volver link to the home page above the title", () => {
+    render(<AgendarVisitaPage />);
+    const [top] = screen.getAllByRole("link", { name: "Volver" });
+    expect(top).toHaveAttribute("href", "/");
+
+    const heading = screen.getByRole("heading", { name: "Agendar una visita" });
+    expect(
+      top.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+});

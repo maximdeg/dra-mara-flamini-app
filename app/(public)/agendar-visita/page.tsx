@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   CONSULT_TYPES,
@@ -29,6 +30,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
+import { ArrowLeftIcon } from "@/components/ui/icons";
 import styles from "./page.module.css";
 
 // Spanish messages for the server-side Booking Rejections.
@@ -233,6 +235,10 @@ export default function AgendarVisitaPage() {
   return (
     <div className={styles.page}>
       <header className={styles.intro}>
+        <Link href="/" className={styles.back}>
+          <ArrowLeftIcon size={18} />
+          Volver
+        </Link>
         <h1 className={styles.title}>Agendar una visita</h1>
         <p className={styles.subtitle}>
           Completá tus datos y elegí el día y horario que prefieras.
