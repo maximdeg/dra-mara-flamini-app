@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 import {
+  ArrowLeftIcon,
   ArrowRightIcon,
   AwardIcon,
   ShieldIcon,
@@ -9,6 +10,7 @@ import {
 
 describe("home icons", () => {
   const icons = [
+    ["ArrowLeftIcon", ArrowLeftIcon],
     ["ArrowRightIcon", ArrowRightIcon],
     ["ShieldIcon", ShieldIcon],
     ["UsersIcon", UsersIcon],
