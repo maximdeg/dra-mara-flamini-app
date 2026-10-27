@@ -422,14 +422,25 @@ export default function AgendarVisitaPage() {
 
         <div className={styles.actions}>
           {error ? <Alert variant="error">{error}</Alert> : null}
-          <Button
-            type="submit"
-            busy={submitting}
-            disabled={!canSubmit}
-            className={styles.submit}
-          >
-            {submitting ? "Agendando…" : "Agendar"}
-          </Button>
+          <div className={styles.buttons}>
+            <Button
+              as={Link}
+              href="/"
+              variant="secondary"
+              className={styles.button}
+            >
+              <ArrowLeftIcon size={18} />
+              Volver
+            </Button>
+            <Button
+              type="submit"
+              busy={submitting}
+              disabled={!canSubmit}
+              className={styles.button}
+            >
+              {submitting ? "Agendando…" : "Agendar"}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

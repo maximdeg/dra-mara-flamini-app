@@ -110,8 +110,14 @@
   gap: var(--space-4);
 }
 
-.submit {
-  align-self: flex-start;
+/* Volver then Agendar in one row; on phones they stack with Agendar on top. */
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.button {
   font-size: var(--text-base);
   padding: var(--space-3) var(--space-8);
 }
@@ -121,7 +127,7 @@
     grid-template-columns: 1fr;
   }
 
-  .submit {
-    align-self: stretch;
+  .buttons {
+    flex-direction: column-reverse;
   }
 }

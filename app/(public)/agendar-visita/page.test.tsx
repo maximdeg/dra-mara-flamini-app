@@ -211,3 +211,20 @@ describe("AgendarVisitaPage — back navigation", () => {
     ).toBeTruthy();
   });
 });
+
+describe("AgendarVisitaPage — Volver next to Agendar", () => {
+  it("offers a second Volver link to home that stays usable while Agendar is disabled", () => {
+    const { container } = render(<AgendarVisitaPage />);
+    const links = screen.getAllByRole("link", { name: "Volver" });
+    expect(links).toHaveLength(2);
+
+    const bottom = links[1];
+    expect(bottom).toHaveAttribute("href", "/");
+    expect(container.querySelector("form")).toContainElement(bottom);
+    expect(bottom).not.toHaveAttribute("type", "submit");
+    expect(bottom).not.toHaveAttribute("aria-disabled");
+
+    // The form is empty, so Agendar is disabled — Volver is not affected.
+    expect(screen.getByRole("button", { name: "Agendar" })).toBeDisabled();
+  });
+});
