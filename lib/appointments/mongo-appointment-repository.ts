@@ -111,6 +111,17 @@ export class MongoAppointmentRepository implements AppointmentRepository {
     );
   }
 
+  async markReminderSent(
+    id: string,
+    sentAt: string,
+    messageId: string,
+  ): Promise<void> {
+    await this.db.collection(COLLECTION).updateOne(
+      { id },
+      { $set: { reminderSentAt: sentAt, reminderMessageId: messageId } },
+    );
+  }
+
   async markCancelled(id: string): Promise<void> {
     await this.db
       .collection(COLLECTION)

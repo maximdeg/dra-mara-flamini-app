@@ -77,6 +77,12 @@ export interface AppointmentRepository {
    */
   markEmailSent(id: string, sentAt: string, messageId: string): Promise<void>;
   /**
+   * Record that an Appointment's day-before Reminder was sent. The Reminder
+   * batch skips Appointments that already carry one, which keeps a repeated
+   * cron run from double-sending.
+   */
+  markReminderSent(id: string, sentAt: string, messageId: string): Promise<void>;
+  /**
    * Transition an Appointment to Cancelled — the only persisted status change
    * (Completed is always derived). Added in slice 08.
    */
