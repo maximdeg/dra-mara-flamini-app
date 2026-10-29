@@ -1,12 +1,8 @@
 import type { Appointment } from "../../appointments/appointment";
-import {
-  CONSULT_TYPE_LABELS,
-  PRACTICE_TYPE_LABELS,
-  VISIT_TYPE_LABELS,
-} from "../../appointments/visit-type";
-import { coverageLabel } from "../../coverage/coverage";
-import { formatDateAR } from "../../datetime/format";
+import { appointmentDetailParams, instructionsParam } from "./appointment-params";
 import type { WhatsAppMessage } from "./whatsapp-sender";
+
+export { NO_INSTRUCTIONS_FALLBACK } from "./appointment-params";
 
 /**
  * The approved `appointment_confirmation_1` [es_AR] template, whose body is:
@@ -31,12 +27,6 @@ import type { WhatsAppMessage } from "./whatsapp-sender";
 const CONFIRMATION_TEMPLATE_NAME = "appointment_confirmation_1";
 const CONFIRMATION_TEMPLATE_LANGUAGE = "es_AR";
 
-/**
- * What {{6}} says when the coverage had no Instructions — Meta rejects an empty
- * body parameter, so the line always reads as something.
- */
-export const NO_INSTRUCTIONS_FALLBACK = "Sin indicaciones adicionales.";
-
 export interface ConfirmationOptions {
   /** Whether the approved template has the 7-parameter Instructions body. */
   withInstructions?: boolean;
@@ -59,13 +49,8 @@ export function confirmationWhatsApp(
   links: ConfirmationLinks,
   { withInstructions = false }: ConfirmationOptions = {},
 ): WhatsAppMessage {
-  const details = [
-    appointment.patientFirstName, // {{1}} nombre
-    formatDateAR(appointment.date), // {{2}} fecha
-    appointment.time, // {{3}} hora
-    visitTypeLabel(appointment), // {{4}} tipo
-    coverageLabel(appointment.coverage), // {{5}} obra social
-  ];
+  // {{1}} nombre, {{2}} fecha, {{3}} hora, {{4}} tipo, {{5}} obra social
+  const details = appointmentDetailParams(appointment);
   return {
     to: appointment.patientPhone,
     templateName: CONFIRMATION_TEMPLATE_NAME,
@@ -73,27 +58,9 @@ export function confirmationWhatsApp(
     params: withInstructions
       ? [
           ...details,
-          // {{6}} indicaciones — already one sanitized line (copied at booking)
-          appointment.coverageInstructions || NO_INSTRUCTIONS_FALLBACK,
+          instructionsParam(appointment), // {{6}} indicaciones
           links.manageUrl, // {{7}} enlace
         ]
       : [...details, links.manageUrl], // {{6}} enlace
   };
-}
-
-/**
- * The template's "Tipo" line ({{4}}) — the human-readable Spanish visit type.
- * Prefers the specific sub-type (Consulta/Práctica flavor) shown on the cita
- * page, falling back to the top-level Visit Type label. WhatsApp body parameters
- * cannot contain newlines or 4+ consecutive spaces, so the label is a single
- * clean phrase.
- */
-function visitTypeLabel(appointment: Appointment): string {
-  if (appointment.consultType) {
-    return `${VISIT_TYPE_LABELS[appointment.visitType]} · ${CONSULT_TYPE_LABELS[appointment.consultType]}`;
-  }
-  if (appointment.practiceType) {
-    return `${VISIT_TYPE_LABELS[appointment.visitType]} · ${PRACTICE_TYPE_LABELS[appointment.practiceType]}`;
-  }
-  return VISIT_TYPE_LABELS[appointment.visitType];
 }
