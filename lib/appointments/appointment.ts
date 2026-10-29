@@ -79,6 +79,14 @@ export interface Appointment {
    * that as legacy-consented rather than refused (see whatsappConsentGiven).
    */
   whatsappConsentAt?: string | null;
+  /**
+   * Reminder bookkeeping: when the day-before Reminder was sent and its
+   * WhatsApp message id. Absent until it is sent, which is also how existing
+   * Appointments read, so no migration is needed. The daily batch skips an
+   * Appointment that already has one, so a second run never double-sends.
+   */
+  reminderSentAt?: string;
+  reminderMessageId?: string;
   /** ISO timestamp of when the booking was created. */
   createdAt: string;
 }
