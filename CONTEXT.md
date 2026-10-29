@@ -102,12 +102,16 @@ _Avoid_: Cancellation policy, Grace period
 ### Notifications
 
 **Notification**:
-A WhatsApp message the system sends to the Patient about their Appointment. Two kinds: a Confirmation and a Cancellation Notice.
+A WhatsApp message the system sends to the Patient about their Appointment. Three kinds: a Confirmation, a Reminder, and a Cancellation Notice.
 _Avoid_: Message, Alert, SMS
 
 **Confirmation** (UI: _Confirmación_):
 The WhatsApp message sent to the Patient immediately after an Appointment is booked, confirming its date, time, and details.
-_Avoid_: Confirmation email, Receipt, Reminder
+_Avoid_: Confirmation email, Receipt
+
+**Reminder** (UI: _Recordatorio_):
+The WhatsApp message sent to the Patient the day before a Scheduled Appointment, at 08:00 Argentina time, repeating its date, time, details, and Coverage Instructions. Sent once per Appointment, and only to Patients who accepted WhatsApp. An Appointment booked after that morning's run for the next day gets only its Confirmation.
+_Avoid_: Reminder email, Follow-up
 
 **Cancellation Notice**:
 The WhatsApp message sent to the Patient when an Appointment becomes Cancelled — regardless of whether the Patient or the Professional cancelled it.

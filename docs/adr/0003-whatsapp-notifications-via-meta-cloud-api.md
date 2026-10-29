@@ -114,3 +114,30 @@ Professional edited `appointment_confirmation_1` [es_AR] to a 7-parameter body:
 - **The cita page shows them regardless.** The Instructions also appear on the
   Patient's appointment page the Confirmation links to, so they reach Patients
   even before the cutover or if Meta were to reject the edit.
+
+## Reminders are sent by a daily Vercel Cron batch
+
+The day before each Appointment the Patient gets a Reminder, the approved
+`confirmation_reminder` [es_AR] template. It has the same seven body parameters
+as the Instructions Confirmation: nombre, fecha, hora, tipo, obra social,
+indicaciones, enlace. Meta cannot schedule messages, so the app sends them
+itself. A Vercel Cron Job calls `/api/cron/reminders` once a day at
+`0 11 * * *` UTC, which is 08:00 in Argentina. Argentina has no DST, so the
+schedule never drifts. The route then reminds every Scheduled Appointment dated
+tomorrow on the Argentina calendar whose Patient gave WhatsApp consent.
+
+- **One batch a day, not one job per Appointment.** Volume is tens of messages,
+  and one daily run is easy to read in Vercel's cron logs.
+- **The route is protected by `CRON_SECRET`.** Vercel sends it as a bearer
+  token. If the secret is unset, the route refuses every request instead of
+  running unprotected.
+- **Each send is recorded on the Appointment** (`reminderSentAt`,
+  `reminderMessageId`). That makes a repeated firing or a manual trigger
+  harmless: an Appointment that was already reminded is skipped. A rejected send
+  records nothing, so a later trigger retries it.
+- **Each Appointment is best-effort.** One failure is counted and the batch
+  moves on. Every attempt still goes through the Send Log, so Reminders count
+  against the messaging limit shown in the Panel.
+- **Sending is flag-gated until Meta approves the template.** The flag is
+  `META_WHATSAPP_REMINDERS_ENABLED` and is on only when exactly `"true"`. While
+  it is off, the cron runs and sends nothing.
