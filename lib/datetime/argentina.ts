@@ -2,6 +2,30 @@
 export const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
 
 /**
+ * An instant (ISO-8601) as the Argentine wall-clock date and time:
+ * `{ date: "DD/MM/YYYY", time: "HH:MM" }`, regardless of the server's zone.
+ */
+export function instantInArgentina(iso: string): { date: string; time: string } {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: ARGENTINA_TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date(iso))
+      .map((part) => [part.type, part.value]),
+  );
+  return {
+    date: `${parts.day}/${parts.month}/${parts.year}`,
+    time: `${parts.hour}:${parts.minute}`,
+  };
+}
+
+/**
  * Tomorrow's date (`YYYY-MM-DD`) on the Argentine calendar, as of `now`.
  *
  * Vercel functions run in UTC, so this must not depend on the server's local

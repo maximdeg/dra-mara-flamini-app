@@ -17,3 +17,8 @@
   font-size: var(--text-xs, 0.75rem);
   white-space: nowrap;
 }
+
+/* The Reminder marker uses the same pill as "sin WhatsApp". */
+.reminderSent {
+  composes: noWhatsapp;
+}

@@ -6,6 +6,7 @@ import {
 } from "@/lib/appointments/visit-type";
 import { coverageLabel } from "@/lib/coverage/coverage";
 import { durationOf } from "@/lib/appointments/appointment";
+import { instantInArgentina } from "@/lib/datetime/argentina";
 import { formatDateAR, formatTimeRange } from "@/lib/datetime/format";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
@@ -27,6 +28,11 @@ function subTypeLabel(appointment: {
     ];
   }
   return null;
+}
+
+function reminderTitle(sentAt: string): string {
+  const { date, time } = instantInArgentina(sentAt);
+  return `Recordatorio de WhatsApp enviado el ${date} a las ${time}`;
 }
 
 /** Presentational Appointments table with per-row Status and a cancel action. */
@@ -62,6 +68,14 @@ export function AppointmentsTable({ views }: { views: AppointmentView[] }) {
                     title="Este paciente no quiere recibir avisos por WhatsApp"
                   >
                     sin WhatsApp
+                  </span>
+                )}
+                {appointment.reminderSentAt && (
+                  <span
+                    className={styles.reminderSent}
+                    title={reminderTitle(appointment.reminderSentAt)}
+                  >
+                    recordatorio enviado
                   </span>
                 )}
               </TD>

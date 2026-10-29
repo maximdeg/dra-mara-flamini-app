@@ -107,6 +107,32 @@ describe("AppointmentsTable", () => {
     expect(screen.getAllByText("sin WhatsApp")).toHaveLength(1);
   });
 
+  it("marks an Appointment whose Reminder was sent, with the send time in Argentina", () => {
+    render(
+      <ToastProvider>
+        <AppointmentsTable
+          views={[
+            { appointment: appointment(), status: "scheduled" },
+            {
+              appointment: appointment({
+                id: "a4",
+                patientFirstName: "Carla",
+                reminderSentAt: "2026-06-21T11:00:00.000Z",
+              }),
+              status: "scheduled",
+            },
+          ]}
+        />
+      </ToastProvider>,
+    );
+
+    const markers = screen.getAllByText("recordatorio enviado");
+    expect(markers).toHaveLength(1);
+    expect(markers[0].getAttribute("title")).toBe(
+      "Recordatorio de WhatsApp enviado el 21/06/2026 a las 08:00",
+    );
+  });
+
   it("offers a cancel action only for a scheduled row", () => {
     render(
       <ToastProvider>
