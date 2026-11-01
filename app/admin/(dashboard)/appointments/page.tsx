@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { listAppointments } from "@/lib/appointments/appointment-listing";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
 import {
   DERIVED_STATUSES,
   filterFromSearchParams,
+  SHOW_ALL_QUERY,
   type SearchParams,
 } from "@/lib/appointments/appointment-filter-params";
 import { STATUS_LABELS } from "@/lib/appointments/status";
@@ -61,9 +63,20 @@ export default async function AdminAppointmentsPage({
           <Field label="Hasta">
             <input type="date" name="to" defaultValue={filter.to ?? ""} />
           </Field>
-          <Button type="submit" className={styles.filterSubmit}>
-            Filtrar
-          </Button>
+          <div className={styles.actions}>
+            <Button type="submit">Filtrar</Button>
+            {/* The bare URL is a fresh visit, which opens on today. */}
+            <Button as={Link} href="/admin/appointments" variant="secondary">
+              Hoy
+            </Button>
+            <Button
+              as={Link}
+              href={`/admin/appointments?${SHOW_ALL_QUERY}`}
+              variant="secondary"
+            >
+              Ver todos
+            </Button>
+          </div>
         </form>
       </Card>
 

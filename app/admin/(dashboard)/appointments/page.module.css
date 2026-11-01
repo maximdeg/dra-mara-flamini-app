@@ -16,7 +16,10 @@
   align-items: end;
 }
 
-.filterSubmit {
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   justify-self: start;
 }
 
@@ -31,9 +34,12 @@
 }
 
 @media (max-width: 520px) {
-  /* A full-width submit is a comfortable tap target once the filters stack. */
-  .filterSubmit {
+  /* Full-width buttons are comfortable tap targets once the filters stack. */
+  .actions {
     justify-self: stretch;
-    width: 100%;
+  }
+
+  .actions > * {
+    flex: 1 1 100%;
   }
 }

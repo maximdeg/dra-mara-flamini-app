@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterFromSearchParams } from "./appointment-filter-params";
+import { filterFromSearchParams, SHOW_ALL_QUERY } from "./appointment-filter-params";
 
 const TODAY = "2026-11-02";
 
@@ -68,5 +68,17 @@ describe("filterFromSearchParams", () => {
     expect(
       filterFromSearchParams({ from: ["2026-11-02", "2026-12-01"] }, TODAY).from,
     ).toBe("2026-11-02");
+  });
+});
+
+describe("SHOW_ALL_QUERY", () => {
+  it("reads back as a filter with no limits", () => {
+    const params = Object.fromEntries(new URLSearchParams(SHOW_ALL_QUERY));
+    expect(filterFromSearchParams(params, TODAY)).toEqual({
+      from: undefined,
+      to: undefined,
+      status: undefined,
+      visitType: undefined,
+    });
   });
 });

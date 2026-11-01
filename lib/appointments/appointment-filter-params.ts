@@ -49,3 +49,9 @@ export function filterFromSearchParams(
       : undefined,
   };
 }
+
+/**
+ * The query string for "Ver todos": every filter key present and empty, which
+ * a submitted form reads as "no limits".
+ */
+export const SHOW_ALL_QUERY = FILTER_KEYS.map((key) => `${key}=`).join("&");
