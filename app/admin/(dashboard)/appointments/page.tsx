@@ -1,14 +1,12 @@
-import {
-  listAppointments,
-  type AppointmentFilter,
-} from "@/lib/appointments/appointment-listing";
+import { listAppointments } from "@/lib/appointments/appointment-listing";
 import { getAppointmentRepository } from "@/lib/appointments/get-appointment-repository";
-import { STATUS_LABELS, type DerivedStatus } from "@/lib/appointments/status";
 import {
-  VISIT_TYPES,
-  VISIT_TYPE_LABELS,
-  type VisitType,
-} from "@/lib/appointments/visit-type";
+  DERIVED_STATUSES,
+  filterFromSearchParams,
+  type SearchParams,
+} from "@/lib/appointments/appointment-filter-params";
+import { STATUS_LABELS } from "@/lib/appointments/status";
+import { VISIT_TYPES, VISIT_TYPE_LABELS } from "@/lib/appointments/visit-type";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -18,41 +16,13 @@ import styles from "./page.module.css";
 // Reads Appointments from the database on every request.
 export const dynamic = "force-dynamic";
 
-const DERIVED_STATUSES: DerivedStatus[] = [
-  "scheduled",
-  "cancelled",
-  "completed",
-];
-
-type SearchParams = Record<string, string | string[] | undefined>;
-
-function one(value: string | string[] | undefined): string | undefined {
-  const v = Array.isArray(value) ? value[0] : value;
-  return v && v.length > 0 ? v : undefined;
-}
-
-function parseFilter(params: SearchParams): AppointmentFilter {
-  const status = one(params.status);
-  const visitType = one(params.visitType);
-  return {
-    from: one(params.from),
-    to: one(params.to),
-    status: DERIVED_STATUSES.includes(status as DerivedStatus)
-      ? (status as DerivedStatus)
-      : undefined,
-    visitType: VISIT_TYPES.includes(visitType as VisitType)
-      ? (visitType as VisitType)
-      : undefined,
-  };
-}
-
 export default async function AdminAppointmentsPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const filter = parseFilter(params);
+  const filter = filterFromSearchParams(params);
   const views = await listAppointments(filter, {
     repository: await getAppointmentRepository(),
   });
