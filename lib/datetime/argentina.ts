@@ -26,20 +26,27 @@ export function instantInArgentina(iso: string): { date: string; time: string } 
 }
 
 /**
- * Tomorrow's date (`YYYY-MM-DD`) on the Argentine calendar, as of `now`.
+ * Today's date (`YYYY-MM-DD`) on the Argentine calendar, as of `now`.
  *
  * Vercel functions run in UTC, so this must not depend on the server's local
- * time zone. It reads today's Argentine date from Intl, then adds one calendar
- * day with UTC date arithmetic, which never shifts across zones.
+ * time zone: between 21:00 and midnight in Argentina, the UTC date is already
+ * tomorrow.
  */
-export function tomorrowInArgentina(now: Date): string {
+export function todayInArgentina(now: Date): string {
   // en-CA formats as YYYY-MM-DD.
-  const today = new Intl.DateTimeFormat("en-CA", {
+  return new Intl.DateTimeFormat("en-CA", {
     timeZone: ARGENTINA_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(now);
-  const [year, month, day] = today.split("-").map(Number);
+}
+
+/**
+ * Tomorrow's date (`YYYY-MM-DD`) on the Argentine calendar, as of `now`. Adds
+ * one calendar day with UTC date arithmetic, which never shifts across zones.
+ */
+export function tomorrowInArgentina(now: Date): string {
+  const [year, month, day] = todayInArgentina(now).split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
 }
