@@ -6,6 +6,7 @@ import {
   type SearchParams,
 } from "@/lib/appointments/appointment-filter-params";
 import { STATUS_LABELS } from "@/lib/appointments/status";
+import { todayInArgentina } from "@/lib/datetime/argentina";
 import { VISIT_TYPES, VISIT_TYPE_LABELS } from "@/lib/appointments/visit-type";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,7 +23,8 @@ export default async function AdminAppointmentsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const filter = filterFromSearchParams(params);
+  // A fresh visit opens on today's Appointments, on the Argentine calendar.
+  const filter = filterFromSearchParams(params, todayInArgentina(new Date()));
   const views = await listAppointments(filter, {
     repository: await getAppointmentRepository(),
   });

@@ -17,11 +17,25 @@ function one(value: string | string[] | undefined): string | undefined {
   return v && v.length > 0 ? v : undefined;
 }
 
+/** The URL keys the Turnos filter form submits. */
+export const FILTER_KEYS = ["status", "visitType", "from", "to"] as const;
+
 /**
- * The Turnos tab's filter, read from its URL. Empty values mean "no limit",
- * and unknown Status or Visit Type values are dropped.
+ * The Turnos tab's filter, read from its URL.
+ *
+ * A fresh visit (none of the filter keys in the URL) opens on `today`, in
+ * every Status and Visit Type. Submitting the form always sends every key,
+ * even empty ones, so once any key is present the values are honored as
+ * given: empty means "no limit", and unknown Status or Visit Type values are
+ * dropped.
  */
-export function filterFromSearchParams(params: SearchParams): AppointmentFilter {
+export function filterFromSearchParams(
+  params: SearchParams,
+  today: string,
+): AppointmentFilter {
+  if (!FILTER_KEYS.some((key) => key in params)) {
+    return { from: today, to: today, status: undefined, visitType: undefined };
+  }
   const status = one(params.status);
   const visitType = one(params.visitType);
   return {
