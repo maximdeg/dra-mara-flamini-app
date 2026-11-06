@@ -37,7 +37,7 @@ _Avoid_: Procedure
 The kind of Consultation: First Visit (_Primera vez_) or Follow-up (_Seguimiento_).
 
 **Practice Type** (UI: _Tipo de Práctica_):
-The kind of Practice: Cryosurgery (_Criocirugía_), Electrocoagulation (_Electrocoagulación_), or Biopsy (_Biopsia_).
+The kind of Practice: Cryosurgery (_Criocirugía_), Electrocoagulation (_Electrocoagulación_), or Biopsy (_Biopsia_). The Professional may also enter **Plasma** on a Manual Appointment. Plasma is admin-only: it is not a Visit Kind, so it has no Visit Duration or Work Schedule presence and Patients never see it.
 
 **Visit Kind**:
 What is actually being booked: a Visit Type together with its required sub-type — Consulta · Primera vez, Consulta · Seguimiento, Práctica · Criocirugía, Práctica · Electrocoagulación, or Práctica · Biopsia. Availability is set and offered per Visit Kind: the booking form offers dates and times only once the kind is complete.
@@ -48,8 +48,12 @@ How long a Visit Kind takes — 10 to 120 minutes in steps of 10, set by the Pro
 _Avoid_: Slot length, Appointment length (as the setting)
 
 **Aesthetic Treatment** (UI: _Tratamiento_):
-A treatment the practice offers that is **not** a Visit Kind — Peeling, Skinbooster, Toxina botulínica, or Plasma rico en plaquetas. It cannot be booked online: no Appointment, Time Slot, or Visit Duration exists for it. The home page lists these treatments, and the Patient arranges one with the practice over WhatsApp from a link that opens a chat. This is not a Notification, which the system sends itself.
+A treatment the practice offers that is **not** a Visit Kind — Peeling, Skinbooster, Toxina botulínica, or Plasma rico en plaquetas. It cannot be booked online: no Time Slot or Visit Duration exists for it. The one exception is on the admin side: the Professional may enter Plasma as a Manual Appointment. The home page lists these treatments, and the Patient arranges one with the practice over WhatsApp from a link that opens a chat. This is not a Notification, which the system sends itself.
 _Avoid_: Service, Practice, Visit Kind (for these treatments)
+
+**Manual Appointment** (UI: _Agendar turno_):
+An Appointment the Professional enters by hand from the admin panel instead of the Patient booking it. It may be at any date (past included) and any time, with a duration the Professional picks (10–120 minutes, defaulting to the kind's Visit Duration). It may be for Plasma, and its coverage may be any name typed under _Otro_. It skips the Booking Window, the Work Schedule, the open-Appointments-per-phone cap and the Deposit, and it has no email. It still never overlaps a Scheduled Appointment, and once saved online Time Slots step around it like any other. Changing the Work Schedule never collides with it, but adding an Unavailable Day on its date does. With the Patient's WhatsApp consent and a start still ahead, it gets the usual Confirmation and Reminder.
+_Avoid_: Manual booking (for the Appointment itself), Walk-in, Override
 
 **Status**:
 The lifecycle state of an Appointment: Scheduled, Cancelled, or Completed. A new booking is Scheduled; it becomes **Completed automatically once its date has passed** (never set by hand), or **Cancelled** when the Patient or Professional cancels it. Because the system stores only Appointments — no Patient table — this status is also what gates re-booking for a phone number (see Patient).
