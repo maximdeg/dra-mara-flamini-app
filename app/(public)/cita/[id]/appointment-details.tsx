@@ -3,7 +3,7 @@ import type { Appointment } from "@/lib/appointments/appointment";
 import type { DerivedStatus } from "@/lib/appointments/status";
 import {
   CONSULT_TYPE_LABELS,
-  PRACTICE_TYPE_LABELS,
+  APPOINTMENT_PRACTICE_TYPE_LABELS,
   VISIT_TYPE_LABELS,
 } from "@/lib/appointments/visit-type";
 import { coverageLabel } from "@/lib/coverage/coverage";
@@ -76,7 +76,7 @@ export function AppointmentDetails({
       ? [
           {
             label: "Tipo de práctica",
-            value: PRACTICE_TYPE_LABELS[appointment.practiceType],
+            value: APPOINTMENT_PRACTICE_TYPE_LABELS[appointment.practiceType],
           },
         ]
       : []),

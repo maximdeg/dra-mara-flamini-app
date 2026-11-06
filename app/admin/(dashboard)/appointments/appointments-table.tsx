@@ -1,7 +1,7 @@
 import type { AppointmentView } from "@/lib/appointments/appointment-listing";
 import {
   CONSULT_TYPE_LABELS,
-  PRACTICE_TYPE_LABELS,
+  APPOINTMENT_PRACTICE_TYPE_LABELS,
   VISIT_TYPE_LABELS,
 } from "@/lib/appointments/visit-type";
 import { coverageLabel } from "@/lib/coverage/coverage";
@@ -23,8 +23,8 @@ function subTypeLabel(appointment: {
     ];
   }
   if (appointment.practiceType) {
-    return PRACTICE_TYPE_LABELS[
-      appointment.practiceType as keyof typeof PRACTICE_TYPE_LABELS
+    return APPOINTMENT_PRACTICE_TYPE_LABELS[
+      appointment.practiceType as keyof typeof APPOINTMENT_PRACTICE_TYPE_LABELS
     ];
   }
   return null;

@@ -1,7 +1,7 @@
 import type { Appointment } from "../../appointments/appointment";
 import {
   CONSULT_TYPE_LABELS,
-  PRACTICE_TYPE_LABELS,
+  APPOINTMENT_PRACTICE_TYPE_LABELS,
   VISIT_TYPE_LABELS,
 } from "../../appointments/visit-type";
 import { coverageLabel } from "../../coverage/coverage";
@@ -49,7 +49,7 @@ function detailRows(appointment: AppointmentWithEmail): DetailRow[] {
   if (appointment.practiceType) {
     rows.push({
       label: "Tipo de práctica",
-      value: PRACTICE_TYPE_LABELS[appointment.practiceType],
+      value: APPOINTMENT_PRACTICE_TYPE_LABELS[appointment.practiceType],
     });
   }
   rows.push({ label: "Cobertura", value: coverageLabel(appointment.coverage) });

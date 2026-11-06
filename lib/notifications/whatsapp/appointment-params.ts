@@ -1,7 +1,7 @@
 import type { Appointment } from "../../appointments/appointment";
 import {
   CONSULT_TYPE_LABELS,
-  PRACTICE_TYPE_LABELS,
+  APPOINTMENT_PRACTICE_TYPE_LABELS,
   VISIT_TYPE_LABELS,
 } from "../../appointments/visit-type";
 import { coverageLabel } from "../../coverage/coverage";
@@ -47,7 +47,7 @@ function visitTypeLabel(appointment: Appointment): string {
     return `${VISIT_TYPE_LABELS[appointment.visitType]} · ${CONSULT_TYPE_LABELS[appointment.consultType]}`;
   }
   if (appointment.practiceType) {
-    return `${VISIT_TYPE_LABELS[appointment.visitType]} · ${PRACTICE_TYPE_LABELS[appointment.practiceType]}`;
+    return `${VISIT_TYPE_LABELS[appointment.visitType]} · ${APPOINTMENT_PRACTICE_TYPE_LABELS[appointment.practiceType]}`;
   }
   return VISIT_TYPE_LABELS[appointment.visitType];
 }

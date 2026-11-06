@@ -4,6 +4,7 @@ import {
   PRACTICE_TYPE_LABELS,
   PRACTICE_TYPES,
   VISIT_TYPE_LABELS,
+  type AppointmentPracticeType,
   type ConsultType,
   type PracticeType,
   type VisitType,
@@ -43,11 +44,13 @@ export const VISIT_KIND_LABELS: Record<VisitKind, string> = {
 export function visitKindOf(visit: {
   visitType: VisitType;
   consultType?: ConsultType | null;
-  practiceType?: PracticeType | null;
+  practiceType?: AppointmentPracticeType | null;
 }): VisitKind | null {
-  return visit.visitType === "Consultation"
-    ? (visit.consultType ?? null)
-    : (visit.practiceType ?? null);
+  if (visit.visitType === "Consultation") {
+    return visit.consultType ?? null;
+  }
+  // An admin-only Practice Type (Plasma) is not a Visit Kind.
+  return PRACTICE_TYPES.find((type) => type === visit.practiceType) ?? null;
 }
 
 /** Read a Visit Kind from untrusted input (a URL parameter), or null. */

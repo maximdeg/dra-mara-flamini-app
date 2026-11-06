@@ -11,7 +11,12 @@
  */
 import type { Coverage } from "../coverage/coverage";
 import type { Deposit } from "../deposit/deposit";
-import type { ConsultType, PracticeType, VisitType } from "./visit-type";
+import type {
+  AppointmentPracticeType,
+  ConsultType,
+  PracticeType,
+  VisitType,
+} from "./visit-type";
 
 export type AppointmentStatus = "scheduled" | "cancelled";
 
@@ -29,7 +34,8 @@ export interface Appointment {
   /** What the Appointment is for, and its required sub-type. */
   visitType: VisitType;
   consultType: ConsultType | null;
-  practiceType: PracticeType | null;
+  /** A bookable Practice Type, or Plasma when entered by the Professional. */
+  practiceType: AppointmentPracticeType | null;
   /** The chosen Health Insurance or Self-Pay variant. */
   coverage: Coverage;
   /**

@@ -32,3 +32,26 @@ export const PRACTICE_TYPE_LABELS: Record<PracticeType, string> = {
   Electrocoagulation: "Electrocoagulación",
   Biopsy: "Biopsia",
 };
+
+/**
+ * Practice Types only the Professional can enter, from the manual scheduler.
+ * They are not Visit Kinds: no Work Schedule range, Visit Duration or online
+ * booking ever offers them.
+ */
+export type AdminPracticeType = "Plasma";
+export const ADMIN_PRACTICE_TYPES: AdminPracticeType[] = ["Plasma"];
+
+/** Every Practice Type an Appointment may hold — the bookable ones and Plasma. */
+export type AppointmentPracticeType = PracticeType | AdminPracticeType;
+export const APPOINTMENT_PRACTICE_TYPES: AppointmentPracticeType[] = [
+  ...PRACTICE_TYPES,
+  ...ADMIN_PRACTICE_TYPES,
+];
+
+export const APPOINTMENT_PRACTICE_TYPE_LABELS: Record<
+  AppointmentPracticeType,
+  string
+> = {
+  ...PRACTICE_TYPE_LABELS,
+  Plasma: "Plasma",
+};

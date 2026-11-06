@@ -65,6 +65,18 @@ describe("confirmationWhatsApp", () => {
     expect(message.params[3]).toBe("Práctica · Biopsia");
   });
 
+  it("labels Plasma, the admin-only Practice Type", () => {
+    const message = confirmationWhatsApp(
+      appointment({
+        visitType: "Practice",
+        consultType: null,
+        practiceType: "Plasma",
+      }),
+      links,
+    );
+    expect(message.params[3]).toBe("Práctica · Plasma");
+  });
+
   it("labels a self-pay coverage rather than an insurer name", () => {
     const message = confirmationWhatsApp(
       appointment({ coverage: { kind: "self-pay", variant: "Particular" } }),
