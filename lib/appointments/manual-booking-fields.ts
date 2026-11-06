@@ -31,7 +31,7 @@ export interface ManualFields {
   date: string;
   /** 24-hour clock: "00"–"23", or "" until chosen. */
   hour: string;
-  /** "00"–"59". */
+  /** "00"–"55", in steps of 5. */
   minute: string;
   durationMinutes: number;
   /** Whether the Professional picked the duration by hand. */
@@ -68,8 +68,9 @@ const twoDigits = (n: number) => String(n).padStart(2, "0");
 export const HOUR_OPTIONS: string[] = Array.from({ length: 24 }, (_, h) =>
   twoDigits(h),
 );
-export const MINUTE_OPTIONS: string[] = Array.from({ length: 60 }, (_, m) =>
-  twoDigits(m),
+/** Every 5 minutes: "00", "05", … "55". */
+export const MINUTE_OPTIONS: string[] = Array.from({ length: 12 }, (_, i) =>
+  twoDigits(i * 5),
 );
 
 export interface Option<T extends string> {

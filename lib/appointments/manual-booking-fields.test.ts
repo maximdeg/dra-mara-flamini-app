@@ -122,13 +122,13 @@ describe("toManualBookingForm", () => {
 });
 
 describe("24-hour time", () => {
-  it("offers hours 00–23 and minutes 00–59", () => {
+  it("offers hours 00–23 and minutes every 5, 00–55", () => {
     expect(HOUR_OPTIONS[0]).toBe("00");
     expect(HOUR_OPTIONS.at(-1)).toBe("23");
     expect(HOUR_OPTIONS).toHaveLength(24);
-    expect(MINUTE_OPTIONS[0]).toBe("00");
-    expect(MINUTE_OPTIONS.at(-1)).toBe("59");
-    expect(MINUTE_OPTIONS).toHaveLength(60);
+    expect(MINUTE_OPTIONS).toEqual([
+      "00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55",
+    ]);
   });
 
   it("starts with no hour and minutes at 00", () => {

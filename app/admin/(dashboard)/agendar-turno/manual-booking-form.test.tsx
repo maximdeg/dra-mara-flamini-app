@@ -132,7 +132,7 @@ describe("ManualBookingForm", () => {
     expect(hours.slice(1, 3)).toEqual(["00", "01"]);
     expect(hours.at(-1)).toBe("23");
     expect(hours).not.toContain("AM");
-    expect(optionLabels("Minutos")).toHaveLength(60);
+    expect(optionLabels("Minutos")).toHaveLength(12);
   });
 
   it("saves without a phone", async () => {
