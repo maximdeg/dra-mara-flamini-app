@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   addInsurance,
   coverageInstructionsFor,
+  coverageLabel,
+  isCoverageValidForManualBooking,
+  MAX_OTHER_COVERAGE_NAME_LENGTH,
+  sanitizeOtherCoverageName,
   coverageOptionsFor,
   editInsurance,
   isCoverageValidForVisitType,
@@ -279,5 +283,78 @@ describe("coverageInstructionsFor", () => {
         selfPay,
       ),
     ).toBe("Traer estudios previos");
+  });
+});
+
+describe("other coverage (Otro, manual scheduler only)", () => {
+  const other = { kind: "other", name: "IOMA" } as const;
+
+  it("is never valid for an online booking, even under an accepted insurer's name", () => {
+    expect(isCoverageValidForVisitType(other, "Consultation", insurances)).toBe(
+      false,
+    );
+    expect(
+      isCoverageValidForVisitType(
+        { kind: "other", name: "OSDE" },
+        "Consultation",
+        insurances,
+      ),
+    ).toBe(false);
+  });
+
+  it("is valid for a manual booking when it has a name", () => {
+    expect(
+      isCoverageValidForManualBooking(other, "Practice", insurances),
+    ).toBe(true);
+    expect(
+      isCoverageValidForManualBooking(
+        { kind: "other", name: "  " },
+        "Practice",
+        insurances,
+      ),
+    ).toBe(false);
+  });
+
+  it("follows the online rules for Self-Pay and insurers in a manual booking", () => {
+    expect(
+      isCoverageValidForManualBooking(
+        { kind: "self-pay", variant: "Particular" },
+        "Practice",
+        insurances,
+      ),
+    ).toBe(false);
+    expect(
+      isCoverageValidForManualBooking(
+        { kind: "health-insurance", name: "IOMA" },
+        "Practice",
+        insurances,
+      ),
+    ).toBe(false);
+    expect(
+      isCoverageValidForManualBooking(
+        { kind: "health-insurance", name: "OSDE" },
+        "Practice",
+        insurances,
+      ),
+    ).toBe(true);
+  });
+
+  it("labels it with its typed name and carries no Instructions", () => {
+    expect(coverageLabel(other)).toBe("IOMA");
+    expect(
+      coverageInstructionsFor(other, insurances, {
+        Particular: "x",
+        PracticaParticular: "y",
+      }),
+    ).toBe("");
+  });
+
+  it("cleans the typed name into one short line", () => {
+    expect(sanitizeOtherCoverageName("  IOMA \n  plan\t  B  ")).toBe(
+      "IOMA plan B",
+    );
+    expect(sanitizeOtherCoverageName("x".repeat(200))).toHaveLength(
+      MAX_OTHER_COVERAGE_NAME_LENGTH,
+    );
   });
 });

@@ -13,7 +13,29 @@ export type SelfPayVariant = "Particular" | "PracticaParticular";
 
 export type Coverage =
   | { kind: "health-insurance"; name: string }
-  | { kind: "self-pay"; variant: SelfPayVariant };
+  | { kind: "self-pay"; variant: SelfPayVariant }
+  /**
+   * Any coverage the Professional types under "Otro" in the manual scheduler
+   * — not an accepted insurer, so never offered or accepted online, and it
+   * carries no Coverage Instructions or Deposit.
+   */
+  | { kind: "other"; name: string };
+
+/** The longest name the Professional may type for an "Otro" coverage. */
+export const MAX_OTHER_COVERAGE_NAME_LENGTH = 60;
+
+/**
+ * Turn a typed "Otro" coverage name into one short line. It travels as a
+ * WhatsApp template parameter, which rejects newlines, tabs and long space
+ * runs, so whitespace collapses to single spaces.
+ */
+export function sanitizeOtherCoverageName(raw: string): string {
+  return raw
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_OTHER_COVERAGE_NAME_LENGTH)
+    .trimEnd();
+}
 
 export interface HealthInsurance {
   name: string;
@@ -148,7 +170,25 @@ export function isCoverageValidForVisitType(
   if (coverage.kind === "self-pay") {
     return coverage.variant === selfPayVariantFor(visitType);
   }
+  if (coverage.kind === "other") {
+    return false;
+  }
   return insurances.some((insurance) => insurance.name === coverage.name);
+}
+
+/**
+ * The manual scheduler's rule: everything valid online, plus an "Otro"
+ * coverage with a non-blank name.
+ */
+export function isCoverageValidForManualBooking(
+  coverage: Coverage,
+  visitType: VisitType,
+  insurances: HealthInsurance[],
+): boolean {
+  if (coverage.kind === "other") {
+    return coverage.name.trim() !== "";
+  }
+  return isCoverageValidForVisitType(coverage, visitType, insurances);
 }
 
 /**
@@ -163,6 +203,9 @@ export function coverageInstructionsFor(
 ): string {
   if (coverage.kind === "self-pay") {
     return selfPayInstructions[coverage.variant];
+  }
+  if (coverage.kind === "other") {
+    return "";
   }
   return (
     insurances.find((insurance) => insurance.name === coverage.name)
