@@ -41,7 +41,8 @@ function fillPlasma() {
   change("Tipo de práctica", "Plasma");
   change("Obra social", "self-pay:PracticaParticular");
   change("Fecha", "2026-06-27");
-  change("Hora", "20:15");
+  change("Hora", "20");
+  change("Minutos", "15");
 }
 
 describe("ManualBookingForm", () => {
@@ -122,6 +123,30 @@ describe("ManualBookingForm", () => {
       "Ese horario ya está ocupado por otro turno.",
     );
     expect(screen.getByLabelText(/^Nombre/)).toHaveValue("Lucía");
+  });
+
+  it("picks the time on a 24-hour clock", () => {
+    renderForm();
+    const hours = optionLabels("Hora");
+    expect(hours[0]).toBe("--");
+    expect(hours.slice(1, 3)).toEqual(["00", "01"]);
+    expect(hours.at(-1)).toBe("23");
+    expect(hours).not.toContain("AM");
+    expect(optionLabels("Minutos")).toHaveLength(60);
+  });
+
+  it("saves without a phone", async () => {
+    bookMock.mockResolvedValue({ ok: true, date: "2026-06-27" });
+    renderForm();
+    fillPlasma();
+    change("Teléfono", "");
+
+    fireEvent.click(screen.getByRole("button", { name: "Agendar turno" }));
+
+    await screen.findByRole("status");
+    expect(bookMock).toHaveBeenCalledWith(
+      expect.objectContaining({ patientPhone: "", time: "20:15" }),
+    );
   });
 
   it("does not call the server while a select is still empty", () => {

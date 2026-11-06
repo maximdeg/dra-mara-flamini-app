@@ -16,6 +16,24 @@
   gap: var(--space-4);
 }
 
+/* Hora : Minutos, side by side in one grid cell. */
+.time {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.time > * {
+  flex: 1;
+}
+
+.time > .timeSeparator {
+  flex: 0;
+  padding-bottom: var(--space-3);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .hint {
   margin-top: var(--space-3);
   font-size: var(--text-sm);

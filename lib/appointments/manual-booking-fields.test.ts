@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_VISIT_DURATIONS } from "@/lib/availability/visit-durations";
 import {
   EMPTY_FIELDS,
+  HOUR_OPTIONS,
+  MINUTE_OPTIONS,
   OTHER_COVERAGE,
   practiceTypeOptions,
   toManualBookingForm,
@@ -22,7 +24,8 @@ const filled: ManualFields = {
   subType: "Biopsy",
   coverage: "self-pay:PracticaParticular",
   date: "2026-06-27",
-  time: "20:15",
+  hour: "20",
+  minute: "15",
   durationMinutes: 40,
   whatsappConsent: true,
 };
@@ -112,5 +115,28 @@ describe("toManualBookingForm", () => {
     expect(toManualBookingForm({ ...filled, visitType: "" })).toBeNull();
     expect(toManualBookingForm({ ...filled, subType: "" })).toBeNull();
     expect(toManualBookingForm({ ...filled, coverage: "" })).toBeNull();
+  });
+});
+
+describe("24-hour time", () => {
+  it("offers hours 00–23 and minutes 00–59", () => {
+    expect(HOUR_OPTIONS[0]).toBe("00");
+    expect(HOUR_OPTIONS.at(-1)).toBe("23");
+    expect(HOUR_OPTIONS).toHaveLength(24);
+    expect(MINUTE_OPTIONS[0]).toBe("00");
+    expect(MINUTE_OPTIONS.at(-1)).toBe("59");
+    expect(MINUTE_OPTIONS).toHaveLength(60);
+  });
+
+  it("starts with no hour and minutes at 00", () => {
+    expect(EMPTY_FIELDS.hour).toBe("");
+    expect(EMPTY_FIELDS.minute).toBe("00");
+  });
+
+  it("joins hour and minute into HH:MM, or leaves it blank without an hour", () => {
+    expect(toManualBookingForm({ ...filled, hour: "08", minute: "05" })?.time).toBe(
+      "08:05",
+    );
+    expect(toManualBookingForm({ ...filled, hour: "" })?.time).toBe("");
   });
 });

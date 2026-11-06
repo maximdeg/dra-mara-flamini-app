@@ -115,6 +115,21 @@ describe("bookManually — validation", () => {
     expect(await rejectionFor({ patientPhone: "123" })).toBe("InvalidPhone");
   });
 
+  it("accepts no phone, storing none and no WhatsApp consent, and sends nothing", async () => {
+    const sent: string[] = [];
+    const result = await bookManually(
+      { ...form, patientPhone: "  ", whatsappConsent: true },
+      deps({
+        notifyConfirmation: () => void sent.push("whatsapp"),
+        sendConfirmationEmail: () => void sent.push("email"),
+      }),
+    );
+    expect(result.ok && result.appointment.patientPhone).toBe("");
+    // No consent stored means no Reminder or Cancellation Notice later either.
+    expect(result.ok && result.appointment.whatsappConsentAt).toBeNull();
+    expect(sent).toEqual([]);
+  });
+
   it("requires a Consult Type for a Consultation and drops any Practice Type", async () => {
     expect(
       await rejectionFor({

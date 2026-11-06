@@ -59,7 +59,7 @@ export function AppointmentDetails({
       label: "Paciente",
       value: `${appointment.patientFirstName} ${appointment.patientLastName}`,
     },
-    { label: "Teléfono", value: appointment.patientPhone },
+    { label: "Teléfono", value: appointment.patientPhone || "—" },
     ...(appointment.patientEmail
       ? [{ label: "Email", value: appointment.patientEmail }]
       : []),

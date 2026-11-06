@@ -28,6 +28,7 @@ import {
 export interface ManualBookingForm {
   patientFirstName: string;
   patientLastName: string;
+  /** Optional: blank means no phone, and so no WhatsApp. */
   patientPhone: string;
   visitType: VisitType;
   consultType?: ConsultType | null;
@@ -123,10 +124,17 @@ export async function bookManually(
     return { ok: false, rejection: "MissingName" };
   }
 
-  const patientPhone = normalizeArgentinePhone(form.patientPhone);
+  // The phone is optional here: blank is stored as "" (and nothing is ever
+  // sent to it); anything typed must still be a valid Argentine number.
+  const rawPhone = (form.patientPhone ?? "").trim();
+  const patientPhone =
+    rawPhone === "" ? "" : normalizeArgentinePhone(rawPhone);
   if (patientPhone === null) {
     return { ok: false, rejection: "InvalidPhone" };
   }
+  // Without a phone there is no one to message, so no consent is recorded —
+  // which also keeps the Reminder and Cancellation Notice from going out.
+  const whatsappConsent = form.whatsappConsent && patientPhone !== "";
 
   const subType = subTypeOf(form);
   if (typeof subType === "string") {
@@ -198,7 +206,7 @@ export async function bookManually(
     time: form.time,
     durationMinutes: form.durationMinutes,
     status: "scheduled",
-    whatsappConsentAt: form.whatsappConsent ? now.toISOString() : null,
+    whatsappConsentAt: whatsappConsent ? now.toISOString() : null,
     whatsappSent: false,
     whatsappSentAt: null,
     whatsappMessageId: null,
@@ -212,7 +220,7 @@ export async function bookManually(
 
   // A Confirmation goes out only with the Patient's consent, and only before
   // the visit. Best-effort: a failure never costs the Professional the entry.
-  if (form.whatsappConsent && startsAfter(created, now)) {
+  if (whatsappConsent && startsAfter(created, now)) {
     try {
       await deps.notifyConfirmation(created);
     } catch {

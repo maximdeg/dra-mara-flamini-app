@@ -29,7 +29,10 @@ export interface ManualFields {
   coverage: string;
   otherCoverageName: string;
   date: string;
-  time: string;
+  /** 24-hour clock: "00"–"23", or "" until chosen. */
+  hour: string;
+  /** "00"–"59". */
+  minute: string;
   durationMinutes: number;
   /** Whether the Professional picked the duration by hand. */
   durationEdited: boolean;
@@ -48,11 +51,26 @@ export const EMPTY_FIELDS: ManualFields = {
   coverage: "",
   otherCoverageName: "",
   date: "",
-  time: "",
+  hour: "",
+  minute: "00",
   durationMinutes: DEFAULT_DURATION_MINUTES,
   durationEdited: false,
   whatsappConsent: true,
 };
+
+const twoDigits = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * The time is picked as hour + minute selects rather than a native time
+ * input, whose 12- or 24-hour display follows the browser's locale and can't
+ * be forced. These are always 24-hour.
+ */
+export const HOUR_OPTIONS: string[] = Array.from({ length: 24 }, (_, h) =>
+  twoDigits(h),
+);
+export const MINUTE_OPTIONS: string[] = Array.from({ length: 60 }, (_, m) =>
+  twoDigits(m),
+);
 
 export interface Option<T extends string> {
   value: T;
@@ -165,7 +183,8 @@ export function toManualBookingForm(
       : (fields.subType as AppointmentPracticeType),
     coverage,
     date: fields.date,
-    time: fields.time,
+    // Blank without an hour, which Manual Booking refuses as InvalidTime.
+    time: fields.hour ? `${fields.hour}:${fields.minute}` : "",
     durationMinutes: fields.durationMinutes,
     whatsappConsent: fields.whatsappConsent,
   };

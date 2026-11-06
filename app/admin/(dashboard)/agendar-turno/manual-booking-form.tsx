@@ -5,6 +5,8 @@ import { useState, useTransition, type FormEvent } from "react";
 import {
   consultTypeOptions,
   EMPTY_FIELDS,
+  HOUR_OPTIONS,
+  MINUTE_OPTIONS,
   OTHER_COVERAGE,
   practiceTypeOptions,
   toManualBookingForm,
@@ -115,7 +117,10 @@ export function ManualBookingForm({
                 autoComplete="off"
               />
             </Field>
-            <Field label="Teléfono" required hint="Con código de área, sin 0 ni 15.">
+            <Field
+              label="Teléfono (opcional)"
+              hint="Con código de área, sin 0 ni 15. Sin teléfono no se envía WhatsApp."
+            >
               <input
                 type="tel"
                 inputMode="tel"
@@ -219,13 +224,36 @@ export function ManualBookingForm({
                 onChange={(e) => set({ date: e.target.value })}
               />
             </Field>
-            <Field label="Hora" required>
-              <input
-                type="time"
-                value={fields.time}
-                onChange={(e) => set({ time: e.target.value })}
-              />
-            </Field>
+            <div className={styles.time}>
+              <Field label="Hora" required>
+                <select
+                  value={fields.hour}
+                  onChange={(e) => set({ hour: e.target.value })}
+                >
+                  <option value="">--</option>
+                  {HOUR_OPTIONS.map((hour) => (
+                    <option key={hour} value={hour}>
+                      {hour}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <span className={styles.timeSeparator} aria-hidden="true">
+                :
+              </span>
+              <Field label="Minutos" required>
+                <select
+                  value={fields.minute}
+                  onChange={(e) => set({ minute: e.target.value })}
+                >
+                  {MINUTE_OPTIONS.map((minute) => (
+                    <option key={minute} value={minute}>
+                      {minute}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
             <Field label="Duración" required>
               <select
                 value={fields.durationMinutes}
