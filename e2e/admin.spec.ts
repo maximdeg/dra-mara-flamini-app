@@ -34,3 +34,13 @@ test("calendar view", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /Enero 2026/ })).toBeVisible();
   await shot(page, "admin-calendar.png");
 });
+
+test("manual scheduler", async ({ page }) => {
+  // The empty form reads only the coverage list and durations, so it renders
+  // the same on any database until those settings change.
+  await page.goto("/admin/agendar-turno");
+  await expect(
+    page.getByRole("heading", { name: "Agendar turno" }),
+  ).toBeVisible();
+  await shot(page, "admin-manual-scheduler.png");
+});
