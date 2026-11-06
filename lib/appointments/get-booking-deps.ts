@@ -12,6 +12,7 @@ import { confirmationIncludesInstructions } from "../notifications/whatsapp/conf
 import { getWhatsAppSender } from "../notifications/whatsapp/get-whatsapp-sender";
 import { sendConfirmationWhatsApp } from "../notifications/whatsapp/send-confirmation-whatsapp";
 import type { Appointment } from "./appointment";
+import type { AppointmentRepository } from "./appointment-repository";
 import type { BookingDependencies } from "./booking";
 import { getAppointmentRepository } from "./get-appointment-repository";
 import { isAtOpenAppointmentLimit } from "./phone-limit";
@@ -48,6 +49,18 @@ export async function getBookingDeps(): Promise<BookingDependencies> {
         await repository.findScheduledByPhone(phone),
         now,
       ),
+    ...confirmationNotifiers(repository),
+  };
+}
+
+/**
+ * The two best-effort Confirmation channels, shared by online Booking and
+ * Manual Booking.
+ */
+export function confirmationNotifiers(
+  repository: AppointmentRepository,
+): Pick<BookingDependencies, "notifyConfirmation" | "sendConfirmationEmail"> {
+  return {
     // The WhatsApp sender is built lazily here so missing Meta config throws
     // inside book()'s best-effort catch rather than failing deps composition —
     // the Confirmation goes out via the Meta Cloud API template (ADR-0003).
