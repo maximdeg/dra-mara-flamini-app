@@ -92,7 +92,8 @@ interface SubType {
 
 /**
  * Booking — the deepest module in the system, and the only writer of new
- * Appointments.
+ * online Appointments (the Professional's manual entries go through Manual
+ * Booking instead).
  *
  * It validates that the form is internally consistent (required sub-type
  * present, the other normalized away; coverage valid for the Visit Type;
