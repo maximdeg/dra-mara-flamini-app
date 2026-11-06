@@ -76,13 +76,20 @@ export function collidingAppointments(
   );
 }
 
-/** Collisions of a proposed Work Schedule (slice 13). */
+/**
+ * Collisions of a proposed Work Schedule (slice 13). A manual Appointment is
+ * never one: the Professional placed it regardless of the schedule, so
+ * changing the schedule cannot strand it.
+ */
 export function collidingWithSchedule(
   appointments: Appointment[],
   proposed: WorkSchedule,
   now: Date,
 ): Appointment[] {
-  return collidingAppointments(appointments, now, (appointment) =>
-    fitsSchedule(appointment, proposed),
+  return collidingAppointments(
+    appointments,
+    now,
+    (appointment) =>
+      appointment.origin === "manual" || fitsSchedule(appointment, proposed),
   );
 }

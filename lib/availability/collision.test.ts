@@ -154,6 +154,25 @@ describe("collidingWithSchedule", () => {
     expect(collisions.map((a) => a.id)).toEqual([wednesday.id]);
   });
 
+  it("never flags a manual Appointment, which never depended on the Work Schedule", () => {
+    const saturdayEvening = {
+      ...appt("2026-06-27", "20:00"),
+      origin: "manual",
+    } as Appointment;
+    const mondayManual = { ...monday, id: "manual-mon", origin: "manual" } as Appointment;
+    const allClosed: WorkSchedule = DEFAULT_WORK_SCHEDULE.map((d) => ({
+      ...d,
+      isWorkingDay: false,
+      ranges: [],
+    }));
+    const collisions = collidingWithSchedule(
+      [...cast, saturdayEvening, mondayManual],
+      allClosed,
+      now,
+    );
+    expect(collisions.map((a) => a.id)).toEqual([monday.id, wednesday.id]);
+  });
+
   it("never flags past (Completed) or Cancelled Appointments", () => {
     const allClosed: WorkSchedule = DEFAULT_WORK_SCHEDULE.map((d) => ({
       ...d,

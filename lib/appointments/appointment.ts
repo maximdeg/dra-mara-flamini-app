@@ -59,6 +59,13 @@ export interface Appointment {
   durationMinutes?: number;
   status: AppointmentStatus;
   /**
+   * "manual" when the Professional entered it from the manual scheduler;
+   * absent for online bookings (and every Appointment saved before this
+   * existed). A manual Appointment never depended on the Work Schedule, so
+   * Horarios changes never collide with it.
+   */
+  origin?: "manual";
+  /**
    * Confirmation (WhatsApp) bookkeeping, denormalized onto the Appointment for
    * the dashboard. Set false/null at booking; updated when the Confirmation is
    * sent. The outbox is the source of truth per Notification.

@@ -59,6 +59,17 @@ describe("addUnavailableDay", () => {
     expect(await unavailableDays.list()).toEqual([]);
   });
 
+  it("blocks a date holding a manual Appointment too", async () => {
+    const { unavailableDays, deps } = await setup([
+      { ...appointment(), origin: "manual" },
+    ]);
+
+    const result = await addUnavailableDay("2026-06-22", deps);
+
+    expect(result.ok).toBe(false);
+    expect(await unavailableDays.list()).toEqual([]);
+  });
+
   it("blocks a free date and persists it", async () => {
     const { unavailableDays, deps } = await setup([appointment()]);
 
