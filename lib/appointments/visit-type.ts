@@ -38,10 +38,22 @@ export const PRACTICE_TYPE_LABELS: Record<PracticeType, string> = {
  * They are not Visit Kinds: no Work Schedule range, Visit Duration or online
  * booking ever offers them.
  */
-export type AdminPracticeType = "Plasma";
-export const ADMIN_PRACTICE_TYPES: AdminPracticeType[] = ["Plasma"];
+export type AdminPracticeType =
+  | "Plasma"
+  | "Peeling"
+  | "SkinBooster"
+  | "BotulinumToxin";
+export const ADMIN_PRACTICE_TYPES: AdminPracticeType[] = [
+  "Plasma",
+  "Peeling",
+  "SkinBooster",
+  "BotulinumToxin",
+];
 
-/** Every Practice Type an Appointment may hold — the bookable ones and Plasma. */
+/**
+ * Every Practice Type an Appointment may hold — the bookable ones and the
+ * admin-only ones.
+ */
 export type AppointmentPracticeType = PracticeType | AdminPracticeType;
 export const APPOINTMENT_PRACTICE_TYPES: AppointmentPracticeType[] = [
   ...PRACTICE_TYPES,
@@ -54,4 +66,7 @@ export const APPOINTMENT_PRACTICE_TYPE_LABELS: Record<
 > = {
   ...PRACTICE_TYPE_LABELS,
   Plasma: "Plasma",
+  Peeling: "Peeling",
+  SkinBooster: "Skin Booster",
+  BotulinumToxin: "Toxina Botulínica",
 };

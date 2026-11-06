@@ -169,6 +169,18 @@ describe("bookManually — validation", () => {
     expect(result.ok && result.appointment.consultType).toBeNull();
   });
 
+  it("accepts every admin-only Practice Type", async () => {
+    for (const practiceType of [
+      "Plasma",
+      "Peeling",
+      "SkinBooster",
+      "BotulinumToxin",
+    ] as const) {
+      const result = await bookManually({ ...form, practiceType }, deps());
+      expect(result.ok && result.appointment.practiceType).toBe(practiceType);
+    }
+  });
+
   it("refuses a malformed or non-existent date", async () => {
     for (const date of ["", "27/06/2026", "2026-02-30", "2026-6-1"]) {
       expect(await rejectionFor({ date })).toBe("InvalidDate");

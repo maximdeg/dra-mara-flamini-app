@@ -70,10 +70,15 @@ describe("visitKindOf", () => {
     ).toBe("Cryosurgery");
   });
 
-  it("is null for Plasma, an admin-only Practice Type that is not a Visit Kind", () => {
-    expect(
-      visitKindOf({ visitType: "Practice", practiceType: "Plasma" }),
-    ).toBeNull();
+  it("is null for the admin-only Practice Types, which are not Visit Kinds", () => {
+    for (const practiceType of [
+      "Plasma",
+      "Peeling",
+      "SkinBooster",
+      "BotulinumToxin",
+    ] as const) {
+      expect(visitKindOf({ visitType: "Practice", practiceType })).toBeNull();
+    }
   });
 
   it("is null while the sub-type is still missing", () => {
@@ -90,7 +95,7 @@ describe("parseVisitKind", () => {
   });
 
   it("rejects anything else", () => {
-    for (const value of [null, "", "biopsy", "Consultation", "Particular", "Plasma"]) {
+    for (const value of [null, "", "biopsy", "Consultation", "Particular", "Plasma", "Peeling", "SkinBooster", "BotulinumToxin"]) {
       expect(parseVisitKind(value)).toBeNull();
     }
   });

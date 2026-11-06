@@ -31,12 +31,15 @@ const filled: ManualFields = {
 };
 
 describe("practiceTypeOptions", () => {
-  it("offers the bookable Practice Types and Plasma", () => {
+  it("offers the bookable Practice Types and the admin-only ones", () => {
     expect(practiceTypeOptions().map((o) => o.label)).toEqual([
       "Criocirugía",
       "Electrocoagulación",
       "Biopsia",
       "Plasma",
+      "Peeling",
+      "Skin Booster",
+      "Toxina Botulínica",
     ]);
   });
 });
