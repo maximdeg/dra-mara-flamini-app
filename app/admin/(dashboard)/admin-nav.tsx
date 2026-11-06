@@ -8,6 +8,7 @@ import styles from "./admin-nav.module.css";
 const LINKS = [
   { href: "/admin", label: "Panel", exact: true },
   { href: "/admin/appointments", label: "Turnos" },
+  { href: "/admin/agendar-turno", label: "Agendar turno" },
   { href: "/admin/calendar", label: "Calendario" },
   { href: "/admin/schedule", label: "Horarios" },
   { href: "/admin/unavailable-days", label: "Días no laborables" },
